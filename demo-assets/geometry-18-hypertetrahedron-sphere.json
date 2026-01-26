@@ -1,0 +1,34 @@
+{
+  "version": "2.0",
+  "type": "vib3-sdk-config",
+  "name": "Hypertetrahedron Sphere",
+  "geometryIndex": 18,
+  "encoding": {
+    "formula": "geometry = coreIndex * 8 + baseIndex",
+    "coreIndex": 2,
+    "baseIndex": 2,
+    "coreType": "Hypertetrahedron",
+    "baseGeometry": "Sphere"
+  },
+  "parameters": {
+    "geometry": 18,
+    "gridDensity": 15,
+    "morphFactor": 1,
+    "chaos": 0.2,
+    "speed": 1,
+    "hue": 270,
+    "intensity": 0.7,
+    "saturation": 0.8,
+    "rot4dXY": 0,
+    "rot4dXZ": 0,
+    "rot4dYZ": 0,
+    "rot4dXW": 1.8,
+    "rot4dYW": 0.9,
+    "rot4dZW": 1.44
+  },
+  "timestamp": 1769320624415,
+  "metadata": {
+    "sdk": "VIB3+ SDK v1.9.0",
+    "author": "Demo Generator"
+  }
+}

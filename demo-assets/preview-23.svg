@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <defs>
+    <linearGradient id="grad23" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:hsl(345, 70%, 40%);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:hsl(45, 70%, 60%);stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow23">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="100" height="100" fill="#0a0a0f"/>
+  <path d="M50 5 L95 90 L5 90 Z" fill="none" stroke="hsl(345, 70%, 60%)" stroke-width="1" stroke-dasharray="3,5" opacity="0.5"/>
+  <path d="M50 10 L80 40 L80 60 L50 90 L20 60 L20 40 Z M50 10 L50 90 M20 40 L80 60 M80 40 L20 60" fill="none" stroke="url(#grad23)" stroke-width="2" filter="url(#glow23)"/>
+  <text x="50" y="96" text-anchor="middle" fill="white" font-size="6" font-family="monospace">Hypertetrahedron Crystal</text>
+</svg>

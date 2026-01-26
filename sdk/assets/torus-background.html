@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4D Torus Background - VIB3+ SDK Asset</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; overflow: hidden; }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+        .overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+            font-family: system-ui, sans-serif;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .overlay h1 {
+            font-size: 48px;
+            font-weight: 200;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+        .overlay p {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            letter-spacing: 4px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="overlay">
+        <h1>VIB3+</h1>
+        <p>4D VISUALIZATION ENGINE</p>
+    </div>
+
+    <script type="module">
+        import { Rotor4D } from '../src/math/Rotor4D.js';
+        import { Vec4 } from '../src/math/Vec4.js';
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Generate Clifford torus (4D torus)
+        const vertices = [];
+        const R = 1.5, r = 0.6;
+        const segments = 32;
+
+        for (let i = 0; i < segments; i++) {
+            for (let j = 0; j < segments; j++) {
+                const u = (i / segments) * Math.PI * 2;
+                const v = (j / segments) * Math.PI * 2;
+                // Clifford torus parametrization in 4D
+                vertices.push(new Vec4(
+                    R * Math.cos(u),
+                    R * Math.sin(u),
+                    r * Math.cos(v),
+                    r * Math.sin(v)
+                ));
+            }
+        }
+
+        // Generate edges (grid connections)
+        const edges = [];
+        for (let i = 0; i < segments; i++) {
+            for (let j = 0; j < segments; j++) {
+                const curr = i * segments + j;
+                const nextI = ((i + 1) % segments) * segments + j;
+                const nextJ = i * segments + ((j + 1) % segments);
+                edges.push([curr, nextI]);
+                edges.push([curr, nextJ]);
+            }
+        }
+
+        function project(v, rotor) {
+            const rotated = rotor.rotate(v);
+            const wDist = 4;
+            const scale4D = 1 / (wDist - rotated.w * 0.3);
+            const x3 = rotated.x * scale4D;
+            const y3 = rotated.y * scale4D;
+            const z3 = rotated.z * scale4D;
+            const zDist = 5;
+            const scale3D = 1 / (zDist - z3 * 0.3);
+            return {
+                x: canvas.width / 2 + x3 * scale3D * Math.min(canvas.width, canvas.height) * 0.25,
+                y: canvas.height / 2 - y3 * scale3D * Math.min(canvas.width, canvas.height) * 0.25,
+                depth: rotated.w + z3
+            };
+        }
+
+        function render() {
+            const t = performance.now() * 0.0001;
+
+            // Create 6D rotation
+            const r1 = Rotor4D.fromPlaneAngle('XY', t * 0.7);
+            const r2 = Rotor4D.fromPlaneAngle('XW', t * 1.1);
+            const r3 = Rotor4D.fromPlaneAngle('ZW', t * 0.5);
+            const rotor = r1.multiply(r2).multiply(r3);
+
+            // Fade effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const projected = vertices.map(v => project(v, rotor));
+
+            // Draw edges
+            edges.forEach(([i, j]) => {
+                const p1 = projected[i];
+                const p2 = projected[j];
+                const avgDepth = (p1.depth + p2.depth) / 2;
+                const opacity = Math.max(0.05, Math.min(0.4, 0.2 + avgDepth * 0.1));
+                const hue = (180 + avgDepth * 40 + t * 50) % 360;
+
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.strokeStyle = `hsla(${hue}, 70%, 50%, ${opacity})`;
+                ctx.lineWidth = Math.max(0.3, 1.5 - avgDepth * 0.2);
+                ctx.stroke();
+            });
+
+            requestAnimationFrame(render);
+        }
+
+        render();
+        console.log('VIB3+ 4D Torus Background');
+        console.log('Vertices:', vertices.length, 'Edges:', edges.length);
+    </script>
+</body>
+</html>

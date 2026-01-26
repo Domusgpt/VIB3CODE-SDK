@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>VIB3+ Export Demo - Generate Creative Outputs</title>
+    <style>
+        body { margin: 0; background: #0a0a0f; color: #fff; font-family: system-ui; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { background: linear-gradient(90deg, #0ff, #f0f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .container { display: grid; grid-template-columns: 1fr 300px; gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .canvas-wrap { background: #000; border-radius: 10px; overflow: hidden; position: relative; }
+        canvas { display: block; width: 100%; aspect-ratio: 16/9; }
+        .controls { background: #12121a; padding: 20px; border-radius: 10px; }
+        .control-group { margin-bottom: 15px; }
+        .control-group label { display: block; color: #0ff; font-size: 12px; margin-bottom: 5px; text-transform: uppercase; }
+        input[type="range"] { width: 100%; accent-color: #0ff; }
+        select, button { width: 100%; padding: 10px; margin-top: 5px; background: #1a1a24; color: #fff; border: 1px solid #333; border-radius: 5px; cursor: pointer; }
+        button { background: linear-gradient(90deg, #0ff, #f0f); color: #000; font-weight: bold; border: none; }
+        button:hover { opacity: 0.9; }
+        .exports { margin-top: 20px; }
+        .export-item { display: flex; gap: 10px; margin-bottom: 10px; }
+        .export-item button { flex: 1; }
+        #output { margin-top: 20px; }
+        #output img { max-width: 100%; border-radius: 5px; }
+        .info { font-size: 12px; color: #888; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>VIB3+ Creative Export</h1>
+        <p>Generate images and animations from 4D geometry</p>
+    </div>
+
+    <div class="container">
+        <div class="canvas-wrap">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Geometry</label>
+                <select id="geometry">
+                    <option value="0">Tetrahedron</option>
+                    <option value="1" selected>Hypercube</option>
+                    <option value="2">Sphere</option>
+                    <option value="3">Torus</option>
+                    <option value="4">Klein Bottle</option>
+                    <option value="5">Fractal</option>
+                    <option value="6">Wave</option>
+                    <option value="7">Crystal</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>XW Rotation (4D)</label>
+                <input type="range" id="rotXW" min="0" max="6.28" step="0.01" value="0.5">
+            </div>
+
+            <div class="control-group">
+                <label>ZW Rotation (4D)</label>
+                <input type="range" id="rotZW" min="0" max="6.28" step="0.01" value="0.3">
+            </div>
+
+            <div class="control-group">
+                <label>Grid Density</label>
+                <input type="range" id="density" min="2" max="10" step="0.1" value="4">
+            </div>
+
+            <div class="control-group">
+                <label>Color Hue</label>
+                <input type="range" id="hue" min="0" max="1" step="0.01" value="0.6">
+            </div>
+
+            <div class="exports">
+                <label>Export Options</label>
+                <div class="export-item">
+                    <button onclick="exportPNG()">Export PNG</button>
+                </div>
+                <div class="export-item">
+                    <button onclick="exportSVG()">Export SVG</button>
+                </div>
+                <div class="export-item">
+                    <button onclick="recordGIF()">Record 3s GIF</button>
+                </div>
+            </div>
+
+            <div id="output"></div>
+            <div class="info">
+                Tip: Adjust parameters then export. GIF records 3 seconds of animation.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true });
+
+        // Resize
+        function resize() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * 2;
+            canvas.height = rect.height * 2;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        resize();
+        window.onresize = resize;
+
+        // Parameters
+        const params = {
+            geometry: 1,
+            rotXW: 0.5,
+            rotZW: 0.3,
+            density: 4,
+            hue: 0.6
+        };
+
+        // Shader
+        const fs = `
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;
+uniform float u_geom;
+uniform float u_rotXW;
+uniform float u_rotZW;
+uniform float u_density;
+uniform float u_hue;
+
+mat4 rXW(float a){float c=cos(a),s=sin(a);return mat4(c,0,0,-s,0,1,0,0,0,0,1,0,s,0,0,c);}
+mat4 rZW(float a){float c=cos(a),s=sin(a);return mat4(1,0,0,0,0,1,0,0,0,0,c,-s,0,0,s,c);}
+
+float cube(vec3 p,float d){vec3 g=fract(p*d);vec3 e=min(g,1.0-g);return 1.0-smoothstep(0.0,0.06,min(min(e.x,e.y),e.z));}
+float sphere(vec3 p,float d){return 1.0-smoothstep(0.15,0.25,length(fract(p*d)-0.5));}
+float torus(vec3 p,float d){vec3 c=fract(p*d)-0.5;return 1.0-smoothstep(0.08,0.12,length(vec2(length(c.xy)-0.3,c.z)));}
+float tetra(vec3 p,float d){vec3 q=fract(p*d)-0.5;return 1.0-smoothstep(0.0,0.08,min(length(q),length(q-vec3(0.3,0,0))));}
+float klein(vec3 p,float d){vec3 c=fract(p*d)-0.5;float u=atan(c.y,c.x)/3.14;float x=(2.0+cos(u*.5))*cos(u)*.1;return 1.0-smoothstep(0.1,0.15,length(c.xy-vec2(x,(2.0+cos(u*.5))*sin(u)*.1)));}
+float fractal(vec3 p,float d){vec3 c=abs(fract(p*d)*2.0-1.0);float dist=length(max(abs(c)-.3,0.0));for(int i=0;i<3;i++){c=abs(c*2.0-1.0);dist=min(dist,length(max(abs(c)-.3,0.0))/pow(2.0,float(i+1)));}return 1.0-smoothstep(0.0,0.05,dist);}
+float wave(vec3 p,float d){return abs(sin(p.x*d*2.0+u_time)*sin(p.y*d*1.8+u_time*.7));}
+float crystal(vec3 p,float d){vec3 c=fract(p*d)-.5;return 1.0-smoothstep(0.3,0.4,max(max(abs(c.x)+abs(c.y),abs(c.y)+abs(c.z)),abs(c.x)+abs(c.z)));}
+
+float getGeom(vec3 p,float g,float d){
+    if(g<0.5)return tetra(p,d);
+    if(g<1.5)return cube(p,d);
+    if(g<2.5)return sphere(p,d);
+    if(g<3.5)return torus(p,d);
+    if(g<4.5)return klein(p,d);
+    if(g<5.5)return fractal(p,d);
+    if(g<6.5)return wave(p,d);
+    return crystal(p,d);
+}
+
+void main(){
+    vec2 uv=(gl_FragCoord.xy-u_res*.5)/min(u_res.x,u_res.y);
+    vec4 p=vec4(uv*2.5,sin(u_time*.3),cos(u_time*.2));
+    p=rXW(u_rotXW+u_time*.1)*p;
+    p=rZW(u_rotZW+u_time*.15)*p;
+    float w=2.0/(2.0+p.w);
+    vec3 p3=p.xyz*w;
+    float v=getGeom(p3,u_geom,u_density);
+    float h=u_hue+atan(uv.y,uv.x)/6.28*.2;
+    vec3 col=.5+.5*cos(6.28*(h+vec3(0,.33,.67)));
+    col*=pow(v,1.2);
+    col+=vec3(0,.2,.4)*v*.3;
+    gl_FragColor=vec4(col,1);
+}`;
+
+        const vs = `attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}`;
+
+        function compile(type, src) {
+            const s = gl.createShader(type);
+            gl.shaderSource(s, src);
+            gl.compileShader(s);
+            return s;
+        }
+
+        const prog = gl.createProgram();
+        gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
+        gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+        gl.linkProgram(prog);
+
+        const buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+        const pos = gl.getAttribLocation(prog, 'p');
+        gl.enableVertexAttribArray(pos);
+        gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+
+        const uniforms = {};
+        ['u_res','u_time','u_geom','u_rotXW','u_rotZW','u_density','u_hue'].forEach(n => {
+            uniforms[n] = gl.getUniformLocation(prog, n);
+        });
+
+        const start = Date.now();
+        function render() {
+            gl.useProgram(prog);
+            gl.uniform2f(uniforms.u_res, canvas.width, canvas.height);
+            gl.uniform1f(uniforms.u_time, (Date.now() - start) * 0.001);
+            gl.uniform1f(uniforms.u_geom, params.geometry);
+            gl.uniform1f(uniforms.u_rotXW, params.rotXW);
+            gl.uniform1f(uniforms.u_rotZW, params.rotZW);
+            gl.uniform1f(uniforms.u_density, params.density);
+            gl.uniform1f(uniforms.u_hue, params.hue);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            requestAnimationFrame(render);
+        }
+        render();
+
+        // Controls
+        document.getElementById('geometry').onchange = e => params.geometry = parseInt(e.target.value);
+        document.getElementById('rotXW').oninput = e => params.rotXW = parseFloat(e.target.value);
+        document.getElementById('rotZW').oninput = e => params.rotZW = parseFloat(e.target.value);
+        document.getElementById('density').oninput = e => params.density = parseFloat(e.target.value);
+        document.getElementById('hue').oninput = e => params.hue = parseFloat(e.target.value);
+
+        // Export PNG
+        function exportPNG() {
+            const link = document.createElement('a');
+            link.download = `vib3-${params.geometry}-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            document.getElementById('output').innerHTML = '<p style="color:#0f0">PNG exported!</p>';
+        }
+
+        // Export SVG (simplified vector representation)
+        function exportSVG() {
+            const w = 800, h = 450;
+            let paths = '';
+            const geomName = ['tetra','cube','sphere','torus','klein','fractal','wave','crystal'][params.geometry];
+
+            // Generate some representative paths based on geometry
+            for (let i = 0; i < 20; i++) {
+                const angle = (i / 20) * Math.PI * 2;
+                const r = 150 + Math.sin(angle * 3 + params.rotXW) * 50;
+                const x = w/2 + Math.cos(angle) * r;
+                const y = h/2 + Math.sin(angle) * r * 0.6;
+                const hue = (params.hue * 360 + i * 18) % 360;
+                paths += `<circle cx="${x}" cy="${y}" r="${5 + Math.sin(i)*3}" fill="hsl(${hue},80%,50%)" opacity="0.7"/>`;
+            }
+
+            // Add center pattern
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2 + params.rotZW;
+                const x1 = w/2, y1 = h/2;
+                const x2 = w/2 + Math.cos(angle) * 100;
+                const y2 = h/2 + Math.sin(angle) * 60;
+                const hue = (params.hue * 360 + i * 45) % 360;
+                paths += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="hsl(${hue},80%,60%)" stroke-width="2"/>`;
+            }
+
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">
+                <rect width="100%" height="100%" fill="#0a0a0f"/>
+                <text x="10" y="25" fill="#0ff" font-family="monospace" font-size="14">VIB3+ ${geomName}</text>
+                ${paths}
+            </svg>`;
+
+            const blob = new Blob([svg], {type: 'image/svg+xml'});
+            const link = document.createElement('a');
+            link.download = `vib3-${geomName}-${Date.now()}.svg`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            document.getElementById('output').innerHTML = '<p style="color:#0f0">SVG exported!</p>';
+        }
+
+        // Record GIF (using canvas frames)
+        async function recordGIF() {
+            document.getElementById('output').innerHTML = '<p style="color:#ff0">Recording 3 seconds...</p>';
+
+            const frames = [];
+            const frameCount = 30;
+            const frameDelay = 100;
+
+            for (let i = 0; i < frameCount; i++) {
+                await new Promise(r => setTimeout(r, frameDelay));
+                frames.push(canvas.toDataURL('image/png'));
+            }
+
+            // Create simple frame display (real GIF would need a library)
+            let html = '<p style="color:#0f0">Captured 30 frames. Click to download individual frames:</p>';
+            html += `<button onclick="downloadFrames()" style="margin-top:10px">Download All Frames (ZIP)</button>`;
+
+            // Store frames globally for download
+            window.capturedFrames = frames;
+
+            document.getElementById('output').innerHTML = html;
+        }
+
+        // Download frames as individual PNGs
+        window.downloadFrames = async function() {
+            if (!window.capturedFrames) return;
+
+            for (let i = 0; i < window.capturedFrames.length; i++) {
+                const link = document.createElement('a');
+                link.download = `vib3-frame-${String(i).padStart(3,'0')}.png`;
+                link.href = window.capturedFrames[i];
+                link.click();
+                await new Promise(r => setTimeout(r, 100)); // Delay between downloads
+            }
+        };
+    </script>
+</body>
+</html>

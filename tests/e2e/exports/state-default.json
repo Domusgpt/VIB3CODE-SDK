@@ -1,0 +1,24 @@
+{
+  "type": "vib34d-integrated-config",
+  "version": "1.0.0",
+  "timestamp": "2026-01-24T05:43:53.294Z",
+  "name": "VIB34D Config 1/24/2026",
+  "parameters": {
+    "variation": 0,
+    "rot4dXY": 0,
+    "rot4dXZ": 0,
+    "rot4dYZ": 0,
+    "rot4dXW": 0,
+    "rot4dYW": 0,
+    "rot4dZW": 0,
+    "dimension": 3.5,
+    "gridDensity": 15,
+    "morphFactor": 1,
+    "chaos": 0.2,
+    "speed": 1,
+    "hue": 200,
+    "intensity": 0.5,
+    "saturation": 0.8,
+    "geometry": 0
+  }
+}

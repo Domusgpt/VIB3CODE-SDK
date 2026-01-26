@@ -1,0 +1,34 @@
+{
+  "version": "2.0",
+  "type": "vib3-sdk-config",
+  "name": "Hypertetrahedron Klein Bottle",
+  "geometryIndex": 20,
+  "encoding": {
+    "formula": "geometry = coreIndex * 8 + baseIndex",
+    "coreIndex": 2,
+    "baseIndex": 4,
+    "coreType": "Hypertetrahedron",
+    "baseGeometry": "Klein Bottle"
+  },
+  "parameters": {
+    "geometry": 20,
+    "gridDensity": 15,
+    "morphFactor": 1,
+    "chaos": 0.2,
+    "speed": 1,
+    "hue": 300,
+    "intensity": 0.7,
+    "saturation": 0.8,
+    "rot4dXY": 0,
+    "rot4dXZ": 0,
+    "rot4dYZ": 0,
+    "rot4dXW": 2,
+    "rot4dYW": 1,
+    "rot4dZW": 1.6
+  },
+  "timestamp": 1769320624416,
+  "metadata": {
+    "sdk": "VIB3+ SDK v1.9.0",
+    "author": "Demo Generator"
+  }
+}

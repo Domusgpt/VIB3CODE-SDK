@@ -1,0 +1,218 @@
+{
+  "timestamp": "2026-01-24T05:50:54.910Z",
+  "sdkVersion": "1.9.0",
+  "renderer": "SVGExporter",
+  "renderOptions": {
+    "width": 512,
+    "height": 512,
+    "strokeWidth": 1.5,
+    "includeMetadata": true,
+    "backgroundColor": "#111111",
+    "precision": 2
+  },
+  "totalRendered": 10,
+  "totalFailed": 0,
+  "renders": [
+    {
+      "name": "tetrahedron-base",
+      "file": "tetrahedron-base.svg",
+      "params": {
+        "system": "quantum",
+        "geometry": 0,
+        "hue": 120,
+        "saturation": 0.8,
+        "intensity": 0.9,
+        "gridDensity": 16,
+        "dimension": 3.5,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0,
+        "rot4dYW": 0,
+        "rot4dZW": 0
+      },
+      "success": true
+    },
+    {
+      "name": "tetrahedron-rotated-XY",
+      "file": "tetrahedron-rotated-XY.svg",
+      "params": {
+        "system": "quantum",
+        "geometry": 0,
+        "hue": 120,
+        "saturation": 0.8,
+        "intensity": 0.9,
+        "gridDensity": 16,
+        "dimension": 3.5,
+        "rot4dXY": 0.7853981633974483,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0,
+        "rot4dYW": 0,
+        "rot4dZW": 0
+      },
+      "success": true
+    },
+    {
+      "name": "tetrahedron-rotated-XW",
+      "file": "tetrahedron-rotated-XW.svg",
+      "params": {
+        "system": "quantum",
+        "geometry": 0,
+        "hue": 120,
+        "saturation": 0.8,
+        "intensity": 0.9,
+        "gridDensity": 16,
+        "dimension": 3.5,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.5,
+        "rot4dYW": 0,
+        "rot4dZW": 0
+      },
+      "success": true
+    },
+    {
+      "name": "hypercube-base",
+      "file": "hypercube-base.svg",
+      "params": {
+        "system": "quantum",
+        "geometry": 1,
+        "hue": 200,
+        "saturation": 0.7,
+        "intensity": 0.8,
+        "gridDensity": 12,
+        "dimension": 3.5,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0,
+        "rot4dYW": 0,
+        "rot4dZW": 0
+      },
+      "success": true
+    },
+    {
+      "name": "hypercube-full-6D",
+      "file": "hypercube-full-6D.svg",
+      "params": {
+        "system": "faceted",
+        "geometry": 1,
+        "hue": 280,
+        "saturation": 0.8,
+        "intensity": 0.9,
+        "gridDensity": 12,
+        "dimension": 3.8,
+        "rot4dXY": 0.3,
+        "rot4dXZ": 0.2,
+        "rot4dYZ": 0.4,
+        "rot4dXW": 0.5,
+        "rot4dYW": 0.3,
+        "rot4dZW": 0.2
+      },
+      "success": true
+    },
+    {
+      "name": "sphere-holographic",
+      "file": "sphere-holographic.svg",
+      "params": {
+        "system": "holographic",
+        "geometry": 2,
+        "hue": 180,
+        "saturation": 0.9,
+        "intensity": 0.95,
+        "gridDensity": 20,
+        "dimension": 3.5,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0,
+        "rot4dYW": 0,
+        "rot4dZW": 0
+      },
+      "success": true
+    },
+    {
+      "name": "torus-hypersphere-core",
+      "file": "torus-hypersphere-core.svg",
+      "params": {
+        "system": "quantum",
+        "geometry": 11,
+        "hue": 60,
+        "saturation": 0.85,
+        "intensity": 0.9,
+        "gridDensity": 18,
+        "dimension": 3.7,
+        "rot4dXY": 0.5,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0.3,
+        "rot4dXW": 0.4,
+        "rot4dYW": 0,
+        "rot4dZW": 0.2
+      },
+      "success": true
+    },
+    {
+      "name": "klein-bottle-hypertetra-core",
+      "file": "klein-bottle-hypertetra-core.svg",
+      "params": {
+        "system": "faceted",
+        "geometry": 20,
+        "hue": 320,
+        "saturation": 0.75,
+        "intensity": 0.85,
+        "gridDensity": 14,
+        "dimension": 4,
+        "rot4dXY": 0.2,
+        "rot4dXZ": 0.3,
+        "rot4dYZ": 0.1,
+        "rot4dXW": 0.6,
+        "rot4dYW": 0.4,
+        "rot4dZW": 0.3
+      },
+      "success": true
+    },
+    {
+      "name": "wave-quantum",
+      "file": "wave-quantum.svg",
+      "params": {
+        "system": "quantum",
+        "geometry": 6,
+        "hue": 240,
+        "saturation": 0.8,
+        "intensity": 0.9,
+        "gridDensity": 16,
+        "dimension": 3.5,
+        "chaos": 0.2,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.3,
+        "rot4dYW": 0.2,
+        "rot4dZW": 0.1
+      },
+      "success": true
+    },
+    {
+      "name": "crystal-all-rotations",
+      "file": "crystal-all-rotations.svg",
+      "params": {
+        "system": "holographic",
+        "geometry": 7,
+        "hue": 30,
+        "saturation": 0.9,
+        "intensity": 1,
+        "gridDensity": 12,
+        "dimension": 3.8,
+        "rot4dXY": 0.5235987755982988,
+        "rot4dXZ": 0.39269908169872414,
+        "rot4dYZ": 0.3141592653589793,
+        "rot4dXW": 0.7,
+        "rot4dYW": 0.5,
+        "rot4dZW": 0.3
+      },
+      "success": true
+    }
+  ]
+}

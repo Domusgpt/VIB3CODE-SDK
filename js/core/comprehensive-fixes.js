@@ -193,8 +193,8 @@ window.randomizeAll = function() {
 window.randomizeEverything = function() {
     console.log('🎯 Full randomize with animations...');
 
-    // Random system
-    const systems = ['faceted', 'quantum', 'holographic', 'polychora'];
+    // Random system (3 active - polychora is TBD)
+    const systems = ['faceted', 'quantum', 'holographic'];
     const randomSystem = systems[Math.floor(Math.random() * systems.length)];
 
     if (window.switchSystem) {

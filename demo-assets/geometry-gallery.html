@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB3+ SDK - 24 Geometry Gallery</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: white;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .encoding-info {
+            background: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-family: monospace;
+        }
+        .encoding-info code {
+            color: #00ff88;
+            font-size: 16px;
+        }
+        .core-section {
+            margin-bottom: 40px;
+        }
+        .core-title {
+            font-size: 18px;
+            color: #00ffff;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: #12121a;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #333;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,255,255,0.2);
+        }
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            background: #0a0a0f;
+        }
+        .card-info {
+            padding: 15px;
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .card-meta {
+            font-size: 11px;
+            color: #666;
+        }
+        .geometry-badge {
+            display: inline-block;
+            background: #00ff88;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>VIB3+ SDK Geometry Gallery</h1>
+    <p class="subtitle">24 Geometries = 8 Base × 3 Core Types</p>
+
+    <div class="encoding-info">
+        <code>geometry_index = core_index × 8 + base_index</code>
+        <br><br>
+        <span style="color:#888">Base (0-7): Tetrahedron, Hypercube, Sphere, Torus, Klein Bottle, Fractal, Wave, Crystal</span>
+        <br>
+        <span style="color:#888">Core (0-2): Base, Hypersphere, Hypertetrahedron</span>
+    </div>
+
+    
+    <div class="core-section">
+        <h2 class="core-title">Base Core (0-7)</h2>
+        <div class="gallery">
+            
+            <div class="card">
+                <img src="preview-00.svg" alt="Base Tetrahedron">
+                <div class="card-info">
+                    <div class="card-title">Tetrahedron</div>
+                    <div class="card-meta">Core: Base | Base: 0</div>
+                    <span class="geometry-badge">Geometry 0</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-01.svg" alt="Base Hypercube">
+                <div class="card-info">
+                    <div class="card-title">Hypercube</div>
+                    <div class="card-meta">Core: Base | Base: 1</div>
+                    <span class="geometry-badge">Geometry 1</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-02.svg" alt="Base Sphere">
+                <div class="card-info">
+                    <div class="card-title">Sphere</div>
+                    <div class="card-meta">Core: Base | Base: 2</div>
+                    <span class="geometry-badge">Geometry 2</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-03.svg" alt="Base Torus">
+                <div class="card-info">
+                    <div class="card-title">Torus</div>
+                    <div class="card-meta">Core: Base | Base: 3</div>
+                    <span class="geometry-badge">Geometry 3</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-04.svg" alt="Base Klein Bottle">
+                <div class="card-info">
+                    <div class="card-title">Klein Bottle</div>
+                    <div class="card-meta">Core: Base | Base: 4</div>
+                    <span class="geometry-badge">Geometry 4</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-05.svg" alt="Base Fractal">
+                <div class="card-info">
+                    <div class="card-title">Fractal</div>
+                    <div class="card-meta">Core: Base | Base: 5</div>
+                    <span class="geometry-badge">Geometry 5</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-06.svg" alt="Base Wave">
+                <div class="card-info">
+                    <div class="card-title">Wave</div>
+                    <div class="card-meta">Core: Base | Base: 6</div>
+                    <span class="geometry-badge">Geometry 6</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-07.svg" alt="Base Crystal">
+                <div class="card-info">
+                    <div class="card-title">Crystal</div>
+                    <div class="card-meta">Core: Base | Base: 7</div>
+                    <span class="geometry-badge">Geometry 7</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="core-section">
+        <h2 class="core-title">Hypersphere Core (8-15)</h2>
+        <div class="gallery">
+            
+            <div class="card">
+                <img src="preview-08.svg" alt="Hypersphere Tetrahedron">
+                <div class="card-info">
+                    <div class="card-title">Tetrahedron</div>
+                    <div class="card-meta">Core: Hypersphere | Base: 0</div>
+                    <span class="geometry-badge">Geometry 8</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-09.svg" alt="Hypersphere Hypercube">
+                <div class="card-info">
+                    <div class="card-title">Hypercube</div>
+                    <div class="card-meta">Core: Hypersphere | Base: 1</div>
+                    <span class="geometry-badge">Geometry 9</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-10.svg" alt="Hypersphere Sphere">
+                <div class="card-info">
+                    <div class="card-title">Sphere</div>
+                    <div class="card-meta">Core: Hypersphere | Base: 2</div>
+                    <span class="geometry-badge">Geometry 10</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-11.svg" alt="Hypersphere Torus">
+                <div class="card-info">
+                    <div class="card-title">Torus</div>
+                    <div class="card-meta">Core: Hypersphere | Base: 3</div>
+                    <span class="geometry-badge">Geometry 11</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-12.svg" alt="Hypersphere Klein Bottle">
+                <div class="card-info">
+                    <div class="card-title">Klein Bottle</div>
+                    <div class="card-meta">Core: Hypersphere | Base: 4</div>
+                    <span class="geometry-badge">Geometry 12</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-13.svg" alt="Hypersphere Fractal">
+                <div class="card-info">
+                    <div class="card-title">Fractal</div>
+                    <div class="card-meta">Core: Hypersphere | Base: 5</div>
+                    <span class="geometry-badge">Geometry 13</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-14.svg" alt="Hypersphere Wave">
+                <div class="card-info">
+                    <div class="card-title">Wave</div>
+                    <div class="card-meta">Core: Hypersphere | Base: 6</div>
+                    <span class="geometry-badge">Geometry 14</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-15.svg" alt="Hypersphere Crystal">
+                <div class="card-info">
+                    <div class="card-title">Crystal</div>
+                    <div class="card-meta">Core: Hypersphere | Base: 7</div>
+                    <span class="geometry-badge">Geometry 15</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="core-section">
+        <h2 class="core-title">Hypertetrahedron Core (16-23)</h2>
+        <div class="gallery">
+            
+            <div class="card">
+                <img src="preview-16.svg" alt="Hypertetrahedron Tetrahedron">
+                <div class="card-info">
+                    <div class="card-title">Tetrahedron</div>
+                    <div class="card-meta">Core: Hypertetrahedron | Base: 0</div>
+                    <span class="geometry-badge">Geometry 16</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-17.svg" alt="Hypertetrahedron Hypercube">
+                <div class="card-info">
+                    <div class="card-title">Hypercube</div>
+                    <div class="card-meta">Core: Hypertetrahedron | Base: 1</div>
+                    <span class="geometry-badge">Geometry 17</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-18.svg" alt="Hypertetrahedron Sphere">
+                <div class="card-info">
+                    <div class="card-title">Sphere</div>
+                    <div class="card-meta">Core: Hypertetrahedron | Base: 2</div>
+                    <span class="geometry-badge">Geometry 18</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-19.svg" alt="Hypertetrahedron Torus">
+                <div class="card-info">
+                    <div class="card-title">Torus</div>
+                    <div class="card-meta">Core: Hypertetrahedron | Base: 3</div>
+                    <span class="geometry-badge">Geometry 19</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-20.svg" alt="Hypertetrahedron Klein Bottle">
+                <div class="card-info">
+                    <div class="card-title">Klein Bottle</div>
+                    <div class="card-meta">Core: Hypertetrahedron | Base: 4</div>
+                    <span class="geometry-badge">Geometry 20</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-21.svg" alt="Hypertetrahedron Fractal">
+                <div class="card-info">
+                    <div class="card-title">Fractal</div>
+                    <div class="card-meta">Core: Hypertetrahedron | Base: 5</div>
+                    <span class="geometry-badge">Geometry 21</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-22.svg" alt="Hypertetrahedron Wave">
+                <div class="card-info">
+                    <div class="card-title">Wave</div>
+                    <div class="card-meta">Core: Hypertetrahedron | Base: 6</div>
+                    <span class="geometry-badge">Geometry 22</span>
+                </div>
+            </div>
+            <div class="card">
+                <img src="preview-23.svg" alt="Hypertetrahedron Crystal">
+                <div class="card-info">
+                    <div class="card-title">Crystal</div>
+                    <div class="card-meta">Core: Hypertetrahedron | Base: 7</div>
+                    <span class="geometry-badge">Geometry 23</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        VIB3+ SDK v1.9.0 | Generated 2026-01-25T05:57:04.424Z
+        <br>
+        6D Rotation: XY, XZ, YZ (3D) + XW, YW, ZW (4D Hyperspace)
+    </footer>
+</body>
+</html>

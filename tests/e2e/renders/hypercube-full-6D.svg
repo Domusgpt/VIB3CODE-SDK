@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-vib3-geometry="1" data-vib3-system="faceted" data-vib3-core-type="Base">
+  <defs>
+    <style>
+      :root {
+        --vib3-hue: 280;
+        --vib3-saturation: 0.8;
+        --vib3-intensity: 0.9;
+      }
+    </style>
+  </defs>
+  <rect width="512" height="512" fill="#111111"/>
+  <g id="geometry-layer">
+    <line x1="233.76" y1="287.88" x2="255.23" y2="277.20" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="233.76" y1="287.88" x2="278.39" y2="265.68" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="233.76" y1="287.88" x2="246.68" y2="278.25" stroke="hsla(100, 64%, 60%, 0.29)" stroke-width="0.44" stroke-linecap="round"/>
+    <line x1="233.76" y1="287.88" x2="226.86" y2="267.70" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.39" stroke-linecap="round"/>
+    <line x1="255.23" y1="277.20" x2="278.39" y2="265.68" stroke="hsla(100, 64%, 60%, 0.23)" stroke-width="0.34" stroke-linecap="round"/>
+    <line x1="255.23" y1="277.20" x2="246.68" y2="278.25" stroke="hsla(100, 64%, 60%, 0.34)" stroke-width="0.51" stroke-linecap="round"/>
+    <line x1="255.23" y1="277.20" x2="226.86" y2="267.70" stroke="hsla(100, 64%, 60%, 0.20)" stroke-width="0.30" stroke-linecap="round"/>
+    <line x1="255.23" y1="277.20" x2="257.36" y2="270.30" stroke="hsla(100, 64%, 60%, 0.35)" stroke-width="0.53" stroke-linecap="round"/>
+    <line x1="278.39" y1="265.68" x2="246.68" y2="278.25" stroke="hsla(100, 64%, 60%, 0.17)" stroke-width="0.26" stroke-linecap="round"/>
+    <line x1="278.39" y1="265.68" x2="257.36" y2="270.30" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="278.39" y1="265.68" x2="287.68" y2="257.64" stroke="hsla(100, 64%, 60%, 0.32)" stroke-width="0.48" stroke-linecap="round"/>
+    <line x1="246.68" y1="278.25" x2="226.86" y2="267.70" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="246.68" y1="278.25" x2="257.36" y2="270.30" stroke="hsla(100, 64%, 60%, 0.31)" stroke-width="0.47" stroke-linecap="round"/>
+    <line x1="246.68" y1="278.25" x2="287.68" y2="257.64" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="246.68" y1="278.25" x2="275.72" y2="260.98" stroke="hsla(100, 64%, 60%, 0.17)" stroke-width="0.26" stroke-linecap="round"/>
+    <line x1="226.86" y1="267.70" x2="257.36" y2="270.30" stroke="hsla(100, 64%, 60%, 0.20)" stroke-width="0.29" stroke-linecap="round"/>
+    <line x1="226.86" y1="267.70" x2="275.72" y2="260.98" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="257.36" y1="270.30" x2="287.68" y2="257.64" stroke="hsla(100, 64%, 60%, 0.18)" stroke-width="0.27" stroke-linecap="round"/>
+    <line x1="257.36" y1="270.30" x2="275.72" y2="260.98" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.39" stroke-linecap="round"/>
+    <line x1="257.36" y1="270.30" x2="273.00" y2="242.82" stroke="hsla(100, 64%, 60%, 0.19)" stroke-width="0.28" stroke-linecap="round"/>
+    <line x1="257.36" y1="270.30" x2="295.25" y2="251.08" stroke="hsla(100, 64%, 60%, 0.12)" stroke-width="0.18" stroke-linecap="round"/>
+    <line x1="287.68" y1="257.64" x2="275.72" y2="260.98" stroke="hsla(100, 64%, 60%, 0.32)" stroke-width="0.48" stroke-linecap="round"/>
+    <line x1="287.68" y1="257.64" x2="273.00" y2="242.82" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.39" stroke-linecap="round"/>
+    <line x1="287.68" y1="257.64" x2="295.25" y2="251.08" stroke="hsla(100, 64%, 60%, 0.33)" stroke-width="0.50" stroke-linecap="round"/>
+    <line x1="287.68" y1="257.64" x2="252.54" y2="253.12" stroke="hsla(100, 64%, 60%, 0.16)" stroke-width="0.25" stroke-linecap="round"/>
+    <line x1="275.72" y1="260.98" x2="273.00" y2="242.82" stroke="hsla(100, 64%, 60%, 0.28)" stroke-width="0.42" stroke-linecap="round"/>
+    <line x1="275.72" y1="260.98" x2="295.25" y2="251.08" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="275.72" y1="260.98" x2="252.54" y2="253.12" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="273.00" y1="242.82" x2="295.25" y2="251.08" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="273.00" y1="242.82" x2="252.54" y2="253.12" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.37" stroke-linecap="round"/>
+    <line x1="295.25" y1="251.08" x2="252.54" y2="253.12" stroke="hsla(100, 64%, 60%, 0.11)" stroke-width="0.17" stroke-linecap="round"/>
+    <line x1="252.54" y1="253.12" x2="219.34" y2="245.70" stroke="hsla(100, 64%, 60%, 0.17)" stroke-width="0.26" stroke-linecap="round"/>
+    <line x1="252.54" y1="253.12" x2="242.23" y2="232.28" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.37" stroke-linecap="round"/>
+    <line x1="252.54" y1="253.12" x2="234.79" y2="239.63" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="219.34" y1="245.70" x2="242.23" y2="232.28" stroke="hsla(100, 64%, 60%, 0.22)" stroke-width="0.33" stroke-linecap="round"/>
+    <line x1="219.34" y1="245.70" x2="234.79" y2="239.63" stroke="hsla(100, 64%, 60%, 0.29)" stroke-width="0.43" stroke-linecap="round"/>
+    <line x1="242.23" y1="232.28" x2="234.79" y2="239.63" stroke="hsla(100, 64%, 60%, 0.33)" stroke-width="0.50" stroke-linecap="round"/>
+    <line x1="242.23" y1="232.28" x2="291.54" y2="232.04" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="242.23" y1="232.28" x2="267.10" y2="217.71" stroke="hsla(100, 64%, 60%, 0.21)" stroke-width="0.31" stroke-linecap="round"/>
+    <line x1="234.79" y1="239.63" x2="267.10" y2="217.71" stroke="hsla(100, 64%, 60%, 0.14)" stroke-width="0.21" stroke-linecap="round"/>
+    <line x1="234.79" y1="239.63" x2="252.69" y2="277.27" stroke="hsla(100, 64%, 60%, 0.12)" stroke-width="0.18" stroke-linecap="round"/>
+    <line x1="291.54" y1="232.04" x2="273.25" y2="274.66" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="291.54" y1="232.04" x2="267.10" y2="217.71" stroke="hsla(100, 64%, 60%, 0.21)" stroke-width="0.32" stroke-linecap="round"/>
+    <line x1="291.54" y1="232.04" x2="247.36" y2="234.69" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.16" stroke-linecap="round"/>
+    <line x1="273.25" y1="274.66" x2="252.69" y2="277.27" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.39" stroke-linecap="round"/>
+    <line x1="273.25" y1="274.66" x2="247.36" y2="234.69" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="267.10" y1="217.71" x2="247.36" y2="234.69" stroke="hsla(100, 64%, 60%, 0.23)" stroke-width="0.34" stroke-linecap="round"/>
+    <line x1="267.10" y1="217.71" x2="266.78" y2="223.49" stroke="hsla(100, 64%, 60%, 0.36)" stroke-width="0.54" stroke-linecap="round"/>
+    <line x1="267.10" y1="217.71" x2="278.44" y2="214.27" stroke="hsla(100, 64%, 60%, 0.32)" stroke-width="0.48" stroke-linecap="round"/>
+    <line x1="252.69" y1="277.27" x2="247.36" y2="234.69" stroke="hsla(100, 64%, 60%, 0.11)" stroke-width="0.17" stroke-linecap="round"/>
+    <line x1="252.69" y1="277.27" x2="291.77" y2="257.76" stroke="hsla(100, 64%, 60%, 0.11)" stroke-width="0.16" stroke-linecap="round"/>
+    <line x1="247.36" y1="234.69" x2="266.78" y2="223.49" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="247.36" y1="234.69" x2="278.44" y2="214.27" stroke="hsla(100, 64%, 60%, 0.15)" stroke-width="0.23" stroke-linecap="round"/>
+    <line x1="247.36" y1="234.69" x2="287.53" y2="211.51" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="266.78" y1="223.49" x2="278.44" y2="214.27" stroke="hsla(100, 64%, 60%, 0.30)" stroke-width="0.45" stroke-linecap="round"/>
+    <line x1="266.78" y1="223.49" x2="291.77" y2="257.76" stroke="hsla(100, 64%, 60%, 0.12)" stroke-width="0.18" stroke-linecap="round"/>
+    <line x1="266.78" y1="223.49" x2="287.53" y2="211.51" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="278.44" y1="214.27" x2="291.77" y2="257.76" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="278.44" y1="214.27" x2="287.53" y2="211.51" stroke="hsla(100, 64%, 60%, 0.34)" stroke-width="0.51" stroke-linecap="round"/>
+    <line x1="291.77" y1="257.76" x2="287.53" y2="211.51" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="219.60" y1="307.36" x2="235.07" y2="294.91" stroke="hsla(100, 64%, 60%, 0.27)" stroke-width="0.40" stroke-linecap="round"/>
+    <line x1="219.60" y1="307.36" x2="247.66" y2="284.79" stroke="hsla(100, 64%, 60%, 0.16)" stroke-width="0.24" stroke-linecap="round"/>
+    <line x1="219.60" y1="307.36" x2="242.60" y2="296.43" stroke="hsla(100, 64%, 60%, 0.23)" stroke-width="0.35" stroke-linecap="round"/>
+    <line x1="211.22" y1="253.80" x2="235.07" y2="294.91" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="211.22" y1="253.80" x2="247.66" y2="284.79" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="211.22" y1="253.80" x2="241.93" y2="240.78" stroke="hsla(100, 64%, 60%, 0.18)" stroke-width="0.27" stroke-linecap="round"/>
+    <line x1="235.07" y1="294.91" x2="247.66" y2="284.79" stroke="hsla(100, 64%, 60%, 0.29)" stroke-width="0.44" stroke-linecap="round"/>
+    <line x1="235.07" y1="294.91" x2="242.60" y2="296.43" stroke="hsla(100, 64%, 60%, 0.35)" stroke-width="0.52" stroke-linecap="round"/>
+    <line x1="235.07" y1="294.91" x2="267.15" y2="275.22" stroke="hsla(100, 64%, 60%, 0.15)" stroke-width="0.22" stroke-linecap="round"/>
+    <line x1="247.66" y1="284.79" x2="242.60" y2="296.43" stroke="hsla(100, 64%, 60%, 0.32)" stroke-width="0.47" stroke-linecap="round"/>
+    <line x1="247.66" y1="284.79" x2="241.93" y2="240.78" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.16" stroke-linecap="round"/>
+    <line x1="247.66" y1="284.79" x2="267.15" y2="275.22" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="247.66" y1="284.79" x2="267.58" y2="284.56" stroke="hsla(100, 64%, 60%, 0.27)" stroke-width="0.40" stroke-linecap="round"/>
+    <line x1="242.60" y1="296.43" x2="267.15" y2="275.22" stroke="hsla(100, 64%, 60%, 0.18)" stroke-width="0.28" stroke-linecap="round"/>
+    <line x1="242.60" y1="296.43" x2="267.58" y2="284.56" stroke="hsla(100, 64%, 60%, 0.22)" stroke-width="0.32" stroke-linecap="round"/>
+    <line x1="242.60" y1="296.43" x2="278.92" y2="273.69" stroke="hsla(100, 64%, 60%, 0.11)" stroke-width="0.17" stroke-linecap="round"/>
+    <line x1="241.93" y1="240.78" x2="267.15" y2="275.22" stroke="hsla(100, 64%, 60%, 0.12)" stroke-width="0.17" stroke-linecap="round"/>
+    <line x1="241.93" y1="240.78" x2="278.92" y2="273.69" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="241.93" y1="240.78" x2="260.82" y2="225.03" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.35" stroke-linecap="round"/>
+    <line x1="267.15" y1="275.22" x2="267.58" y2="284.56" stroke="hsla(100, 64%, 60%, 0.34)" stroke-width="0.51" stroke-linecap="round"/>
+    <line x1="267.15" y1="275.22" x2="278.92" y2="273.69" stroke="hsla(100, 64%, 60%, 0.32)" stroke-width="0.48" stroke-linecap="round"/>
+    <line x1="267.58" y1="284.56" x2="278.92" y2="273.69" stroke="hsla(100, 64%, 60%, 0.30)" stroke-width="0.44" stroke-linecap="round"/>
+    <line x1="267.58" y1="284.56" x2="287.99" y2="264.99" stroke="hsla(100, 64%, 60%, 0.21)" stroke-width="0.32" stroke-linecap="round"/>
+    <line x1="278.92" y1="273.69" x2="287.99" y2="264.99" stroke="hsla(100, 64%, 60%, 0.32)" stroke-width="0.47" stroke-linecap="round"/>
+    <line x1="260.82" y1="225.03" x2="287.99" y2="264.99" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="260.82" y1="225.03" x2="283.43" y2="217.05" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="260.82" y1="225.03" x2="242.08" y2="266.79" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="211.34" y1="286.11" x2="242.08" y2="266.79" stroke="hsla(100, 64%, 60%, 0.16)" stroke-width="0.24" stroke-linecap="round"/>
+    <line x1="287.99" y1="264.99" x2="283.43" y2="217.05" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="287.99" y1="264.99" x2="242.08" y2="266.79" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="287.99" y1="264.99" x2="261.06" y2="260.20" stroke="hsla(100, 64%, 60%, 0.22)" stroke-width="0.33" stroke-linecap="round"/>
+    <line x1="287.99" y1="264.99" x2="283.67" y2="244.89" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.39" stroke-linecap="round"/>
+    <line x1="283.43" y1="217.05" x2="261.06" y2="260.20" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="283.43" y1="217.05" x2="283.67" y2="244.89" stroke="hsla(100, 64%, 60%, 0.21)" stroke-width="0.32" stroke-linecap="round"/>
+    <line x1="242.08" y1="266.79" x2="261.06" y2="260.20" stroke="hsla(100, 64%, 60%, 0.27)" stroke-width="0.40" stroke-linecap="round"/>
+    <line x1="242.08" y1="266.79" x2="283.67" y2="244.89" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="242.08" y1="266.79" x2="236.05" y2="247.37" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.40" stroke-linecap="round"/>
+    <line x1="242.08" y1="266.79" x2="221.05" y2="254.19" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.35" stroke-linecap="round"/>
+    <line x1="261.06" y1="260.20" x2="283.67" y2="244.89" stroke="hsla(100, 64%, 60%, 0.22)" stroke-width="0.33" stroke-linecap="round"/>
+    <line x1="261.06" y1="260.20" x2="236.05" y2="247.37" stroke="hsla(100, 64%, 60%, 0.21)" stroke-width="0.32" stroke-linecap="round"/>
+    <line x1="261.06" y1="260.20" x2="221.05" y2="254.19" stroke="hsla(100, 64%, 60%, 0.13)" stroke-width="0.20" stroke-linecap="round"/>
+    <line x1="283.67" y1="244.89" x2="236.05" y2="247.37" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="283.67" y1="244.89" x2="256.73" y2="235.66" stroke="hsla(100, 64%, 60%, 0.21)" stroke-width="0.32" stroke-linecap="round"/>
+    <line x1="236.05" y1="247.37" x2="221.05" y2="254.19" stroke="hsla(100, 64%, 60%, 0.29)" stroke-width="0.44" stroke-linecap="round"/>
+    <line x1="236.05" y1="247.37" x2="202.26" y2="262.74" stroke="hsla(100, 64%, 60%, 0.15)" stroke-width="0.23" stroke-linecap="round"/>
+    <line x1="236.05" y1="247.37" x2="256.73" y2="235.66" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="236.05" y1="247.37" x2="226.87" y2="248.64" stroke="hsla(100, 64%, 60%, 0.34)" stroke-width="0.51" stroke-linecap="round"/>
+    <line x1="221.05" y1="254.19" x2="202.26" y2="262.74" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.39" stroke-linecap="round"/>
+    <line x1="221.05" y1="254.19" x2="256.73" y2="235.66" stroke="hsla(100, 64%, 60%, 0.13)" stroke-width="0.20" stroke-linecap="round"/>
+    <line x1="221.05" y1="254.19" x2="226.87" y2="248.64" stroke="hsla(100, 64%, 60%, 0.35)" stroke-width="0.52" stroke-linecap="round"/>
+    <line x1="202.26" y1="262.74" x2="226.87" y2="248.64" stroke="hsla(100, 64%, 60%, 0.21)" stroke-width="0.32" stroke-linecap="round"/>
+    <line x1="256.73" y1="235.66" x2="226.87" y2="248.64" stroke="hsla(100, 64%, 60%, 0.18)" stroke-width="0.27" stroke-linecap="round"/>
+    <line x1="256.73" y1="235.66" x2="278.97" y2="223.08" stroke="hsla(100, 64%, 60%, 0.23)" stroke-width="0.34" stroke-linecap="round"/>
+    <line x1="256.73" y1="235.66" x2="267.93" y2="227.52" stroke="hsla(100, 64%, 60%, 0.31)" stroke-width="0.46" stroke-linecap="round"/>
+    <line x1="226.87" y1="248.64" x2="267.93" y2="227.52" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="226.87" y1="248.64" x2="253.83" y2="233.19" stroke="hsla(100, 64%, 60%, 0.19)" stroke-width="0.29" stroke-linecap="round"/>
+    <line x1="278.97" y1="223.08" x2="267.93" y2="227.52" stroke="hsla(100, 64%, 60%, 0.32)" stroke-width="0.48" stroke-linecap="round"/>
+    <line x1="278.97" y1="223.08" x2="253.83" y2="233.19" stroke="hsla(100, 64%, 60%, 0.22)" stroke-width="0.33" stroke-linecap="round"/>
+    <line x1="267.93" y1="227.52" x2="253.83" y2="233.19" stroke="hsla(100, 64%, 60%, 0.30)" stroke-width="0.45" stroke-linecap="round"/>
+    <circle cx="233.76" cy="287.88" r="3.20" fill="hsla(304, 80%, 75%, 0.70)"/>
+    <circle cx="255.23" cy="277.20" r="3.22" fill="hsla(304, 80%, 75%, 0.70)"/>
+    <circle cx="278.39" cy="265.68" r="3.24" fill="hsla(305, 80%, 75%, 0.71)"/>
+    <circle cx="246.68" cy="278.25" r="3.25" fill="hsla(305, 80%, 75%, 0.71)"/>
+    <circle cx="226.86" cy="267.70" r="3.27" fill="hsla(305, 80%, 75%, 0.71)"/>
+    <circle cx="257.36" cy="270.30" r="3.29" fill="hsla(306, 80%, 76%, 0.71)"/>
+    <circle cx="287.68" cy="257.64" r="3.29" fill="hsla(306, 80%, 76%, 0.71)"/>
+    <circle cx="275.72" cy="260.98" r="3.31" fill="hsla(306, 80%, 76%, 0.72)"/>
+    <circle cx="273.00" cy="242.82" r="3.33" fill="hsla(307, 80%, 76%, 0.72)"/>
+    <circle cx="295.25" cy="251.08" r="3.33" fill="hsla(307, 80%, 76%, 0.72)"/>
+    <circle cx="252.54" cy="253.12" r="3.35" fill="hsla(307, 80%, 76%, 0.73)"/>
+    <circle cx="227.00" cy="297.18" r="3.35" fill="hsla(307, 80%, 76%, 0.73)"/>
+    <circle cx="219.34" cy="245.70" r="3.35" fill="hsla(307, 80%, 76%, 0.73)"/>
+    <circle cx="242.23" cy="232.28" r="3.38" fill="hsla(308, 80%, 76%, 0.73)"/>
+    <circle cx="234.79" cy="239.63" r="3.39" fill="hsla(308, 80%, 76%, 0.73)"/>
+    <circle cx="291.54" cy="232.04" r="3.40" fill="hsla(308, 80%, 76%, 0.73)"/>
+    <circle cx="273.25" cy="274.66" r="3.41" fill="hsla(308, 80%, 76%, 0.74)"/>
+    <circle cx="267.10" cy="217.71" r="3.42" fill="hsla(308, 80%, 76%, 0.74)"/>
+    <circle cx="252.69" cy="277.27" r="3.42" fill="hsla(308, 80%, 76%, 0.74)"/>
+    <circle cx="247.36" cy="234.69" r="3.42" fill="hsla(308, 80%, 76%, 0.74)"/>
+    <circle cx="266.78" cy="223.49" r="3.45" fill="hsla(309, 80%, 77%, 0.74)"/>
+    <circle cx="278.44" cy="214.27" r="3.45" fill="hsla(309, 80%, 77%, 0.74)"/>
+    <circle cx="291.77" cy="257.76" r="3.47" fill="hsla(309, 80%, 77%, 0.75)"/>
+    <circle cx="287.53" cy="211.51" r="3.48" fill="hsla(310, 80%, 77%, 0.75)"/>
+    <circle cx="219.60" cy="307.36" r="3.53" fill="hsla(311, 80%, 77%, 0.75)"/>
+    <circle cx="211.22" cy="253.80" r="3.54" fill="hsla(311, 80%, 77%, 0.76)"/>
+    <circle cx="235.07" cy="294.91" r="3.55" fill="hsla(311, 80%, 77%, 0.76)"/>
+    <circle cx="247.66" cy="284.79" r="3.56" fill="hsla(311, 80%, 77%, 0.76)"/>
+    <circle cx="242.60" cy="296.43" r="3.56" fill="hsla(311, 80%, 77%, 0.76)"/>
+    <circle cx="241.93" cy="240.78" r="3.57" fill="hsla(311, 80%, 77%, 0.76)"/>
+    <circle cx="267.15" cy="275.22" r="3.59" fill="hsla(312, 80%, 78%, 0.77)"/>
+    <circle cx="267.58" cy="284.56" r="3.60" fill="hsla(312, 80%, 78%, 0.77)"/>
+    <circle cx="278.92" cy="273.69" r="3.62" fill="hsla(312, 80%, 78%, 0.77)"/>
+    <circle cx="260.82" cy="225.03" r="3.62" fill="hsla(312, 80%, 78%, 0.77)"/>
+    <circle cx="211.34" cy="286.11" r="3.63" fill="hsla(313, 80%, 78%, 0.77)"/>
+    <circle cx="287.99" cy="264.99" r="3.63" fill="hsla(313, 80%, 78%, 0.77)"/>
+    <circle cx="283.43" cy="217.05" r="3.64" fill="hsla(313, 80%, 78%, 0.77)"/>
+    <circle cx="242.08" cy="266.79" r="3.64" fill="hsla(313, 80%, 78%, 0.77)"/>
+    <circle cx="261.06" cy="260.20" r="3.72" fill="hsla(314, 80%, 78%, 0.79)"/>
+    <circle cx="283.67" cy="244.89" r="3.72" fill="hsla(314, 80%, 78%, 0.79)"/>
+    <circle cx="236.05" cy="247.37" r="3.73" fill="hsla(315, 80%, 79%, 0.79)"/>
+    <circle cx="221.05" cy="254.19" r="3.73" fill="hsla(315, 80%, 79%, 0.79)"/>
+    <circle cx="202.26" cy="262.74" r="3.73" fill="hsla(315, 80%, 79%, 0.79)"/>
+    <circle cx="256.73" cy="235.66" r="3.77" fill="hsla(315, 80%, 79%, 0.80)"/>
+    <circle cx="226.87" cy="248.64" r="3.79" fill="hsla(316, 80%, 79%, 0.80)"/>
+    <circle cx="278.97" cy="223.08" r="3.81" fill="hsla(316, 80%, 79%, 0.80)"/>
+    <circle cx="267.93" cy="227.52" r="3.83" fill="hsla(317, 80%, 79%, 0.80)"/>
+    <circle cx="253.83" cy="233.19" r="3.84" fill="hsla(317, 80%, 79%, 0.81)"/>
+  </g>
+</svg>

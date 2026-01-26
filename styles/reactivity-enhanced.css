@@ -1,0 +1,306 @@
+/**
+ * VIB3+ Enhanced Reactivity Panel Styles
+ */
+
+/* Audio Configuration Section */
+.audio-config-section {
+    background: rgba(255, 0, 255, 0.05);
+    border: 1px solid rgba(255, 0, 255, 0.2);
+}
+
+.audio-bands-config {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.audio-band-config {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.band-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.band-name {
+    font-family: 'Orbitron', monospace;
+    font-weight: bold;
+    color: #00ffff;
+    font-size: 0.8rem;
+}
+
+.band-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+
+.control-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.control-mini label {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+}
+
+.control-mini input[type="range"] {
+    height: 4px;
+}
+
+.control-mini select {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.control-mini span {
+    font-size: 0.65rem;
+    color: #00ffff;
+    text-align: right;
+}
+
+/* Audio Level Display */
+.audio-levels-display {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+}
+
+.level-bar {
+    flex: 1;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.level-bar span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.6rem;
+    font-family: 'Orbitron', monospace;
+    color: rgba(255, 255, 255, 0.7);
+    z-index: 1;
+}
+
+.level-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.1s ease-out;
+}
+
+#bass-level .level-fill {
+    background: linear-gradient(90deg, #ff0066, #ff00ff);
+}
+
+#mid-level .level-fill {
+    background: linear-gradient(90deg, #00ff66, #00ffff);
+}
+
+#high-level .level-fill {
+    background: linear-gradient(90deg, #ffff00, #ff8800);
+}
+
+/* Tilt Configuration Section */
+.tilt-config-section {
+    background: rgba(0, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.tilt-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dramatic-toggle {
+    background: rgba(255, 0, 0, 0.1);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* Interaction Configuration Section */
+.interaction-config-section {
+    background: rgba(0, 255, 0, 0.05);
+    border: 1px solid rgba(0, 255, 0, 0.2);
+}
+
+.interaction-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.control-select {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    color: #fff;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.control-select:hover {
+    border-color: rgba(0, 255, 255, 0.6);
+}
+
+.control-select:focus {
+    outline: none;
+    border-color: #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.toggle-switch.small {
+    width: 32px;
+    height: 16px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: 0.3s;
+    border-radius: 20px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.toggle-switch.small .toggle-slider:before {
+    height: 10px;
+    width: 10px;
+    left: 3px;
+    bottom: 3px;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: #00ffff;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+.toggle-switch.small input:checked + .toggle-slider:before {
+    transform: translateX(16px);
+}
+
+/* Toggle Switch with Label */
+.toggle-switch-labeled {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.toggle-switch-labeled input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.toggle-switch-labeled .toggle-slider {
+    position: relative;
+    width: 40px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: 0.3s;
+    border-radius: 20px;
+    flex-shrink: 0;
+}
+
+.toggle-switch-labeled .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.toggle-switch-labeled input:checked + .toggle-slider {
+    background-color: #ff4444;
+}
+
+.toggle-switch-labeled input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+.toggle-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Full Width Button */
+.action-btn.full-width {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .band-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .interaction-controls {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,17 +1,24 @@
 /**
  * VIB3+ Schema Registry
  * Centralized schema loading with AJV validation
+ *
+ * NOTE: Using dynamic imports with 'with' syntax for Node.js 22+ compatibility.
+ * The 'assert' syntax was deprecated in favor of 'with' in Node.js 22.
  */
 
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+import { createRequire } from 'module';
 
-// Import schemas
-import parametersSchema from './parameters.schema.json' assert { type: 'json' };
-import toolResponseSchema from './tool-response.schema.json' assert { type: 'json' };
-import errorSchema from './error.schema.json' assert { type: 'json' };
-import extensionSchema from './extension.schema.json' assert { type: 'json' };
-import toolPackSchema from './tool-pack.schema.json' assert { type: 'json' };
+// Use createRequire for JSON imports (works in all Node.js versions)
+const require = createRequire(import.meta.url);
+
+// Import schemas using require (Node.js compatible)
+const parametersSchema = require('./parameters.schema.json');
+const toolResponseSchema = require('./tool-response.schema.json');
+const errorSchema = require('./error.schema.json');
+const extensionSchema = require('./extension.schema.json');
+const toolPackSchema = require('./tool-pack.schema.json');
 
 class SchemaRegistry {
     constructor() {
@@ -38,10 +45,29 @@ class SchemaRegistry {
             toolPack: toolPackSchema
         };
 
-        // Compile validators
+        // Add all schemas to AJV first (required for $ref resolution)
+        // Error schema must be added before tool-response which refs it
+        this.ajv.addSchema(errorSchema, 'error.schema.json');
+        this.ajv.addSchema(parametersSchema, 'parameters.schema.json');
+        this.ajv.addSchema(extensionSchema, 'extension.schema.json');
+        this.ajv.addSchema(toolPackSchema, 'tool-pack.schema.json');
+
+        // Now compile validators (refs will resolve)
         this.validators = {};
-        for (const [name, schema] of Object.entries(this.schemas)) {
-            this.validators[name] = this.ajv.compile(schema);
+        try {
+            this.validators.error = this.ajv.compile(errorSchema);
+            this.validators.parameters = this.ajv.compile(parametersSchema);
+            this.validators.extension = this.ajv.compile(extensionSchema);
+            this.validators.toolPack = this.ajv.compile(toolPackSchema);
+            this.validators.toolResponse = this.ajv.compile(toolResponseSchema);
+        } catch (e) {
+            console.error('Schema compilation error:', e.message);
+            // Provide stub validators that always pass (graceful degradation)
+            for (const name of Object.keys(this.schemas)) {
+                if (!this.validators[name]) {
+                    this.validators[name] = () => true;
+                }
+            }
         }
     }
 

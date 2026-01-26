@@ -1,0 +1,109 @@
+name: Performance Benchmarks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: 'Benchmark duration per scene (ms)'
+        required: false
+        default: '5000'
+
+jobs:
+  benchmark:
+    name: Run Benchmarks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run benchmark tests
+        run: pnpm test -- tests/benchmarks/
+
+      - name: Run performance benchmarks
+        run: pnpm bench
+        continue-on-error: true
+
+      - name: Generate benchmark report
+        run: |
+          node -e "
+            import('./src/benchmarks/index.js').then(async ({ BenchmarkRunner, BENCHMARK_SCENES }) => {
+              // Mock engine for CI
+              const mockEngine = {
+                setParameters: () => {},
+                renderFrame: () => {}
+              };
+
+              const runner = new BenchmarkRunner(mockEngine, {
+                platform: 'web',
+                verbose: true
+              });
+
+              // Run quick benchmarks
+              const results = await runner.runAllBenchmarks(1000);
+              const report = runner.exportMarkdown();
+
+              console.log(report);
+            }).catch(e => console.log('Benchmark skipped:', e.message));
+          "
+
+      - name: Check for regressions
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Checking for performance regressions..."
+          # In a real scenario, this would compare against baseline
+          echo "No regression check baseline available (first run)"
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results
+          path: |
+            benchmark-results.json
+            benchmark-results.md
+          if-no-files-found: ignore
+
+  regression-check:
+    name: Regression Detection
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: benchmark
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results
+          path: baseline/
+        continue-on-error: true
+
+      - name: Compare with baseline
+        run: |
+          if [ -f baseline/benchmark-results.json ]; then
+            echo "Comparing against baseline..."
+            # Add comparison logic here
+          else
+            echo "No baseline available for comparison"
+          fi

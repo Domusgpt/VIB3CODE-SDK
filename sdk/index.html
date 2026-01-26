@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VIB3+ Engine - Quantum Holographic Visualization</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-panel: #12121a;
+            --accent-quantum: #00ff88;
+            --accent-faceted: #ff4488;
+            --accent-holographic: #44aaff;
+            --accent-cyan: #00ffff;
+            --accent-magenta: #ff00ff;
+            --text: #ffffff;
+            --text-dim: #888;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: linear-gradient(180deg, rgba(0,255,255,0.1) 0%, transparent 100%);
+            border-bottom: 1px solid rgba(0,255,255,0.2);
+            z-index: 100;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .system-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .system-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .system-tab:hover {
+            border-color: var(--accent-cyan);
+            color: var(--text);
+        }
+
+        .system-tab.active {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #000;
+        }
+
+        .system-tab[data-system="quantum"].active { background: var(--accent-quantum); border-color: var(--accent-quantum); }
+        .system-tab[data-system="faceted"].active { background: var(--accent-faceted); border-color: var(--accent-faceted); }
+        .system-tab[data-system="holographic"].active { background: var(--accent-holographic); border-color: var(--accent-holographic); }
+
+        .status-badge {
+            background: var(--accent-quantum);
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        /* Main Layout */
+        .main {
+            display: grid;
+            grid-template-columns: 280px 1fr 280px;
+            height: calc(100vh - 56px);
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-panel);
+            padding: 16px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            z-index: 50;
+        }
+
+        .panel:last-child {
+            border-right: none;
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .panel-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .panel-section {
+            margin-bottom: 20px;
+        }
+
+        /* Canvas Container - Holds all system layer containers */
+        .canvas-area {
+            position: relative;
+            background: var(--bg-primary);
+            overflow: hidden;
+        }
+
+        /* System Layer Containers - Each holds 5 canvases for that system */
+        .layer-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        .layer-container.active {
+            display: block;
+        }
+
+        /* Visualization canvases - positioned by CanvasManager */
+        .visualization-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Overlays */
+        .canvas-overlay {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .overlay-btn {
+            padding: 8px 14px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .overlay-btn:hover {
+            border-color: var(--accent-cyan);
+        }
+
+        .fps-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.8);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--accent-quantum);
+            z-index: 100;
+        }
+
+        .layer-indicator {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(0,0,0,0.8);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 10px;
+            z-index: 100;
+        }
+
+        .layer-indicator div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 2px 0;
+        }
+
+        .layer-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-bar {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            display: flex;
+            gap: 16px;
+            font-size: 11px;
+            color: var(--text-dim);
+            z-index: 100;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-quantum);
+        }
+
+        /* Controls */
+        .slider-group {
+            margin-bottom: 12px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .slider-label span:first-child { color: var(--text-dim); }
+        .slider-label span:last-child { font-family: monospace; color: var(--accent-cyan); }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 12px;
+        }
+
+        /* Geometry Grid */
+        .geometry-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .geo-btn {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .geo-btn:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0,255,255,0.1);
+        }
+
+        .geo-btn.active {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #000;
+        }
+
+        /* Feature Buttons */
+        .feature-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 12px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .feature-btn:hover {
+            border-color: var(--accent-magenta);
+            background: rgba(255,0,255,0.1);
+        }
+
+        .feature-btn.active {
+            border-color: var(--accent-magenta);
+            background: rgba(255,0,255,0.2);
+        }
+
+        .feature-icon { font-size: 18px; }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0,255,255,0.2);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-text {
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .loading-overlay.hidden { display: none; }
+
+        /* Variant Display */
+        .variant-display {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .variant-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--accent-cyan);
+        }
+
+        .variant-number {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .variant-nav {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: center;
+        }
+
+        .variant-nav button {
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .variant-nav button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Initializing VIB3+ Engine...</div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">VIB3+ Engine</div>
+        <div class="system-tabs">
+            <button class="system-tab active" data-system="quantum">Quantum</button>
+            <button class="system-tab" data-system="faceted">Faceted</button>
+            <button class="system-tab" data-system="holographic">Holographic</button>
+        </div>
+        <span class="status-badge" id="statusBadge">LOADING</span>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Left Panel: Rotation Controls -->
+        <div class="panel">
+            <div class="panel-section">
+                <div class="panel-title">4D Rotation (Hyperspace)</div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>XW Plane</span><span id="xwVal">0.00</span></div>
+                    <input type="range" id="rotXW" min="0" max="6.28" step="0.01" value="0">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>YW Plane</span><span id="ywVal">0.00</span></div>
+                    <input type="range" id="rotYW" min="0" max="6.28" step="0.01" value="0">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>ZW Plane</span><span id="zwVal">0.00</span></div>
+                    <input type="range" id="rotZW" min="0" max="6.28" step="0.01" value="0">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">3D Rotation</div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>XY Plane</span><span id="xyVal">0.00</span></div>
+                    <input type="range" id="rotXY" min="0" max="6.28" step="0.01" value="0">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>XZ Plane</span><span id="xzVal">0.00</span></div>
+                    <input type="range" id="rotXZ" min="0" max="6.28" step="0.01" value="0">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>YZ Plane</span><span id="yzVal">0.00</span></div>
+                    <input type="range" id="rotYZ" min="0" max="6.28" step="0.01" value="0">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">Visualization</div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>Grid Density</span><span id="densityVal">15</span></div>
+                    <input type="range" id="gridDensity" min="4" max="50" step="1" value="15">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>Morph Factor</span><span id="morphVal">1.0</span></div>
+                    <input type="range" id="morphFactor" min="0" max="2" step="0.1" value="1">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>Chaos</span><span id="chaosVal">0.2</span></div>
+                    <input type="range" id="chaos" min="0" max="1" step="0.05" value="0.2">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>Speed</span><span id="speedVal">1.0</span></div>
+                    <input type="range" id="speed" min="0.1" max="3" step="0.1" value="1">
+                </div>
+            </div>
+        </div>
+
+        <!-- Center: Canvas Area with System Layer Containers -->
+        <div class="canvas-area">
+            <!-- Quantum System Layers -->
+            <div id="quantumLayers" class="layer-container active"></div>
+
+            <!-- Faceted System Layers -->
+            <div id="vib34dLayers" class="layer-container"></div>
+
+            <!-- Holographic System Layers -->
+            <div id="holographicLayers" class="layer-container"></div>
+
+            <div class="layer-indicator">
+                <div><span class="layer-dot" style="background:#1a1a2e"></span> L1: Background</div>
+                <div><span class="layer-dot" style="background:#4488ff"></span> L2: Shadow</div>
+                <div><span class="layer-dot" style="background:#00ff88"></span> L3: Content</div>
+                <div><span class="layer-dot" style="background:#ff44aa"></span> L4: Highlight</div>
+                <div><span class="layer-dot" style="background:#ffffff"></span> L5: Accent</div>
+            </div>
+
+            <div class="fps-badge" id="fpsBadge">-- FPS</div>
+
+            <div class="canvas-overlay">
+                <button class="overlay-btn" id="audioBtn">Audio</button>
+                <button class="overlay-btn" id="resetBtn">Reset</button>
+                <button class="overlay-btn" id="fullscreenBtn">Fullscreen</button>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span id="engineStatus">Initializing</span>
+                </div>
+                <div class="status-item">
+                    <span id="systemInfo">Quantum</span>
+                </div>
+                <div class="status-item">
+                    <span id="layerCount">5 layers</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Geometry & Variants -->
+        <div class="panel">
+            <div class="panel-section">
+                <div class="variant-display">
+                    <div class="variant-name" id="variantName">TETRAHEDRON LATTICE</div>
+                    <div class="variant-number" id="variantNumber">Variant 0 / 30</div>
+                    <div class="variant-nav">
+                        <button id="prevVariant">Prev</button>
+                        <button id="randomVariant">Random</button>
+                        <button id="nextVariant">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">Core Type (4D Warp)</div>
+                <select id="coreType">
+                    <option value="0">Base (No Warp)</option>
+                    <option value="1">Hypersphere Core</option>
+                    <option value="2">Hypertetrahedron Core</option>
+                </select>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">Base Geometry (8 Types)</div>
+                <div class="geometry-grid" id="geometryGrid"></div>
+                <div class="variant-number" id="geometryIndex" style="margin-top:8px">Geometry 0 / 24</div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">Color</div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>Hue</span><span id="hueVal">200</span></div>
+                    <input type="range" id="hue" min="0" max="360" step="1" value="200">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>Saturation</span><span id="satVal">0.8</span></div>
+                    <input type="range" id="saturation" min="0" max="1" step="0.05" value="0.8">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label"><span>Intensity</span><span id="intVal">0.5</span></div>
+                    <input type="range" id="intensity" min="0" max="1" step="0.05" value="0.5">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">Features</div>
+                <button class="feature-btn" id="exportBtn">
+                    <span class="feature-icon">#</span>
+                    <span>Export Trading Card</span>
+                </button>
+                <button class="feature-btn" id="gyroBtn">
+                    <span class="feature-icon">@</span>
+                    <span>Gyroscope Control</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Application Script using REAL VIB3 Engine with C++ WASM Core -->
+    <script type="module">
+        // =================================================================
+        // VIB3+ ENGINE - C++ WASM CORE (NO FALLBACKS)
+        // Following CPP_CORE_ARCHITECTURE.md plan
+        // =================================================================
+
+        // Import visualization systems first
+        import { CanvasManager } from './src/core/CanvasManager.js';
+        import { QuantumEngine } from './src/quantum/QuantumEngine.js';
+        import { FacetedSystem } from './src/faceted/FacetedSystem.js';
+        import { RealHolographicSystem } from './src/holograms/RealHolographicSystem.js';
+
+        console.log('VIB3+ Visualization systems imported');
+
+        // =================================================================
+        // WASM CORE INITIALIZATION - Required, No Fallbacks
+        // =================================================================
+
+        let wasmCore = null;
+        let wasmReady = false;
+
+        async function initWasmCore() {
+            document.getElementById('loadingText').textContent = 'Loading C++ WASM Core...';
+
+            try {
+                // Load vib3_core.js via script tag (CommonJS/IIFE doesn't work with dynamic import())
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = './wasm/vib3_core.js';
+                    script.onload = resolve;
+                    script.onerror = () => reject(new Error('Failed to load vib3_core.js'));
+                    document.head.appendChild(script);
+                });
+
+                // Vib3Core is now a global function (set by the IIFE in vib3_core.js)
+                if (typeof Vib3Core !== 'function') {
+                    throw new Error('Vib3Core not found after script load. Got: ' + typeof Vib3Core);
+                }
+
+                // Initialize the WASM module - Vib3Core() returns a Promise
+                wasmCore = await Vib3Core({
+                    locateFile: (path) => './wasm/' + path
+                });
+
+                // Verify WASM functions are available
+                const functions = {
+                    vec4_create: typeof wasmCore._vib3_vec4_create,
+                    vec4_add: typeof wasmCore._vib3_vec4_add,
+                    vec4_scale: typeof wasmCore._vib3_vec4_scale,
+                    rotor4d_identity: typeof wasmCore._vib3_rotor4d_identity,
+                    rotor4d_from_euler6: typeof wasmCore._vib3_rotor4d_from_euler6,
+                    rotor4d_rotate: typeof wasmCore._vib3_rotor4d_rotate,
+                    rotor4d_to_matrix: typeof wasmCore._vib3_rotor4d_to_matrix,
+                    mat4x4_identity: typeof wasmCore._vib3_mat4x4_identity,
+                    mat4x4_multiply: typeof wasmCore._vib3_mat4x4_multiply,
+                    project_perspective: typeof wasmCore._vib3_project_perspective,
+                    project_stereographic: typeof wasmCore._vib3_project_stereographic
+                };
+
+                console.log('VIB3+ WASM Core Functions:', functions);
+
+                // Make WASM core globally available for all visualization systems
+                window.Vib3Core = wasmCore;
+                window.vib3Wasm = wasmCore;
+                wasmReady = true;
+
+                // Create high-level WASM math API
+                window.Vib3Math = createWasmMathAPI(wasmCore);
+
+                console.log('✅ VIB3+ C++ WASM Core loaded successfully');
+                console.log('Available via window.Vib3Core and window.Vib3Math');
+
+                return wasmCore;
+
+            } catch (error) {
+                console.error('❌ WASM Core loading failed:', error);
+                document.getElementById('loadingText').textContent = 'WASM Core failed: ' + error.message;
+                throw error; // No fallbacks - fail fast
+            }
+        }
+
+        // =================================================================
+        // HIGH-LEVEL WASM MATH API
+        // Wraps low-level FFI calls with proper memory management
+        // =================================================================
+
+        function createWasmMathAPI(wasm) {
+            return {
+                // Vec4 operations
+                vec4: {
+                    create: (x, y, z, w) => {
+                        const ptr = wasm._vib3_vec4_create(x, y, z, w);
+                        return { ptr, x, y, z, w };
+                    },
+                    add: (a, b) => wasm._vib3_vec4_add(a.ptr, b.ptr),
+                    scale: (v, s) => wasm._vib3_vec4_scale(v.ptr, s),
+                    lerp: (a, b, t) => wasm._vib3_vec4_lerp(a.ptr, b.ptr, t)
+                },
+
+                // Rotor4D operations - 8-component geometric algebra rotor
+                rotor4d: {
+                    identity: () => wasm._vib3_rotor4d_identity(),
+                    fromPlaneAngle: (plane, angle) => wasm._vib3_rotor4d_from_plane_angle(plane, angle),
+                    fromEuler6: (xy, xz, yz, xw, yw, zw) => wasm._vib3_rotor4d_from_euler6(xy, xz, yz, xw, yw, zw),
+                    multiply: (a, b) => wasm._vib3_rotor4d_multiply(a, b),
+                    rotate: (rotor, vec) => wasm._vib3_rotor4d_rotate(rotor, vec),
+                    slerp: (a, b, t) => wasm._vib3_rotor4d_slerp(a, b, t),
+                    toMatrix: (rotor) => wasm._vib3_rotor4d_to_matrix(rotor)
+                },
+
+                // Mat4x4 operations
+                mat4x4: {
+                    identity: () => wasm._vib3_mat4x4_identity(),
+                    multiply: (a, b) => wasm._vib3_mat4x4_multiply(a, b),
+                    multiplyVec4: (mat, vec) => wasm._vib3_mat4x4_multiply_vec4(mat, vec)
+                },
+
+                // Projection operations (4D -> 3D)
+                project: {
+                    perspective: (vec, d) => wasm._vib3_project_perspective(vec, d || 2.0),
+                    stereographic: (vec) => wasm._vib3_project_stereographic(vec),
+                    orthographic: (vec) => wasm._vib3_project_orthographic(vec)
+                },
+
+                // Memory helpers
+                malloc: (size) => wasm._malloc(size),
+                free: (ptr) => wasm._free(ptr),
+
+                // Direct access to WASM heap for advanced usage
+                HEAPF32: () => wasm.HEAPF32,
+                HEAP8: () => wasm.HEAP8
+            };
+        }
+
+        // =================================================================
+        // APPLICATION STATE
+        // =================================================================
+
+        const state = {
+            currentSystem: 'quantum',
+            currentVariant: 0,
+            coreType: 0,      // 0=Base, 1=Hypersphere, 2=Hypertetrahedron
+            baseGeometry: 0,  // 0-7 (Tet, Cube, Sphere, Torus, Klein, Fractal, Wave, Crystal)
+            parameters: {
+                geometry: 0,  // Full geometry index: coreType * 8 + baseGeometry (0-23)
+                gridDensity: 15,
+                morphFactor: 1.0,
+                chaos: 0.2,
+                speed: 1.0,
+                hue: 200,
+                intensity: 0.5,
+                saturation: 0.8,
+                rot4dXY: 0,
+                rot4dXZ: 0,
+                rot4dYZ: 0,
+                rot4dXW: 0,
+                rot4dYW: 0,
+                rot4dZW: 0
+            }
+        };
+
+        let canvasManager = null;
+        let currentEngine = null;
+        let lastTime = 0;
+        let frameCount = 0;
+        let fps = 0;
+
+        // Engine classes for CanvasManager
+        const engineClasses = {
+            QuantumEngine,
+            RealHolographicSystem,
+            VIB34DIntegratedEngine: FacetedSystem  // Faceted uses this name internally
+        };
+
+        // Variant names
+        const variantNames = [
+            'TETRAHEDRON LATTICE', 'TETRAHEDRON FIELD', 'TETRAHEDRON MATRIX', 'TETRAHEDRON RESONANCE',
+            'HYPERCUBE LATTICE', 'HYPERCUBE FIELD', 'HYPERCUBE MATRIX', 'HYPERCUBE QUANTUM',
+            'SPHERE LATTICE', 'SPHERE FIELD', 'SPHERE MATRIX', 'SPHERE RESONANCE',
+            'TORUS LATTICE', 'TORUS FIELD', 'TORUS MATRIX', 'TORUS QUANTUM',
+            'KLEIN BOTTLE LATTICE', 'KLEIN BOTTLE FIELD', 'KLEIN BOTTLE MATRIX', 'KLEIN BOTTLE QUANTUM',
+            'FRACTAL LATTICE', 'FRACTAL FIELD', 'FRACTAL QUANTUM',
+            'WAVE LATTICE', 'WAVE FIELD', 'WAVE QUANTUM',
+            'CRYSTAL LATTICE', 'CRYSTAL FIELD', 'CRYSTAL MATRIX', 'CRYSTAL QUANTUM'
+        ];
+
+        // =================================================================
+        // SYSTEM SWITCHING
+        // =================================================================
+
+        async function switchSystem(systemName) {
+            console.log(`Switching to ${systemName}...`);
+            document.getElementById('loadingText').textContent = `Loading ${systemName} system...`;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+
+            try {
+                // Use CanvasManager to destroy old system and create new one
+                currentEngine = await canvasManager.switchToSystem(systemName, engineClasses);
+                state.currentSystem = systemName;
+
+                // Update UI
+                document.querySelectorAll('.layer-container').forEach(c => c.classList.remove('active'));
+                const containerId = systemName === 'faceted' ? 'vib34dLayers' : `${systemName}Layers`;
+                document.getElementById(containerId)?.classList.add('active');
+
+                document.getElementById('systemInfo').textContent = systemName.charAt(0).toUpperCase() + systemName.slice(1);
+                document.getElementById('statusBadge').textContent = `${systemName.toUpperCase()} ACTIVE`;
+
+                // Apply current parameters
+                if (currentEngine && currentEngine.updateParameters) {
+                    currentEngine.updateParameters(state.parameters);
+                }
+
+                console.log(`${systemName} system active`);
+            } catch (error) {
+                console.error(`Failed to switch to ${systemName}:`, error);
+                document.getElementById('statusBadge').textContent = 'ERROR';
+            }
+
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        // =================================================================
+        // PARAMETER UPDATES
+        // =================================================================
+
+        function updateParameters() {
+            if (currentEngine && currentEngine.updateParameters) {
+                currentEngine.updateParameters(state.parameters);
+            }
+        }
+
+        // Calculate full geometry index from coreType and baseGeometry
+        // Formula: geometry = coreType * 8 + baseGeometry (gives 0-23)
+        function updateFullGeometry() {
+            const fullGeometry = state.coreType * 8 + state.baseGeometry;
+            state.parameters.geometry = fullGeometry;
+
+            // Update geometry display
+            const geoIndex = document.getElementById('geometryIndex');
+            if (geoIndex) {
+                geoIndex.textContent = `Geometry ${fullGeometry} / 24`;
+            }
+
+            // Push to engine
+            if (currentEngine && currentEngine.updateParameters) {
+                currentEngine.updateParameters({ geometry: fullGeometry });
+            }
+
+            console.log(`🔮 Geometry: core=${state.coreType} + base=${state.baseGeometry} → ${fullGeometry}`);
+        }
+
+        function updateVariant(newVariant) {
+            state.currentVariant = ((newVariant % 30) + 30) % 30;  // Wrap 0-29
+
+            // Map variant to base geometry (0-7)
+            // Variants 0-3 = base 0, 4-7 = base 1, etc.
+            state.baseGeometry = Math.floor(state.currentVariant / 4) % 8;
+
+            // Update full geometry (coreType * 8 + baseGeometry)
+            updateFullGeometry();
+
+            // Update display
+            document.getElementById('variantName').textContent = variantNames[state.currentVariant] || `Variant ${state.currentVariant}`;
+            document.getElementById('variantNumber').textContent = `Variant ${state.currentVariant} / 30`;
+
+            // Update geometry button
+            document.querySelectorAll('.geo-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === state.baseGeometry);
+            });
+
+            console.log(`🔄 Variant ${state.currentVariant} → Base ${state.baseGeometry}`);
+        }
+
+        // =================================================================
+        // UI SETUP
+        // =================================================================
+
+        function setupUI() {
+            // System tabs
+            document.querySelectorAll('.system-tab').forEach(tab => {
+                tab.addEventListener('click', async () => {
+                    const systemName = tab.dataset.system;
+                    if (systemName !== state.currentSystem) {
+                        document.querySelectorAll('.system-tab').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        await switchSystem(systemName);
+                    }
+                });
+            });
+
+            // Core type selector (for 24 geometry support)
+            const coreTypeSelect = document.getElementById('coreType');
+            coreTypeSelect.addEventListener('change', () => {
+                state.coreType = parseInt(coreTypeSelect.value);
+                updateFullGeometry();
+            });
+
+            // Geometry grid - now sets baseGeometry directly
+            const grid = document.getElementById('geometryGrid');
+            const geoNames = ['Tet', 'Cube', 'Sph', 'Tor', 'Kln', 'Frc', 'Wav', 'Cry'];
+            geoNames.forEach((name, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'geo-btn' + (i === 0 ? ' active' : '');
+                btn.textContent = name;
+                btn.addEventListener('click', () => {
+                    // Update base geometry
+                    state.baseGeometry = i;
+                    // Update button states
+                    document.querySelectorAll('.geo-btn').forEach((b, j) => {
+                        b.classList.toggle('active', j === i);
+                    });
+                    // Recalculate full geometry
+                    updateFullGeometry();
+                    // Update variant display (variant = base * 4 for first sub-variant)
+                    state.currentVariant = i * 4;
+                    document.getElementById('variantName').textContent = variantNames[state.currentVariant] || `Variant ${state.currentVariant}`;
+                    document.getElementById('variantNumber').textContent = `Variant ${state.currentVariant} / 30`;
+                });
+                grid.appendChild(btn);
+            });
+
+            // Variant navigation
+            document.getElementById('prevVariant').addEventListener('click', () => updateVariant(state.currentVariant - 1));
+            document.getElementById('nextVariant').addEventListener('click', () => updateVariant(state.currentVariant + 1));
+            document.getElementById('randomVariant').addEventListener('click', () => updateVariant(Math.floor(Math.random() * 30)));
+
+            // Rotation sliders
+            ['XY', 'XZ', 'YZ', 'XW', 'YW', 'ZW'].forEach(plane => {
+                const slider = document.getElementById(`rot${plane}`);
+                slider.addEventListener('input', () => {
+                    state.parameters[`rot4d${plane}`] = parseFloat(slider.value);
+                    document.getElementById(`${plane.toLowerCase()}Val`).textContent = parseFloat(slider.value).toFixed(2);
+                    updateParameters();
+                });
+            });
+
+            // Visualization sliders
+            const sliderConfigs = [
+                { id: 'gridDensity', param: 'gridDensity', display: 'densityVal' },
+                { id: 'morphFactor', param: 'morphFactor', display: 'morphVal' },
+                { id: 'chaos', param: 'chaos', display: 'chaosVal' },
+                { id: 'speed', param: 'speed', display: 'speedVal' },
+                { id: 'hue', param: 'hue', display: 'hueVal' },
+                { id: 'saturation', param: 'saturation', display: 'satVal' },
+                { id: 'intensity', param: 'intensity', display: 'intVal' }
+            ];
+
+            sliderConfigs.forEach(config => {
+                const slider = document.getElementById(config.id);
+                slider.addEventListener('input', () => {
+                    state.parameters[config.param] = parseFloat(slider.value);
+                    document.getElementById(config.display).textContent = parseFloat(slider.value).toFixed(config.param === 'gridDensity' || config.param === 'hue' ? 0 : 1);
+                    updateParameters();
+                });
+            });
+
+            // Audio button
+            document.getElementById('audioBtn').addEventListener('click', () => {
+                if (currentEngine && currentEngine.initAudio) {
+                    currentEngine.initAudio();
+                    document.getElementById('audioBtn').classList.add('active');
+                }
+            });
+
+            // Reset button
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                state.parameters = {
+                    geometry: 0, gridDensity: 15, morphFactor: 1.0, chaos: 0.2,
+                    speed: 1.0, hue: 200, intensity: 0.5, saturation: 0.8,
+                    rot4dXY: 0, rot4dXZ: 0, rot4dYZ: 0, rot4dXW: 0, rot4dYW: 0, rot4dZW: 0
+                };
+                // Reset all sliders
+                Object.keys(state.parameters).forEach(key => {
+                    const slider = document.getElementById(key) || document.getElementById(`rot${key.replace('rot4d', '')}`);
+                    if (slider) slider.value = state.parameters[key];
+                });
+                updateParameters();
+            });
+
+            // Fullscreen button
+            document.getElementById('fullscreenBtn').addEventListener('click', () => {
+                document.querySelector('.canvas-area').requestFullscreen?.();
+            });
+
+            // Export button
+            document.getElementById('exportBtn').addEventListener('click', () => {
+                if (currentEngine && currentEngine.exportToImage) {
+                    currentEngine.exportToImage();
+                } else {
+                    console.log('Export not available for this system');
+                }
+            });
+        }
+
+        // =================================================================
+        // FPS COUNTER
+        // =================================================================
+
+        function updateFPS() {
+            frameCount++;
+            const now = performance.now();
+            if (now - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = now;
+                document.getElementById('fpsBadge').textContent = `${fps} FPS`;
+            }
+            requestAnimationFrame(updateFPS);
+        }
+
+        // =================================================================
+        // INITIALIZATION - C++ WASM CORE REQUIRED
+        // =================================================================
+
+        async function init() {
+            console.log('🚀 Initializing VIB3+ Engine with C++ WASM Core...');
+
+            try {
+                // Step 1: Load WASM Core (C++ math library) - REQUIRED
+                await initWasmCore();
+                document.getElementById('statusBadge').textContent = 'WASM CORE';
+
+                // Step 2: Create Canvas Manager
+                document.getElementById('loadingText').textContent = 'Creating Canvas Manager...';
+                canvasManager = new CanvasManager();
+
+                // Step 3: Initialize Quantum visualization system
+                document.getElementById('loadingText').textContent = 'Loading Quantum System...';
+                await switchSystem('quantum');
+
+                // Step 4: Setup UI controls
+                document.getElementById('loadingText').textContent = 'Setting up controls...';
+                setupUI();
+
+                // Step 5: Start FPS counter
+                lastTime = performance.now();
+                updateFPS();
+
+                // Update status - WASM Core is now active
+                document.getElementById('engineStatus').textContent = 'WASM+WebGL';
+                document.getElementById('statusBadge').textContent = 'QUANTUM ACTIVE';
+                document.getElementById('loadingOverlay').classList.add('hidden');
+
+                console.log('✅ VIB3+ Engine initialized successfully');
+                console.log('🔧 Core: C++ WASM (window.Vib3Core)');
+                console.log('🔧 Math API: window.Vib3Math');
+                console.log('🔧 Rendering: WebGL 2.0');
+
+            } catch (error) {
+                console.error('❌ VIB3+ Engine initialization failed:', error);
+                document.getElementById('loadingText').textContent = `WASM Core Error: ${error.message}`;
+                document.getElementById('statusBadge').textContent = 'WASM FAILED';
+                // Don't hide overlay - keep error visible
+            }
+        }
+
+        // Start engine
+        init();
+    </script>
+</body>
+</html>

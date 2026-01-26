@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="100%" height="100%" fill="#111"/>
+  <circle cx="100" cy="100" r="77" fill="none" stroke="#00FFFF44" stroke-width="1" stroke-dasharray="4,4"/>
+  <polygon points="100,30 160.62177826491072,135 39.378221735089305,135.00000000000003" fill="#00FFFF22" stroke="#00FFFF" stroke-width="2"/>
+  <text x="100" y="190" text-anchor="middle" fill="#888" font-size="10" font-family="monospace">
+    Tetra + Hypersphere
+  </text>
+  <text x="100" y="15" text-anchor="middle" fill="#666" font-size="8" font-family="monospace">
+    Geometry 8
+  </text>
+</svg>

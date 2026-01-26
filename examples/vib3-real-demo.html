@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <title>VIB3+ Real SDK Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,255,136,0.3);
+            background: rgba(0,0,0,0.9);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00FF88;
+            letter-spacing: 2px;
+        }
+
+        .version { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+        .status {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: rgba(0,255,136,0.2);
+            color: #0F8;
+        }
+
+        /* Visualization Container - Where the real engine renders */
+        #vib3-container {
+            position: relative;
+            margin: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #111;
+            border: 2px solid rgba(0,255,136,0.3);
+            aspect-ratio: 1;
+            max-height: 45vh;
+        }
+
+        #vib3-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .overlay {
+            position: absolute;
+            left: 8px;
+            bottom: 8px;
+            background: rgba(0,0,0,0.85);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-family: monospace;
+            z-index: 10;
+        }
+
+        .overlay-row { display: flex; gap: 12px; }
+        .overlay-label { color: #888; }
+        .overlay-value { color: #0F8; font-weight: bold; }
+
+        .fps {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background: rgba(0,0,0,0.85);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #0F8;
+            z-index: 10;
+        }
+
+        /* Controls */
+        .controls {
+            padding: 12px;
+            background: rgba(0,0,0,0.9);
+            margin: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            max-height: 45vh;
+            overflow-y: auto;
+        }
+
+        .section { margin-bottom: 12px; }
+
+        .section-title {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            font-weight: bold;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .system-btns { display: flex; gap: 6px; }
+
+        .system-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .system-btn.active {
+            background: rgba(0,255,136,0.2);
+            border-color: #0F8;
+            color: #0F8;
+        }
+
+        .geometry-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .geo-btn {
+            padding: 6px 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 9px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .geo-btn.active {
+            background: rgba(0,255,136,0.2);
+            border-color: #0F8;
+            color: #0F8;
+        }
+
+        .core-btns {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .core-btn {
+            padding: 5px 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            font-size: 9px;
+            cursor: pointer;
+        }
+
+        .core-btn.active {
+            background: rgba(255,0,255,0.2);
+            border-color: #F0F;
+            color: #F0F;
+        }
+
+        .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .action-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .action-btn:active { background: rgba(0,255,136,0.3); }
+
+        /* Rotation Sliders */
+        .rotation-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .slider-label {
+            width: 35px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.7);
+            font-weight: bold;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #0F8;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            width: 40px;
+            text-align: right;
+            font-size: 10px;
+            color: #0F8;
+            font-family: monospace;
+        }
+
+        .slider-3d { --slider-color: #0FF; }
+        .slider-4d { --slider-color: #F0F; }
+
+        .slider-3d::-webkit-slider-thumb { background: #0FF; }
+        .slider-4d::-webkit-slider-thumb { background: #F0F; }
+
+        .slider-3d + .slider-value { color: #0FF; }
+        .slider-4d + .slider-value { color: #F0F; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <span class="logo">VIB3+</span>
+            <span class="version">SDK v1.9.0</span>
+        </div>
+        <span class="status" id="status">Initializing...</span>
+    </div>
+
+    <!-- REAL ENGINE RENDERS HERE -->
+    <div id="vib3-container">
+        <div class="overlay">
+            <div class="overlay-row">
+                <span class="overlay-label">System:</span>
+                <span class="overlay-value" id="currentSystem">quantum</span>
+            </div>
+            <div class="overlay-row">
+                <span class="overlay-label">Geometry:</span>
+                <span class="overlay-value" id="currentGeometry">0</span>
+            </div>
+        </div>
+        <div class="fps" id="fps">-- FPS</div>
+    </div>
+
+    <div class="controls">
+        <div class="section">
+            <div class="section-title">Visualization System</div>
+            <div class="system-btns">
+                <button class="system-btn active" data-system="quantum">Quantum</button>
+                <button class="system-btn" data-system="faceted">Faceted</button>
+                <button class="system-btn" data-system="holographic">Holographic</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Geometry (24 Variants)</div>
+            <div class="geometry-grid" id="geoGrid"></div>
+            <div class="core-btns">
+                <span style="color:rgba(255,255,255,0.5);font-size:10px;margin-right:6px;">Core:</span>
+                <button class="core-btn active" data-core="0">Base</button>
+                <button class="core-btn" data-core="1">Hypersphere</button>
+                <button class="core-btn" data-core="2">Hypertetra</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">6D Rotation - 3D Space (XY, XZ, YZ)</div>
+            <div class="rotation-group">
+                <div class="slider-row">
+                    <span class="slider-label">XY</span>
+                    <input type="range" class="slider slider-3d" id="rot4dXY" min="-628" max="628" value="0">
+                    <span class="slider-value" id="rot4dXYDisplay">0.00</span>
+                </div>
+                <div class="slider-row">
+                    <span class="slider-label">XZ</span>
+                    <input type="range" class="slider slider-3d" id="rot4dXZ" min="-628" max="628" value="0">
+                    <span class="slider-value" id="rot4dXZDisplay">0.00</span>
+                </div>
+                <div class="slider-row">
+                    <span class="slider-label">YZ</span>
+                    <input type="range" class="slider slider-3d" id="rot4dYZ" min="-628" max="628" value="0">
+                    <span class="slider-value" id="rot4dYZDisplay">0.00</span>
+                </div>
+            </div>
+
+            <div class="section-title">6D Rotation - 4D Hyperspace (XW, YW, ZW)</div>
+            <div class="rotation-group">
+                <div class="slider-row">
+                    <span class="slider-label">XW</span>
+                    <input type="range" class="slider slider-4d" id="rot4dXW" min="-200" max="200" value="0">
+                    <span class="slider-value" id="rot4dXWDisplay">0.00</span>
+                </div>
+                <div class="slider-row">
+                    <span class="slider-label">YW</span>
+                    <input type="range" class="slider slider-4d" id="rot4dYW" min="-200" max="200" value="0">
+                    <span class="slider-value" id="rot4dYWDisplay">0.00</span>
+                </div>
+                <div class="slider-row">
+                    <span class="slider-label">ZW</span>
+                    <input type="range" class="slider slider-4d" id="rot4dZW" min="-200" max="200" value="0">
+                    <span class="slider-value" id="rot4dZWDisplay">0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Visual Parameters</div>
+            <div class="slider-row">
+                <span class="slider-label" style="width:70px">Dimension</span>
+                <input type="range" class="slider" id="dimension" min="300" max="450" value="350">
+                <span class="slider-value" id="dimensionDisplay">3.50</span>
+            </div>
+            <div class="slider-row">
+                <span class="slider-label" style="width:70px">Hue</span>
+                <input type="range" class="slider" id="hue" min="0" max="360" value="200">
+                <span class="slider-value" id="hueDisplay">200</span>
+            </div>
+            <div class="slider-row">
+                <span class="slider-label" style="width:70px">Speed</span>
+                <input type="range" class="slider" id="speed" min="10" max="300" value="100">
+                <span class="slider-value" id="speedDisplay">1.00</span>
+            </div>
+            <div class="slider-row">
+                <span class="slider-label" style="width:70px">Chaos</span>
+                <input type="range" class="slider" id="chaos" min="0" max="100" value="20">
+                <span class="slider-value" id="chaosDisplay">0.20</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Actions</div>
+            <div class="action-btns">
+                <button class="action-btn" id="randomizeBtn">Randomize</button>
+                <button class="action-btn" id="resetBtn">Reset</button>
+                <button class="action-btn" id="exportBtn">Export State</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the REAL VIB3+ SDK
+        import { VIB3Engine } from '../src/core/VIB3Engine.js';
+
+        const baseNames = ['Tetra', 'Cube', 'Sphere', 'Torus', 'Klein', 'Fractal', 'Wave', 'Crystal'];
+
+        // State tracking
+        let engine = null;
+        let baseIndex = 0;
+        let coreIndex = 0;
+        let lastTime = performance.now();
+        let frameCount = 0;
+
+        // Initialize the REAL VIB3+ Engine
+        async function initEngine() {
+            document.getElementById('status').textContent = 'Loading SDK...';
+
+            try {
+                engine = new VIB3Engine();
+                const success = await engine.initialize('vib3-container');
+
+                if (success) {
+                    document.getElementById('status').textContent = 'Ready';
+                    document.getElementById('status').style.background = 'rgba(0,255,136,0.3)';
+                    console.log('VIB3+ Engine initialized successfully');
+
+                    // Start FPS counter
+                    requestAnimationFrame(updateFPS);
+
+                    // Sync UI with initial parameters
+                    syncUIFromEngine();
+                } else {
+                    throw new Error('Engine initialization returned false');
+                }
+            } catch (error) {
+                console.error('Engine initialization failed:', error);
+                document.getElementById('status').textContent = 'Error: ' + error.message;
+                document.getElementById('status').style.background = 'rgba(255,0,0,0.3)';
+                document.getElementById('status').style.color = '#F88';
+            }
+        }
+
+        // FPS counter
+        function updateFPS() {
+            frameCount++;
+            const now = performance.now();
+            if (now - lastTime >= 1000) {
+                document.getElementById('fps').textContent = frameCount + ' FPS';
+                frameCount = 0;
+                lastTime = now;
+            }
+            requestAnimationFrame(updateFPS);
+        }
+
+        // Sync UI sliders from engine parameters
+        function syncUIFromEngine() {
+            if (!engine) return;
+
+            const params = engine.getAllParameters();
+
+            // 3D Space rotations
+            document.getElementById('rot4dXY').value = params.rot4dXY * 100;
+            document.getElementById('rot4dXZ').value = params.rot4dXZ * 100;
+            document.getElementById('rot4dYZ').value = params.rot4dYZ * 100;
+            document.getElementById('rot4dXYDisplay').textContent = params.rot4dXY.toFixed(2);
+            document.getElementById('rot4dXZDisplay').textContent = params.rot4dXZ.toFixed(2);
+            document.getElementById('rot4dYZDisplay').textContent = params.rot4dYZ.toFixed(2);
+
+            // 4D Hyperspace rotations
+            document.getElementById('rot4dXW').value = params.rot4dXW * 100;
+            document.getElementById('rot4dYW').value = params.rot4dYW * 100;
+            document.getElementById('rot4dZW').value = params.rot4dZW * 100;
+            document.getElementById('rot4dXWDisplay').textContent = params.rot4dXW.toFixed(2);
+            document.getElementById('rot4dYWDisplay').textContent = params.rot4dYW.toFixed(2);
+            document.getElementById('rot4dZWDisplay').textContent = params.rot4dZW.toFixed(2);
+
+            // Visual params
+            document.getElementById('dimension').value = params.dimension * 100;
+            document.getElementById('dimensionDisplay').textContent = params.dimension.toFixed(2);
+            document.getElementById('hue').value = params.hue;
+            document.getElementById('hueDisplay').textContent = params.hue;
+            document.getElementById('speed').value = params.speed * 100;
+            document.getElementById('speedDisplay').textContent = params.speed.toFixed(2);
+            document.getElementById('chaos').value = params.chaos * 100;
+            document.getElementById('chaosDisplay').textContent = params.chaos.toFixed(2);
+
+            // Geometry
+            const geometry = params.geometry || 0;
+            baseIndex = geometry % 8;
+            coreIndex = Math.floor(geometry / 8);
+            updateGeometryUI();
+
+            // Update overlay
+            document.getElementById('currentGeometry').textContent = geometry;
+        }
+
+        // Update geometry UI state
+        function updateGeometryUI() {
+            document.querySelectorAll('.geo-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === baseIndex);
+            });
+            document.querySelectorAll('.core-btn').forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.core) === coreIndex);
+            });
+        }
+
+        // Build geometry buttons
+        const geoGrid = document.getElementById('geoGrid');
+        baseNames.forEach((name, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'geo-btn' + (i === 0 ? ' active' : '');
+            btn.textContent = name;
+            btn.dataset.base = i;
+            btn.addEventListener('click', () => {
+                baseIndex = i;
+                updateGeometryUI();
+                setGeometry();
+            });
+            geoGrid.appendChild(btn);
+        });
+
+        // System buttons
+        document.querySelectorAll('.system-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!engine) return;
+
+                document.querySelectorAll('.system-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const system = btn.dataset.system;
+                document.getElementById('status').textContent = 'Switching...';
+
+                const success = await engine.switchSystem(system);
+
+                if (success) {
+                    document.getElementById('currentSystem').textContent = system;
+                    document.getElementById('status').textContent = 'Ready';
+                }
+            });
+        });
+
+        // Core buttons
+        document.querySelectorAll('.core-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.core-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                coreIndex = parseInt(btn.dataset.core);
+                setGeometry();
+            });
+        });
+
+        // Set geometry using SDK encoding: geometry = coreIndex * 8 + baseIndex
+        function setGeometry() {
+            if (!engine) return;
+            const geometry = coreIndex * 8 + baseIndex;
+            engine.setParameter('geometry', geometry);
+            document.getElementById('currentGeometry').textContent = geometry;
+        }
+
+        // 6D Rotation sliders - 3D Space
+        ['rot4dXY', 'rot4dXZ', 'rot4dYZ'].forEach(param => {
+            const slider = document.getElementById(param);
+            slider.addEventListener('input', () => {
+                if (!engine) return;
+                const value = slider.value / 100;
+                engine.setParameter(param, value);
+                document.getElementById(param + 'Display').textContent = value.toFixed(2);
+            });
+        });
+
+        // 6D Rotation sliders - 4D Hyperspace
+        ['rot4dXW', 'rot4dYW', 'rot4dZW'].forEach(param => {
+            const slider = document.getElementById(param);
+            slider.addEventListener('input', () => {
+                if (!engine) return;
+                const value = slider.value / 100;
+                engine.setParameter(param, value);
+                document.getElementById(param + 'Display').textContent = value.toFixed(2);
+            });
+        });
+
+        // Visual parameter sliders
+        document.getElementById('dimension').addEventListener('input', (e) => {
+            if (!engine) return;
+            const value = e.target.value / 100;
+            engine.setParameter('dimension', value);
+            document.getElementById('dimensionDisplay').textContent = value.toFixed(2);
+        });
+
+        document.getElementById('hue').addEventListener('input', (e) => {
+            if (!engine) return;
+            const value = parseInt(e.target.value);
+            engine.setParameter('hue', value);
+            document.getElementById('hueDisplay').textContent = value;
+        });
+
+        document.getElementById('speed').addEventListener('input', (e) => {
+            if (!engine) return;
+            const value = e.target.value / 100;
+            engine.setParameter('speed', value);
+            document.getElementById('speedDisplay').textContent = value.toFixed(2);
+        });
+
+        document.getElementById('chaos').addEventListener('input', (e) => {
+            if (!engine) return;
+            const value = e.target.value / 100;
+            engine.setParameter('chaos', value);
+            document.getElementById('chaosDisplay').textContent = value.toFixed(2);
+        });
+
+        // Action buttons
+        document.getElementById('randomizeBtn').addEventListener('click', () => {
+            if (!engine) return;
+            engine.randomizeAll();
+            syncUIFromEngine();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (!engine) return;
+            engine.resetAll();
+            baseIndex = 0;
+            coreIndex = 0;
+            syncUIFromEngine();
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            if (!engine) return;
+            const state = engine.exportState();
+            console.log('Exported State:', state);
+
+            // Copy to clipboard
+            const json = JSON.stringify(state, null, 2);
+            navigator.clipboard.writeText(json).then(() => {
+                document.getElementById('status').textContent = 'State copied!';
+                setTimeout(() => {
+                    document.getElementById('status').textContent = 'Ready';
+                }, 1500);
+            });
+        });
+
+        // Initialize on load
+        initEngine();
+    </script>
+</body>
+</html>

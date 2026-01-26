@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://vib3.dev/schemas/extension.json",
+  "$id": "extension.schema.json",
   "title": "VIB3+ Extension Manifest",
   "description": "Manifest describing VIB3 extensions for partner marketplace distribution.",
   "type": "object",

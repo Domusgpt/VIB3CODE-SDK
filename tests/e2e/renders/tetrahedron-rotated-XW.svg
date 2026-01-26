@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-vib3-geometry="0" data-vib3-system="quantum" data-vib3-core-type="Base">
+  <defs>
+    <style>
+      :root {
+        --vib3-hue: 120;
+        --vib3-saturation: 0.8;
+        --vib3-intensity: 0.9;
+      }
+    </style>
+  </defs>
+  <rect width="512" height="512" fill="#111111"/>
+  <g id="geometry-layer">
+    <line x1="256.00" y1="256.00" x2="278.21" y2="281.30" stroke="hsla(300, 64%, 60%, 0.18)" stroke-width="0.26" stroke-linecap="round"/>
+    <line x1="256.00" y1="256.00" x2="236.15" y2="233.38" stroke="hsla(300, 64%, 60%, 0.20)" stroke-width="0.30" stroke-linecap="round"/>
+    <line x1="256.00" y1="256.00" x2="288.19" y2="292.68" stroke="hsla(300, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="256.00" y1="256.00" x2="228.53" y2="224.69" stroke="hsla(300, 64%, 60%, 0.12)" stroke-width="0.18" stroke-linecap="round"/>
+    <line x1="278.21" y1="281.30" x2="288.19" y2="292.68" stroke="hsla(300, 64%, 60%, 0.30)" stroke-width="0.45" stroke-linecap="round"/>
+    <line x1="278.21" y1="281.30" x2="303.21" y2="282.90" stroke="hsla(300, 64%, 60%, 0.23)" stroke-width="0.35" stroke-linecap="round"/>
+    <line x1="236.15" y1="233.38" x2="228.53" y2="224.69" stroke="hsla(300, 64%, 60%, 0.32)" stroke-width="0.48" stroke-linecap="round"/>
+    <line x1="288.19" y1="292.68" x2="303.21" y2="282.90" stroke="hsla(300, 64%, 60%, 0.28)" stroke-width="0.42" stroke-linecap="round"/>
+    <line x1="288.19" y1="292.68" x2="278.21" y2="306.61" stroke="hsla(300, 64%, 60%, 0.29)" stroke-width="0.43" stroke-linecap="round"/>
+    <line x1="228.53" y1="224.69" x2="236.15" y2="210.75" stroke="hsla(300, 64%, 60%, 0.29)" stroke-width="0.44" stroke-linecap="round"/>
+    <line x1="228.53" y1="224.69" x2="218.29" y2="234.51" stroke="hsla(300, 64%, 60%, 0.31)" stroke-width="0.46" stroke-linecap="round"/>
+    <line x1="303.21" y1="282.90" x2="278.21" y2="306.61" stroke="hsla(300, 64%, 60%, 0.17)" stroke-width="0.26" stroke-linecap="round"/>
+    <line x1="303.21" y1="282.90" x2="315.50" y2="256.00" stroke="hsla(300, 64%, 60%, 0.20)" stroke-width="0.30" stroke-linecap="round"/>
+    <line x1="236.15" y1="210.75" x2="218.29" y2="234.51" stroke="hsla(300, 64%, 60%, 0.20)" stroke-width="0.30" stroke-linecap="round"/>
+    <line x1="236.15" y1="210.75" x2="256.00" y2="197.49" stroke="hsla(300, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="218.29" y1="234.51" x2="210.84" y2="256.00" stroke="hsla(300, 64%, 60%, 0.25)" stroke-width="0.37" stroke-linecap="round"/>
+    <line x1="256.00" y1="314.51" x2="236.15" y2="301.25" stroke="hsla(300, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="210.84" y1="256.00" x2="218.29" y2="277.49" stroke="hsla(300, 64%, 60%, 0.25)" stroke-width="0.37" stroke-linecap="round"/>
+    <line x1="218.29" y1="277.49" x2="236.15" y2="301.25" stroke="hsla(300, 64%, 60%, 0.20)" stroke-width="0.30" stroke-linecap="round"/>
+    <line x1="218.29" y1="277.49" x2="228.53" y2="287.31" stroke="hsla(300, 64%, 60%, 0.31)" stroke-width="0.46" stroke-linecap="round"/>
+    <line x1="236.15" y1="301.25" x2="228.53" y2="287.31" stroke="hsla(300, 64%, 60%, 0.29)" stroke-width="0.44" stroke-linecap="round"/>
+    <line x1="278.21" y1="205.39" x2="303.21" y2="229.10" stroke="hsla(300, 64%, 60%, 0.17)" stroke-width="0.26" stroke-linecap="round"/>
+    <line x1="278.21" y1="205.39" x2="288.19" y2="219.32" stroke="hsla(300, 64%, 60%, 0.29)" stroke-width="0.43" stroke-linecap="round"/>
+    <line x1="303.21" y1="229.10" x2="288.19" y2="219.32" stroke="hsla(300, 64%, 60%, 0.28)" stroke-width="0.42" stroke-linecap="round"/>
+    <line x1="303.21" y1="229.10" x2="278.21" y2="230.70" stroke="hsla(300, 64%, 60%, 0.23)" stroke-width="0.35" stroke-linecap="round"/>
+    <line x1="228.53" y1="287.31" x2="236.15" y2="278.62" stroke="hsla(300, 64%, 60%, 0.32)" stroke-width="0.48" stroke-linecap="round"/>
+    <line x1="228.53" y1="287.31" x2="256.00" y2="256.00" stroke="hsla(300, 64%, 60%, 0.12)" stroke-width="0.18" stroke-linecap="round"/>
+    <line x1="288.19" y1="219.32" x2="278.21" y2="230.70" stroke="hsla(300, 64%, 60%, 0.30)" stroke-width="0.45" stroke-linecap="round"/>
+    <line x1="288.19" y1="219.32" x2="256.00" y2="256.00" stroke="hsla(300, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="236.15" y1="278.62" x2="256.00" y2="256.00" stroke="hsla(300, 64%, 60%, 0.20)" stroke-width="0.30" stroke-linecap="round"/>
+    <line x1="278.21" y1="230.70" x2="256.00" y2="256.00" stroke="hsla(300, 64%, 60%, 0.18)" stroke-width="0.26" stroke-linecap="round"/>
+    <circle cx="256.00" cy="256.00" r="3.07" fill="hsla(141, 80%, 74%, 0.68)"/>
+    <circle cx="278.21" cy="281.30" r="3.13" fill="hsla(143, 80%, 75%, 0.69)"/>
+    <circle cx="236.15" cy="233.38" r="3.17" fill="hsla(143, 80%, 75%, 0.69)"/>
+    <circle cx="288.19" cy="292.68" r="3.23" fill="hsla(145, 80%, 75%, 0.71)"/>
+    <circle cx="228.53" cy="224.69" r="3.27" fill="hsla(145, 80%, 75%, 0.71)"/>
+    <circle cx="303.21" cy="282.90" r="3.30" fill="hsla(146, 80%, 76%, 0.72)"/>
+    <circle cx="278.21" cy="306.61" r="3.31" fill="hsla(146, 80%, 76%, 0.72)"/>
+    <circle cx="236.15" cy="210.75" r="3.33" fill="hsla(147, 80%, 76%, 0.72)"/>
+    <circle cx="218.29" cy="234.51" r="3.34" fill="hsla(147, 80%, 76%, 0.72)"/>
+    <circle cx="315.50" cy="256.00" r="3.50" fill="hsla(150, 80%, 77%, 0.75)"/>
+    <circle cx="256.00" cy="197.49" r="3.50" fill="hsla(150, 80%, 77%, 0.75)"/>
+    <circle cx="256.00" cy="314.51" r="3.50" fill="hsla(150, 80%, 77%, 0.75)"/>
+    <circle cx="210.84" cy="256.00" r="3.50" fill="hsla(150, 80%, 77%, 0.75)"/>
+    <circle cx="218.29" cy="277.49" r="3.66" fill="hsla(153, 80%, 78%, 0.78)"/>
+    <circle cx="236.15" cy="301.25" r="3.67" fill="hsla(153, 80%, 78%, 0.78)"/>
+    <circle cx="278.21" cy="205.39" r="3.69" fill="hsla(154, 80%, 78%, 0.78)"/>
+    <circle cx="303.21" cy="229.10" r="3.70" fill="hsla(154, 80%, 78%, 0.78)"/>
+    <circle cx="228.53" cy="287.31" r="3.73" fill="hsla(155, 80%, 79%, 0.79)"/>
+    <circle cx="288.19" cy="219.32" r="3.77" fill="hsla(155, 80%, 79%, 0.79)"/>
+    <circle cx="236.15" cy="278.62" r="3.83" fill="hsla(157, 80%, 79%, 0.81)"/>
+    <circle cx="278.21" cy="230.70" r="3.87" fill="hsla(157, 80%, 79%, 0.81)"/>
+    <circle cx="256.00" cy="256.00" r="3.93" fill="hsla(159, 80%, 80%, 0.82)"/>
+  </g>
+</svg>

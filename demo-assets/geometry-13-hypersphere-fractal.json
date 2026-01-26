@@ -1,0 +1,34 @@
+{
+  "version": "2.0",
+  "type": "vib3-sdk-config",
+  "name": "Hypersphere Fractal",
+  "geometryIndex": 13,
+  "encoding": {
+    "formula": "geometry = coreIndex * 8 + baseIndex",
+    "coreIndex": 1,
+    "baseIndex": 5,
+    "coreType": "Hypersphere",
+    "baseGeometry": "Fractal"
+  },
+  "parameters": {
+    "geometry": 13,
+    "gridDensity": 15,
+    "morphFactor": 1,
+    "chaos": 0.2,
+    "speed": 1,
+    "hue": 195,
+    "intensity": 0.7,
+    "saturation": 0.8,
+    "rot4dXY": 0,
+    "rot4dXZ": 0,
+    "rot4dYZ": 0,
+    "rot4dXW": 1.3,
+    "rot4dYW": 0.65,
+    "rot4dZW": 1.04
+  },
+  "timestamp": 1769320624414,
+  "metadata": {
+    "sdk": "VIB3+ SDK v1.9.0",
+    "author": "Demo Generator"
+  }
+}

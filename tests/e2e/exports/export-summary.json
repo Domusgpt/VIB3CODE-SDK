@@ -1,0 +1,58 @@
+{
+  "generatedAt": "2026-01-24T05:43:53.916Z",
+  "sdkVersion": "1.9.0",
+  "exports": {
+    "parameterStates": [
+      "state-default.json",
+      "state-randomized.json",
+      "state-6d-rotation.json"
+    ],
+    "geometryData": [
+      "geometry-catalog.json",
+      "geometry-0-tetrahedron-vertices.json"
+    ],
+    "rotorData": [
+      "rotor4d-examples.json"
+    ],
+    "visualizations": [
+      "geometry-0.svg",
+      "geometry-1.svg",
+      "geometry-8.svg",
+      "geometry-9.svg",
+      "geometry-16.svg",
+      "geometry-17.svg"
+    ]
+  },
+  "coverage": {
+    "parameterSystem": {
+      "rotationPlanes": 6,
+      "geometryVariants": 24,
+      "systems": [
+        "quantum",
+        "faceted",
+        "holographic"
+      ]
+    },
+    "rotor4D": {
+      "planesSupported": [
+        "xy",
+        "xz",
+        "yz",
+        "xw",
+        "yw",
+        "zw"
+      ],
+      "operationsVerified": [
+        "identity",
+        "fromPlaneAngle",
+        "multiply",
+        "rotate"
+      ]
+    },
+    "geometryFactory": {
+      "totalVariants": 24,
+      "baseGeometries": 8,
+      "coreTypes": 3
+    }
+  }
+}

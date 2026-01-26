@@ -217,6 +217,184 @@ export const toolDefinitions = {
             type: 'object',
             properties: {}
         }
+    },
+
+    // Onboarding Tools
+    get_sdk_context: {
+        name: 'get_sdk_context',
+        description: 'Returns essential SDK context for agent onboarding. Call this first to understand the system.',
+        inputSchema: {
+            type: 'object',
+            properties: {}
+        }
+    },
+
+    verify_knowledge: {
+        name: 'verify_knowledge',
+        description: 'Verifies agent has absorbed SDK context. Multiple choice quiz - submit letter answers (a/b/c/d).',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                q1_rotation_planes: {
+                    type: 'string',
+                    enum: ['a', 'b', 'c', 'd'],
+                    description: 'Q1: How many rotation planes? a)3 b)4 c)6 d)8'
+                },
+                q2_geometry_formula: {
+                    type: 'string',
+                    enum: ['a', 'b', 'c', 'd'],
+                    description: 'Q2: Geometry encoding formula? a)base*3+core b)core*8+base c)base+core d)core*base'
+                },
+                q3_canvas_layers: {
+                    type: 'string',
+                    enum: ['a', 'b', 'c', 'd'],
+                    description: 'Q3: Canvas layers per system? a)3 b)4 c)5 d)6'
+                },
+                q4_active_systems: {
+                    type: 'string',
+                    enum: ['a', 'b', 'c', 'd'],
+                    description: 'Q4: Which are the 3 ACTIVE systems? a)quantum,faceted,holographic b)quantum,faceted,polychora c)faceted,holographic,polychora d)all four'
+                },
+                q5_base_geometries: {
+                    type: 'string',
+                    enum: ['a', 'b', 'c', 'd'],
+                    description: 'Q5: How many base geometry types? a)6 b)8 c)10 d)24'
+                },
+                q6_core_types: {
+                    type: 'string',
+                    enum: ['a', 'b', 'c', 'd'],
+                    description: 'Q6: Core warp types? a)base,sphere,cube b)base,hypersphere,hypertetrahedron c)none,partial,full d)2D,3D,4D'
+                }
+            },
+            required: ['q1_rotation_planes', 'q2_geometry_formula', 'q3_canvas_layers']
+        }
+    },
+
+    // ===== REACTIVITY TOOLS (Phase 6.5) =====
+
+    set_reactivity_config: {
+        name: 'set_reactivity_config',
+        description: 'Set complete reactivity configuration for audio/tilt/interaction behavior. This controls how the visualization responds to audio input, device motion, and user interaction.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                audio: {
+                    type: 'object',
+                    description: 'Audio reactivity configuration',
+                    properties: {
+                        enabled: { type: 'boolean', description: 'Enable audio reactivity' },
+                        globalSensitivity: { type: 'number', minimum: 0.1, maximum: 3.0, description: 'Overall audio sensitivity' }
+                    }
+                },
+                tilt: {
+                    type: 'object',
+                    description: 'Device tilt configuration',
+                    properties: {
+                        enabled: { type: 'boolean', description: 'Enable tilt reactivity' },
+                        sensitivity: { type: 'number', minimum: 0.1, maximum: 3.0, description: 'Tilt sensitivity' },
+                        dramaticMode: { type: 'boolean', description: 'Enable dramatic (8x) mode' }
+                    }
+                },
+                interaction: {
+                    type: 'object',
+                    description: 'Mouse/touch interaction configuration',
+                    properties: {
+                        enabled: { type: 'boolean', description: 'Enable interaction' },
+                        mouseMode: { type: 'string', enum: ['rotation', 'velocity', 'shimmer', 'attract', 'repel', 'none'] },
+                        clickMode: { type: 'string', enum: ['burst', 'blast', 'ripple', 'pulse', 'none'] },
+                        scrollMode: { type: 'string', enum: ['cycle', 'wave', 'sweep', 'zoom', 'morph', 'none'] }
+                    }
+                }
+            }
+        }
+    },
+
+    get_reactivity_config: {
+        name: 'get_reactivity_config',
+        description: 'Get current reactivity configuration including audio, tilt, and interaction settings.',
+        inputSchema: {
+            type: 'object',
+            properties: {}
+        }
+    },
+
+    configure_audio_band: {
+        name: 'configure_audio_band',
+        description: 'Configure a single audio frequency band (bass, mid, or high) with target parameter mappings.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                band: {
+                    type: 'string',
+                    enum: ['bass', 'mid', 'high'],
+                    description: 'Frequency band to configure'
+                },
+                enabled: { type: 'boolean', description: 'Enable this band' },
+                sensitivity: { type: 'number', minimum: 0.1, maximum: 3.0, description: 'Band sensitivity' },
+                targets: {
+                    type: 'array',
+                    description: 'Parameter targets for this band',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            param: { type: 'string', description: 'Target parameter name (e.g., morphFactor, chaos, speed)' },
+                            weight: { type: 'number', description: 'Effect weight/strength' },
+                            mode: { type: 'string', enum: ['add', 'multiply', 'replace', 'max', 'min'], default: 'add' }
+                        }
+                    }
+                }
+            },
+            required: ['band']
+        }
+    },
+
+    // ===== EXPORT TOOLS (Phase 6.5) =====
+
+    export_package: {
+        name: 'export_package',
+        description: 'Export complete VIB3Package with visual state, reactivity config, and embed code. The package is self-contained and portable.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                name: { type: 'string', description: 'Package name' },
+                description: { type: 'string', description: 'Package description' },
+                includeReactivity: { type: 'boolean', default: true, description: 'Include reactivity configuration' },
+                includeEmbed: { type: 'boolean', default: true, description: 'Include embed code (HTML/JS/CSS)' },
+                format: {
+                    type: 'string',
+                    enum: ['json', 'html', 'webcomponent'],
+                    default: 'json',
+                    description: 'Export format'
+                }
+            }
+        }
+    },
+
+    // ===== PRESET TOOLS (Phase 6.6) =====
+
+    apply_behavior_preset: {
+        name: 'apply_behavior_preset',
+        description: 'Apply a named behavior preset that configures reactivity for common use cases.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                preset: {
+                    type: 'string',
+                    enum: ['ambient', 'reactive', 'immersive', 'energetic', 'calm', 'cinematic'],
+                    description: 'Preset name: ambient (minimal), reactive (audio-driven), immersive (full tilt), energetic (high speed), calm (slow/smooth), cinematic (dramatic rotations)'
+                }
+            },
+            required: ['preset']
+        }
+    },
+
+    list_behavior_presets: {
+        name: 'list_behavior_presets',
+        description: 'List all available behavior presets with descriptions.',
+        inputSchema: {
+            type: 'object',
+            properties: {}
+        }
     }
 };
 

@@ -1,0 +1,141 @@
+{
+  "timestamp": "2026-01-24T05:36:25.034Z",
+  "sdkVersion": "1.9.0",
+  "testSuite": "VIB3+ Visual E2E Tests",
+  "demos": {
+    "realDemo": {
+      "hasCanvas": false,
+      "has6DSliders": {
+        "rot4dXY": true,
+        "rot4dXZ": true,
+        "rot4dYZ": true,
+        "rot4dXW": true,
+        "rot4dYW": true,
+        "rot4dZW": true
+      },
+      "hasSystemButtons": true,
+      "hasGeometryGrid": true,
+      "hasCoreButtons": true,
+      "hasPresets": false,
+      "usesSDK": true,
+      "hasExportFeature": true,
+      "hasRandomize": true
+    },
+    "standaloneDemo": {
+      "hasCanvas": true,
+      "has6DSliders": {
+        "rot4dXY": false,
+        "rot4dXZ": false,
+        "rot4dYZ": false,
+        "rot4dXW": false,
+        "rot4dYW": false,
+        "rot4dZW": false
+      },
+      "hasSystemButtons": true,
+      "hasGeometryGrid": true,
+      "hasCoreButtons": true,
+      "hasPresets": true,
+      "usesSDK": false,
+      "hasExportFeature": false,
+      "hasRandomize": false
+    }
+  },
+  "visualTests": [
+    {
+      "name": "real-demo-initial",
+      "url": "/examples/vib3-real-demo.html",
+      "description": "Real SDK demo initial state",
+      "checks": [
+        "Canvas container visible",
+        "6D rotation sliders present",
+        "System buttons (quantum/faceted/holographic)",
+        "Geometry grid with 8 base options",
+        "Core type buttons (Base/Hypersphere/Hypertetra)"
+      ]
+    },
+    {
+      "name": "standalone-demo-initial",
+      "url": "/examples/vib3-demo-standalone.html",
+      "description": "Standalone demo initial state",
+      "checks": [
+        "Canvas rendering shape",
+        "All 6 rotation displays (XY, XZ, YZ, XW, YW, ZW)",
+        "System selector active",
+        "Preset buttons (Calm/Spin/Chaos/Reset)"
+      ]
+    },
+    {
+      "name": "rotation-xy-test",
+      "url": "/examples/vib3-real-demo.html#rot4dXY=1.57",
+      "description": "XY rotation at π/2",
+      "checks": [
+        "Visualization reflects XY rotation",
+        "rot4dXY slider at 1.57 position"
+      ]
+    },
+    {
+      "name": "geometry-hypersphere-test",
+      "url": "/examples/vib3-real-demo.html#geometry=12",
+      "description": "Geometry 12 (Torus + Hypersphere Core)",
+      "checks": [
+        "Geometry shows core warp effect",
+        "Geometry display shows \"12\""
+      ]
+    }
+  ],
+  "coverage": {
+    "6D_rotation_planes": {
+      "XY": true,
+      "XZ": true,
+      "YZ": true,
+      "XW": true,
+      "YW": true,
+      "ZW": true
+    },
+    "geometry_variants": {
+      "total": 24,
+      "base": 8,
+      "hypersphere_core": 8,
+      "hypertetra_core": 8
+    },
+    "systems": [
+      "quantum",
+      "faceted",
+      "holographic"
+    ],
+    "features": {
+      "system_switching": true,
+      "parameter_export": true,
+      "randomization": true,
+      "reset": true
+    }
+  },
+  "analysis": {
+    "realDemo": {
+      "usesActualSDK": true,
+      "imports": [
+        "VIB3Engine from src/core/VIB3Engine.js"
+      ],
+      "methods": [
+        "initialize",
+        "setParameter",
+        "switchSystem",
+        "exportState",
+        "randomizeAll"
+      ],
+      "allSixRotationsImplemented": true
+    },
+    "standaloneDemo": {
+      "usesActualSDK": false,
+      "purpose": "Preview/offline testing without SDK dependency",
+      "allSixRotationsImplemented": true,
+      "matchesSDKParameterNames": true
+    }
+  },
+  "recommendations": [
+    "Run with browser to capture actual screenshots",
+    "Test on mobile devices for touch interaction",
+    "Verify WebGL context creation on different hardware",
+    "Test system switching performance"
+  ]
+}

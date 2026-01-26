@@ -1,0 +1,34 @@
+{
+  "version": "2.0",
+  "type": "vib3-sdk-config",
+  "name": "Hypertetrahedron Torus",
+  "geometryIndex": 19,
+  "encoding": {
+    "formula": "geometry = coreIndex * 8 + baseIndex",
+    "coreIndex": 2,
+    "baseIndex": 3,
+    "coreType": "Hypertetrahedron",
+    "baseGeometry": "Torus"
+  },
+  "parameters": {
+    "geometry": 19,
+    "gridDensity": 15,
+    "morphFactor": 1,
+    "chaos": 0.2,
+    "speed": 1,
+    "hue": 285,
+    "intensity": 0.7,
+    "saturation": 0.8,
+    "rot4dXY": 0,
+    "rot4dXZ": 0,
+    "rot4dYZ": 0,
+    "rot4dXW": 1.9000000000000001,
+    "rot4dYW": 0.9500000000000001,
+    "rot4dZW": 1.52
+  },
+  "timestamp": 1769320624416,
+  "metadata": {
+    "sdk": "VIB3+ SDK v1.9.0",
+    "author": "Demo Generator"
+  }
+}

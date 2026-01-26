@@ -643,11 +643,88 @@ export class RealHolographicSystem {
             }
         });
         this.visualizers = [];
-        
+
         if (this.audioContext) {
             this.audioContext.close();
         }
-        
+
         console.log('🧹 REAL Holographic System destroyed');
+    }
+
+    // ============================================
+    // RendererContract Compliance Methods
+    // ============================================
+
+    /**
+     * Initialize the renderer (RendererContract.init)
+     * For Holographic, initialization happens in constructor
+     * This method allows re-initialization with new context
+     * @param {Object} [context] - Optional context
+     * @returns {boolean} Success status
+     */
+    init(context = {}) {
+        // If already initialized, just return success
+        if (this.visualizers.length > 0) {
+            return true;
+        }
+        // Otherwise initialize
+        this.initialize();
+        return this.visualizers.length > 0;
+    }
+
+    /**
+     * Handle canvas resize (RendererContract.resize)
+     * @param {number} width - New width in pixels
+     * @param {number} height - New height in pixels
+     * @param {number} [pixelRatio=1] - Device pixel ratio
+     */
+    resize(width, height, pixelRatio = 1) {
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.canvas && visualizer.gl) {
+                visualizer.canvas.width = width * pixelRatio;
+                visualizer.canvas.height = height * pixelRatio;
+                visualizer.canvas.style.width = `${width}px`;
+                visualizer.canvas.style.height = `${height}px`;
+                visualizer.gl.viewport(0, 0, visualizer.canvas.width, visualizer.canvas.height);
+            }
+        });
+        console.log(`🌌 Holographic resized to ${width}x${height} @${pixelRatio}x`);
+    }
+
+    /**
+     * Render a single frame (RendererContract.render)
+     * @param {Object} [frameState] - Frame state with time, params, audio
+     */
+    render(frameState = {}) {
+        // Apply frameState parameters if provided
+        if (frameState.params) {
+            Object.keys(frameState.params).forEach(param => {
+                this.updateParameter(param, frameState.params[param]);
+            });
+        }
+
+        // Apply audio data if provided
+        if (frameState.audio) {
+            this.audioData = frameState.audio;
+        }
+
+        // Render all visualizers
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.render) {
+                visualizer.render();
+            }
+        });
+    }
+
+    /**
+     * Clean up all resources (RendererContract.dispose)
+     * Alias for destroy() for contract compliance
+     */
+    dispose() {
+        // Disable audio first
+        this.disableAudio();
+
+        // Call existing destroy
+        this.destroy();
     }
 }

@@ -1,0 +1,100 @@
+name: Export Validation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/export/**'
+      - 'tests/exports/**'
+      - 'tests/snapshots/exports/**'
+  pull_request:
+    paths:
+      - 'src/export/**'
+      - 'tests/exports/**'
+      - 'tests/snapshots/exports/**'
+
+jobs:
+  golden-snapshots:
+    name: Golden Snapshot Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run export tests
+        run: pnpm test -- tests/exports/golden.test.js
+
+      - name: Check for uncommitted snapshot changes
+        run: |
+          if [ -n "$(git status --porcelain tests/snapshots/)" ]; then
+            echo "::error::Snapshot files have changed. Please update and commit."
+            git diff tests/snapshots/
+            exit 1
+          fi
+
+  export-formats:
+    name: Format Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Validate SVG export
+        run: |
+          node -e "
+            import('./src/export/SVGExporter.js').then(m => {
+              const svg = m.exportSVG({ geometry: 0, hue: 200 });
+              if (!svg.includes('<svg')) throw new Error('Invalid SVG');
+              console.log('SVG export: OK');
+            });
+          "
+
+      - name: Validate CSS export
+        run: |
+          node -e "
+            import('./src/export/CSSExporter.js').then(m => {
+              const css = m.exportCSS({ geometry: 0, hue: 200 });
+              if (!css.includes(':root')) throw new Error('Invalid CSS');
+              console.log('CSS export: OK');
+            });
+          "
+
+      - name: Validate Lottie export
+        run: |
+          node -e "
+            import('./src/export/LottieExporter.js').then(m => {
+              const lottie = m.exportLottie({ geometry: 0, hue: 200 });
+              if (!lottie.v || !lottie.layers) throw new Error('Invalid Lottie');
+              console.log('Lottie export: OK');
+            });
+          "

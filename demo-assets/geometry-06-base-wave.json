@@ -1,0 +1,34 @@
+{
+  "version": "2.0",
+  "type": "vib3-sdk-config",
+  "name": "Base Wave",
+  "geometryIndex": 6,
+  "encoding": {
+    "formula": "geometry = coreIndex * 8 + baseIndex",
+    "coreIndex": 0,
+    "baseIndex": 6,
+    "coreType": "Base",
+    "baseGeometry": "Wave"
+  },
+  "parameters": {
+    "geometry": 6,
+    "gridDensity": 15,
+    "morphFactor": 1,
+    "chaos": 0.2,
+    "speed": 1,
+    "hue": 90,
+    "intensity": 0.7,
+    "saturation": 0.8,
+    "rot4dXY": 0,
+    "rot4dXZ": 0,
+    "rot4dYZ": 0,
+    "rot4dXW": 0.6000000000000001,
+    "rot4dYW": 0.30000000000000004,
+    "rot4dZW": 0.48
+  },
+  "timestamp": 1769320624411,
+  "metadata": {
+    "sdk": "VIB3+ SDK v1.9.0",
+    "author": "Demo Generator"
+  }
+}

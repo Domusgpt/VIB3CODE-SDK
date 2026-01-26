@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB3+ Interactive Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: system-ui, sans-serif;
+            overflow: hidden;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90vw;
+        }
+
+        button {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #0ff;
+            color: #0ff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: rgba(0, 255, 255, 0.3);
+        }
+
+        button.active {
+            background: #0ff;
+            color: #000;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 100;
+            max-width: 300px;
+        }
+
+        .info h3 { color: #0ff; margin-bottom: 10px; }
+        .info p { color: #888; margin: 5px 0; }
+        .info span { color: #0f0; }
+
+        .slider-group {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 100;
+        }
+
+        .slider-group label {
+            display: block;
+            color: #888;
+            font-size: 11px;
+            margin-bottom: 3px;
+        }
+
+        .slider-group input {
+            width: 150px;
+            margin-bottom: 10px;
+        }
+
+        .slider-value {
+            color: #0f0;
+            font-size: 10px;
+            float: right;
+        }
+
+        #log {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 350px;
+            z-index: 100;
+        }
+
+        .log-entry { margin: 2px 0; }
+        .log-entry.info { color: #0ff; }
+        .log-entry.success { color: #0f0; }
+        .log-entry.error { color: #f00; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div class="info">
+        <h3>VIB3+ SDK Demo</h3>
+        <p>Geometry: <span id="geoName">Loading...</span></p>
+        <p>Vertices: <span id="vertexCount">0</span></p>
+        <p>Edges: <span id="edgeCount">0</span></p>
+        <p>FPS: <span id="fps">0</span></p>
+    </div>
+
+    <div class="slider-group">
+        <label>XY Rotation <span class="slider-value" id="xyVal">0.00</span></label>
+        <input type="range" id="rotXY" min="-3.14" max="3.14" step="0.01" value="0">
+
+        <label>XW Rotation (4D) <span class="slider-value" id="xwVal">0.00</span></label>
+        <input type="range" id="rotXW" min="-3.14" max="3.14" step="0.01" value="0">
+
+        <label>ZW Rotation (4D) <span class="slider-value" id="zwVal">0.00</span></label>
+        <input type="range" id="rotZW" min="-3.14" max="3.14" step="0.01" value="0">
+
+        <label>Auto-Rotate Speed <span class="slider-value" id="speedVal">0.50</span></label>
+        <input type="range" id="autoSpeed" min="0" max="2" step="0.01" value="0.5">
+    </div>
+
+    <div id="log"></div>
+
+    <div class="controls">
+        <button onclick="setGeometry(0)">Tetrahedron</button>
+        <button onclick="setGeometry(1)" class="active">Hypercube</button>
+        <button onclick="setGeometry(2)">Sphere</button>
+        <button onclick="setGeometry(3)">Torus</button>
+        <button onclick="setGeometry(4)">Klein Bottle</button>
+        <button onclick="setGeometry(6)">Wave</button>
+        <button onclick="setGeometry(7)">Crystal</button>
+        <button onclick="toggleAuto()">Toggle Auto-Rotate</button>
+    </div>
+
+    <script type="module">
+        // ============================================
+        // VIB3+ INTERACTIVE DEMO
+        // Using actual SDK: Rotor4D, Vec4, Geometry
+        // ============================================
+
+        import { Rotor4D } from '../src/math/Rotor4D.js';
+        import { Vec4 } from '../src/math/Vec4.js';
+        import { generateGeometry, getGeometryName, BASE_GEOMETRIES } from '../src/geometry/GeometryFactory.js';
+
+        // Logging system
+        const logEl = document.getElementById('log');
+        function log(msg, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${msg}`);
+        }
+
+        log('Starting VIB3+ SDK Demo...');
+        log('Importing SDK modules...');
+
+        // Verify imports
+        log(`Rotor4D: ${typeof Rotor4D}`, Rotor4D ? 'success' : 'error');
+        log(`Vec4: ${typeof Vec4}`, Vec4 ? 'success' : 'error');
+        log(`generateGeometry: ${typeof generateGeometry}`, generateGeometry ? 'success' : 'error');
+
+        // Canvas setup
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            log(`Canvas resized: ${width}x${height}`);
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // State
+        let currentGeometry = null;
+        let currentIndex = 1; // Hypercube
+        let rotXY = 0, rotXW = 0, rotZW = 0;
+        let autoRotate = true;
+        let autoSpeed = 0.5;
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fps = 0;
+
+        // Load geometry
+        function loadGeometry(index) {
+            log(`Loading geometry index ${index}...`);
+            try {
+                currentGeometry = generateGeometry(index, { density: 24 });
+                currentIndex = index;
+
+                const name = getGeometryName(index);
+                document.getElementById('geoName').textContent = name;
+                document.getElementById('vertexCount').textContent = currentGeometry.vertices?.length || 0;
+                document.getElementById('edgeCount').textContent = currentGeometry.edges?.length || 0;
+
+                log(`Loaded: ${name}`, 'success');
+                log(`  Vertices: ${currentGeometry.vertices?.length || 0}`, 'success');
+                log(`  Edges: ${currentGeometry.edges?.length || 0}`, 'success');
+
+                // Update button states
+                document.querySelectorAll('.controls button').forEach((btn, i) => {
+                    if (i < 7) btn.classList.toggle('active', i === index);
+                });
+            } catch (e) {
+                log(`Error loading geometry: ${e.message}`, 'error');
+                console.error(e);
+            }
+        }
+
+        // Project 4D -> 2D
+        function project4Dto2D(v4, rotor) {
+            // Apply 4D rotation using the rotor
+            const rotated = rotor.rotate(v4);
+
+            // Perspective projection from 4D to 3D
+            const wDist = 3;
+            const scale4D = 1 / (wDist - rotated.w);
+
+            const x3 = rotated.x * scale4D;
+            const y3 = rotated.y * scale4D;
+            const z3 = rotated.z * scale4D;
+
+            // Perspective projection from 3D to 2D
+            const zDist = 4;
+            const scale3D = 1 / (zDist - z3);
+
+            const x2 = x3 * scale3D;
+            const y2 = y3 * scale3D;
+
+            // Convert to screen coordinates
+            const screenX = width / 2 + x2 * Math.min(width, height) * 0.3;
+            const screenY = height / 2 - y2 * Math.min(width, height) * 0.3;
+
+            return { x: screenX, y: screenY, depth: rotated.w + z3 };
+        }
+
+        // Render frame
+        function render() {
+            // Create combined rotor from all rotation angles
+            const r1 = Rotor4D.fromPlaneAngle('XY', rotXY);
+            const r2 = Rotor4D.fromPlaneAngle('XW', rotXW);
+            const r3 = Rotor4D.fromPlaneAngle('ZW', rotZW);
+            const rotor = r1.multiply(r2).multiply(r3);
+
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+
+            if (!currentGeometry || !currentGeometry.vertices) return;
+
+            // Project all vertices
+            const projected = currentGeometry.vertices.map(v => project4Dto2D(v, rotor));
+
+            // Draw edges
+            if (currentGeometry.edges) {
+                currentGeometry.edges.forEach(([i, j]) => {
+                    const p1 = projected[i];
+                    const p2 = projected[j];
+                    if (!p1 || !p2) return;
+
+                    // Depth-based opacity and color
+                    const avgDepth = (p1.depth + p2.depth) / 2;
+                    const opacity = Math.max(0.1, Math.min(1, 0.5 + avgDepth * 0.3));
+                    const hue = 180 + avgDepth * 30;
+
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${opacity})`;
+                    ctx.lineWidth = Math.max(0.5, 2 - avgDepth * 0.5);
+                    ctx.stroke();
+                });
+            }
+
+            // Draw vertices
+            projected.forEach((p, i) => {
+                const size = Math.max(2, 4 - p.depth);
+                const opacity = Math.max(0.3, Math.min(1, 0.5 + p.depth * 0.3));
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(60, 100%, 70%, ${opacity})`;
+                ctx.fill();
+            });
+        }
+
+        // Animation loop
+        function animate(time) {
+            // FPS calculation
+            frameCount++;
+            if (time - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = time;
+                document.getElementById('fps').textContent = fps;
+            }
+
+            // Auto-rotation
+            if (autoRotate) {
+                rotXY += 0.003 * autoSpeed;
+                rotXW += 0.005 * autoSpeed;
+                rotZW += 0.002 * autoSpeed;
+
+                // Update sliders
+                document.getElementById('rotXY').value = rotXY % 6.28;
+                document.getElementById('rotXW').value = rotXW % 6.28;
+                document.getElementById('rotZW').value = rotZW % 6.28;
+                document.getElementById('xyVal').textContent = (rotXY % 6.28).toFixed(2);
+                document.getElementById('xwVal').textContent = (rotXW % 6.28).toFixed(2);
+                document.getElementById('zwVal').textContent = (rotZW % 6.28).toFixed(2);
+            }
+
+            render();
+            requestAnimationFrame(animate);
+        }
+
+        // Slider handlers
+        document.getElementById('rotXY').addEventListener('input', (e) => {
+            rotXY = parseFloat(e.target.value);
+            document.getElementById('xyVal').textContent = rotXY.toFixed(2);
+        });
+        document.getElementById('rotXW').addEventListener('input', (e) => {
+            rotXW = parseFloat(e.target.value);
+            document.getElementById('xwVal').textContent = rotXW.toFixed(2);
+        });
+        document.getElementById('rotZW').addEventListener('input', (e) => {
+            rotZW = parseFloat(e.target.value);
+            document.getElementById('zwVal').textContent = rotZW.toFixed(2);
+        });
+        document.getElementById('autoSpeed').addEventListener('input', (e) => {
+            autoSpeed = parseFloat(e.target.value);
+            document.getElementById('speedVal').textContent = autoSpeed.toFixed(2);
+        });
+
+        // Expose functions globally
+        window.setGeometry = function(index) {
+            loadGeometry(index);
+        };
+
+        window.toggleAuto = function() {
+            autoRotate = !autoRotate;
+            log(`Auto-rotate: ${autoRotate ? 'ON' : 'OFF'}`);
+            document.querySelectorAll('.controls button')[7].classList.toggle('active', autoRotate);
+        };
+
+        // Mouse interaction - rotate with mouse
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            autoRotate = false;
+            document.querySelectorAll('.controls button')[7].classList.remove('active');
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - lastMouseX;
+            const dy = e.clientY - lastMouseY;
+
+            rotXY += dx * 0.005;
+            rotXW += dy * 0.005;
+
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+
+        canvas.addEventListener('mouseup', () => isDragging = false);
+        canvas.addEventListener('mouseleave', () => isDragging = false);
+
+        // Touch support
+        canvas.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            lastMouseX = e.touches[0].clientX;
+            lastMouseY = e.touches[0].clientY;
+            autoRotate = false;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const dx = e.touches[0].clientX - lastMouseX;
+            const dy = e.touches[0].clientY - lastMouseY;
+
+            rotXY += dx * 0.005;
+            rotXW += dy * 0.005;
+
+            lastMouseX = e.touches[0].clientX;
+            lastMouseY = e.touches[0].clientY;
+        });
+
+        canvas.addEventListener('touchend', () => isDragging = false);
+
+        // Start
+        log('Initializing...');
+        loadGeometry(1); // Start with Hypercube
+        log('Starting animation loop...');
+        requestAnimationFrame(animate);
+        log('Demo ready! Drag to rotate, use buttons to change geometry.', 'success');
+    </script>
+</body>
+</html>

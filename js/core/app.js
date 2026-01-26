@@ -53,9 +53,9 @@ export class VIB34DApp {
                         // Update panel header
                         const headers = {
                             faceted: 'FACETED SYSTEM',
-                            quantum: 'QUANTUM SYSTEM', 
-                            holographic: 'HOLOGRAPHIC SYSTEM',
-                            polychora: 'POLYCHORA SYSTEM'
+                            quantum: 'QUANTUM SYSTEM',
+                            holographic: 'HOLOGRAPHIC SYSTEM'
+                            // polychora: TBD placeholder - not production ready
                         };
                         const panelHeader = document.getElementById('panelHeader');
                         if (panelHeader) panelHeader.textContent = headers[system] || 'VIB34D SYSTEM';

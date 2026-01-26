@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB3+ Real Shader Exports</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a1a1a 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #fff;
+            padding: 40px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #64ff96, #00ffff, #ff64ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 30px;
+        }
+        .card {
+            background: rgba(20, 20, 40, 0.8);
+            border: 1px solid rgba(100, 255, 150, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            border-color: rgba(100, 255, 150, 0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        .preview {
+            width: 100%;
+            height: 250px;
+            border: none;
+            background: #000;
+        }
+        .info {
+            padding: 20px;
+        }
+        .info h3 {
+            font-size: 1.2rem;
+            color: #64ff96;
+            margin-bottom: 8px;
+        }
+        .info p {
+            font-size: 0.9rem;
+            color: #aaa;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+        }
+        .meta span {
+            background: rgba(100, 255, 150, 0.15);
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: #64ff96;
+        }
+        .meta .system { background: rgba(0, 255, 255, 0.15); color: #00ffff; }
+        .meta .geo { background: rgba(255, 100, 255, 0.15); color: #ff64ff; }
+        a.view {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #64ff96, #00ffff);
+            color: #000;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        a.view:hover { opacity: 0.8; }
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        .footer a { color: #64ff96; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>VIB3+ Real Shader Exports</h1>
+    <p class="subtitle">
+        9 visualizations using ACTUAL Quantum, Faceted, and Holographic shaders<br>
+        Full 24-geometry system with 6D rotation and audio reactivity
+    </p>
+
+    <div class="grid">
+        
+        <div class="card">
+            <iframe class="preview" src="01-quantum-quantum-tetrahedron-lattice.html" loading="lazy"></iframe>
+            <div class="info">
+                <h3>Quantum Tetrahedron Lattice</h3>
+                <p>Base tetrahedron geometry with quantum lattice shader - 4D rotation creates volumetric interference patterns</p>
+                <div class="meta">
+                    <span class="system">QUANTUM</span>
+                    <span class="geo">Geometry 0</span>
+                </div>
+                <a href="01-quantum-quantum-tetrahedron-lattice.html" class="view" target="_blank">View Fullscreen →</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <iframe class="preview" src="02-quantum-quantum-hypersphere-matrix.html" loading="lazy"></iframe>
+            <div class="info">
+                <h3>Quantum Hypersphere Matrix</h3>
+                <p>Hypersphere-warped hypercube - creates complex 4D projection effects with S³ manifold topology</p>
+                <div class="meta">
+                    <span class="system">QUANTUM</span>
+                    <span class="geo">Geometry 9</span>
+                </div>
+                <a href="02-quantum-quantum-hypersphere-matrix.html" class="view" target="_blank">View Fullscreen →</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <iframe class="preview" src="03-quantum-quantum-hypertetra-fractal.html" loading="lazy"></iframe>
+            <div class="info">
+                <h3>Quantum Hypertetra Fractal</h3>
+                <p>Hypertetrahedron core with fractal base - 5-cell pentatope projection creates recursive self-similar structures</p>
+                <div class="meta">
+                    <span class="system">QUANTUM</span>
+                    <span class="geo">Geometry 21</span>
+                </div>
+                <a href="03-quantum-quantum-hypertetra-fractal.html" class="view" target="_blank">View Fullscreen →</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <iframe class="preview" src="04-faceted-faceted-crystal-structure.html" loading="lazy"></iframe>
+            <div class="info">
+                <h3>Faceted Crystal Structure</h3>
+                <p>Clean SDF crystal geometry - sharp faceted edges with 4D rotation projection</p>
+                <div class="meta">
+                    <span class="system">FACETED</span>
+                    <span class="geo">Geometry 7</span>
+                </div>
+                <a href="04-faceted-faceted-crystal-structure.html" class="view" target="_blank">View Fullscreen →</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <iframe class="preview" src="05-faceted-faceted-klein-bottle.html" loading="lazy"></iframe>
+            <div class="info">
+                <h3>Faceted Klein Bottle</h3>
+                <p>Non-orientable surface with faceted rendering - mathematically impossible 4D object projected to screen</p>
+                <div class="meta">
+                    <span class="system">FACETED</span>
+                    <span class="geo">Geometry 12</span>
+                </div>
+                <a href="05-faceted-faceted-klein-bottle.html" class="view" target="_blank">View Fullscreen →</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <iframe class="preview" src="06-faceted-faceted-hypertetra-torus.html" loading="lazy"></iframe>
+            <div class="info">
+                <h3>Faceted Hypertetra Torus</h3>
+                <p>Hypertetrahedron-warped torus - creates complex toroidal structures through 5-cell projection</p>
+                <div class="meta">
+                    <span class="system">FACETED</span>
+                    <span class="geo">Geometry 19</span>
+                </div>
+                <a href="06-faceted-faceted-hypertetra-torus.html" class="view" target="_blank">View Fullscreen →</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <iframe class="preview" src="07-holographic-holographic-wave-field.html" loading="lazy"></iframe>
+            <div class="info">
+                <h3>Holographic Wave Field</h3>
+                <p>Holographic wave interference patterns - 5-layer glassmorphic rendering with shimmer effects</p>
+                <div class="meta">
+                    <span class="system">HOLOGRAPHIC</span>
+                    <span class="geo">Geometry 6</span>
+                </div>
+                <a href="07-holographic-holographic-wave-field.html" class="view" target="_blank">View Fullscreen →</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <iframe class="preview" src="08-holographic-holographic-hypersphere-sphere.html" loading="lazy"></iframe>
+            <div class="info">
+                <h3>Holographic Hypersphere Sphere</h3>
+                <p>Hypersphere-warped sphere - creates S³ manifold projection with holographic depth layers</p>
+                <div class="meta">
+                    <span class="system">HOLOGRAPHIC</span>
+                    <span class="geo">Geometry 10</span>
+                </div>
+                <a href="08-holographic-holographic-hypersphere-sphere.html" class="view" target="_blank">View Fullscreen →</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <iframe class="preview" src="09-holographic-holographic-hypertetra-crystal.html" loading="lazy"></iframe>
+            <div class="info">
+                <h3>Holographic Hypertetra Crystal</h3>
+                <p>Hypertetrahedron crystal lattice - 5-cell pentatope projection with crystalline holographic shimmer</p>
+                <div class="meta">
+                    <span class="system">HOLOGRAPHIC</span>
+                    <span class="geo">Geometry 23</span>
+                </div>
+                <a href="09-holographic-holographic-hypertetra-crystal.html" class="view" target="_blank">View Fullscreen →</a>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="footer">
+        <p>
+            Generated by VIB3+ ShaderExporter •
+            <a href="https://github.com/Domusgpt/Vib3-CORE-Documented01-">GitHub</a>
+        </p>
+        <p style="margin-top: 10px;">
+            Each visualization uses the REAL shader code from VIB3+ systems:<br>
+            Quantum (complex lattice), Faceted (clean SDF), Holographic (5-layer glassmorphic)
+        </p>
+    </div>
+</body>
+</html>

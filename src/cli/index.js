@@ -179,7 +179,8 @@ function showHelp(isJson) {
             system: 'Switch visualization system',
             randomize: 'Randomize all parameters',
             reset: 'Reset to default parameters',
-            tools: 'List available MCP tools'
+            tools: 'List available MCP tools',
+            validate: 'Validate manifests, packs, and configs'
         },
         options: {
             '--json, -j': 'Output in JSON format (agent-friendly)',
@@ -194,7 +195,9 @@ function showHelp(isJson) {
             `${CLI_NAME} set visual --hue 200 --chaos 0.3`,
             `${CLI_NAME} geometry list --core-type hypersphere`,
             `${CLI_NAME} state --json`,
-            `${CLI_NAME} tools --json`
+            `${CLI_NAME} tools --json`,
+            `${CLI_NAME} validate pack scene.vib3 --json`,
+            `${CLI_NAME} validate manifest extension.json`
         ]
     };
 
@@ -362,6 +365,124 @@ async function handleTools(parsed, startTime) {
 }
 
 /**
+ * Handle 'validate' command - validates manifests, packs, and configs
+ */
+async function handleValidate(parsed, startTime) {
+    const subcommand = parsed.subcommand || 'pack';
+    const filePath = parsed.options.file || parsed.options.f || parsed.positional[0];
+
+    if (!filePath && subcommand !== 'schema') {
+        return wrapResponse('validate', {
+            error: {
+                type: 'ValidationError',
+                code: 'MISSING_FILE',
+                message: 'File path required for validation',
+                suggestion: 'Use --file <path> or provide file as positional argument'
+            }
+        }, false, performance.now() - startTime);
+    }
+
+    try {
+        switch (subcommand) {
+            case 'pack': {
+                // Validate a .vib3 scene pack file
+                const fs = await import('fs/promises');
+                const content = await fs.readFile(filePath, 'utf-8');
+                const pack = JSON.parse(content);
+
+                const validation = schemaRegistry.validate('parameters', pack.parameters || pack);
+                return wrapResponse('validate_pack', {
+                    file: filePath,
+                    valid: validation.valid,
+                    errors: validation.errors || [],
+                    schema: 'parameters'
+                }, validation.valid, performance.now() - startTime);
+            }
+
+            case 'manifest': {
+                // Validate extension/tool manifest
+                const fs = await import('fs/promises');
+                const content = await fs.readFile(filePath, 'utf-8');
+                const manifest = JSON.parse(content);
+
+                // Basic manifest structure validation
+                const required = ['name', 'version', 'type'];
+                const missing = required.filter(f => !manifest[f]);
+                const valid = missing.length === 0;
+
+                return wrapResponse('validate_manifest', {
+                    file: filePath,
+                    valid,
+                    errors: missing.length > 0 ? [{ message: `Missing required fields: ${missing.join(', ')}` }] : [],
+                    manifest_type: manifest.type || 'unknown',
+                    name: manifest.name,
+                    version: manifest.version
+                }, valid, performance.now() - startTime);
+            }
+
+            case 'response': {
+                // Validate a tool response envelope
+                const fs = await import('fs/promises');
+                const content = await fs.readFile(filePath, 'utf-8');
+                const response = JSON.parse(content);
+
+                const validation = schemaRegistry.validate('toolResponse', response);
+                return wrapResponse('validate_response', {
+                    file: filePath,
+                    valid: validation.valid,
+                    errors: validation.errors || [],
+                    schema: 'toolResponse'
+                }, validation.valid, performance.now() - startTime);
+            }
+
+            case 'schema': {
+                // List available schemas
+                const schemas = ['parameters', 'toolResponse', 'error'];
+                return wrapResponse('list_schemas', {
+                    schemas,
+                    count: schemas.length
+                }, true, performance.now() - startTime);
+            }
+
+            default:
+                return wrapResponse('validate', {
+                    error: {
+                        type: 'ValidationError',
+                        code: 'INVALID_SUBCOMMAND',
+                        message: `Unknown validate subcommand: ${subcommand}`,
+                        valid_options: ['pack', 'manifest', 'response', 'schema'],
+                        suggestion: 'Use "validate pack <file>", "validate manifest <file>", or "validate schema"'
+                    }
+                }, false, performance.now() - startTime);
+        }
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            return wrapResponse('validate', {
+                error: {
+                    type: 'NotFoundError',
+                    code: 'FILE_NOT_FOUND',
+                    message: `File not found: ${filePath}`,
+                    suggestion: 'Check the file path and try again'
+                }
+            }, false, performance.now() - startTime);
+        }
+
+        if (error instanceof SyntaxError) {
+            return wrapResponse('validate', {
+                error: {
+                    type: 'ValidationError',
+                    code: 'INVALID_JSON',
+                    message: `Invalid JSON in file: ${error.message}`,
+                    suggestion: 'Ensure the file contains valid JSON'
+                }
+            }, false, performance.now() - startTime);
+        }
+
+        throw error;
+    }
+}
+
+/**
  * Main entry point
  */
 async function main() {
@@ -409,6 +530,9 @@ async function main() {
                 break;
             case 'tools':
                 result = await handleTools(parsed, startTime);
+                break;
+            case 'validate':
+                result = await handleValidate(parsed, startTime);
                 break;
             default:
                 result = wrapResponse('get_state', {

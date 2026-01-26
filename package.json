@@ -287,13 +287,19 @@
     "build:web": "vite build",
     "lint": "eslint \"src/**/*.{js,ts}\"",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:all": "vitest run && playwright test",
     "bench": "vitest bench",
     "analyze:bundle": "vite build --mode analyze",
     "check:bundle": "pnpm exec vite build --outDir dist-ci --emptyOutDir && node tools/ci/bundleSizeCheck.mjs dist-ci --cleanup",
     "codegen:localization": "tsx tools/codegen/localization-quaternions.ts",
     "cli:telemetry": "node tools/cli/agent-cli.js telemetry:export",
     "storybook": "storybook dev -p 6006",
-    "build:storybook": "storybook build"
+    "build:storybook": "storybook build",
+    "demo:generate": "node scripts/generate-demo-assets.js"
   },
   "packageManager": "pnpm@9.4.0",
   "files": [
@@ -303,19 +309,24 @@
     "README.md"
   ],
   "dependencies": {
-    "ajv": "^8.17.1"
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.14.9",
-    "@vitest/coverage-v8": "^1.6.1",
+    "@playwright/test": "^1.58.0",
     "@storybook/addon-essentials": "^8.1.6",
     "@storybook/addon-interactions": "^8.1.6",
     "@storybook/html-vite": "^8.1.6",
+    "@types/node": "^20.14.9",
+    "@vitest/coverage-v8": "^1.6.1",
     "eslint": "^9.6.0",
+    "happy-dom": "^20.3.7",
+    "playwright": "^1.58.0",
+    "puppeteer-core": "^24.36.0",
     "storybook": "^8.1.6",
+    "tsx": "^4.15.7",
     "typescript": "^5.5.3",
     "vite": "^5.3.3",
-    "vitest": "^1.6.0",
-    "tsx": "^4.15.7"
+    "vitest": "^1.6.0"
   }
 }

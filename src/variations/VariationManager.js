@@ -63,7 +63,7 @@ export class VariationManager {
         if (index >= 30) return null;
         
         const geometryType = Math.floor(index / 4);
-        const level = index % 4;
+        let level = index % 4;
         
         // Special handling for reduced geometry sets
         let adjustedGeometryType = geometryType;

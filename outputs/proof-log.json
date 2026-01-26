@@ -1,0 +1,247 @@
+{
+  "timestamp": "2026-01-24T06:08:05.783Z",
+  "steps": [
+    {
+      "step": 1,
+      "message": "Verifying SDK imports...",
+      "data": null,
+      "time": "2026-01-24T06:08:05.783Z"
+    },
+    {
+      "step": 1,
+      "message": "Rotor4D imported",
+      "data": {
+        "type": "function",
+        "hasIdentity": true
+      },
+      "time": "2026-01-24T06:08:05.783Z"
+    },
+    {
+      "step": 1,
+      "message": "Vec4 imported",
+      "data": {
+        "type": "function"
+      },
+      "time": "2026-01-24T06:08:05.784Z"
+    },
+    {
+      "step": 1,
+      "message": "exportSVG imported",
+      "data": {
+        "type": "function"
+      },
+      "time": "2026-01-24T06:08:05.784Z"
+    },
+    {
+      "step": 2,
+      "message": "Creating identity rotor...",
+      "data": null,
+      "time": "2026-01-24T06:08:05.784Z"
+    },
+    {
+      "step": 2,
+      "message": "Identity rotor created",
+      "data": {
+        "s": 1,
+        "xy": 0,
+        "xz": 0,
+        "yz": 0,
+        "xw": 0,
+        "yw": 0,
+        "zw": 0,
+        "xyzw": 0
+      },
+      "time": "2026-01-24T06:08:05.784Z"
+    },
+    {
+      "step": 3,
+      "message": "Creating 6D rotation rotors...",
+      "data": null,
+      "time": "2026-01-24T06:08:05.784Z"
+    },
+    {
+      "step": 3,
+      "message": "Created XY-45deg rotor",
+      "data": {
+        "name": "XY-45deg",
+        "plane": "XY",
+        "angle": 0.7853981633974483,
+        "angleDeg": "45.0°",
+        "rotor": {
+          "s": "0.9239",
+          "xy": "0.3827",
+          "xz": "0.0000",
+          "yz": "0.0000",
+          "xw": "0.0000",
+          "yw": "0.0000",
+          "zw": "0.0000"
+        }
+      },
+      "time": "2026-01-24T06:08:05.785Z"
+    },
+    {
+      "step": 3,
+      "message": "Created XW-30deg rotor",
+      "data": {
+        "name": "XW-30deg",
+        "plane": "XW",
+        "angle": 0.5235987755982988,
+        "angleDeg": "30.0°",
+        "rotor": {
+          "s": "0.9659",
+          "xy": "0.0000",
+          "xz": "0.0000",
+          "yz": "0.0000",
+          "xw": "0.2588",
+          "yw": "0.0000",
+          "zw": "0.0000"
+        }
+      },
+      "time": "2026-01-24T06:08:05.785Z"
+    },
+    {
+      "step": 3,
+      "message": "Created ZW-60deg rotor",
+      "data": {
+        "name": "ZW-60deg",
+        "plane": "ZW",
+        "angle": 1.0471975511965976,
+        "angleDeg": "60.0°",
+        "rotor": {
+          "s": "0.8660",
+          "xy": "0.0000",
+          "xz": "0.0000",
+          "yz": "0.0000",
+          "xw": "0.0000",
+          "yw": "0.0000",
+          "zw": "0.5000"
+        }
+      },
+      "time": "2026-01-24T06:08:05.785Z"
+    },
+    {
+      "step": 4,
+      "message": "Applying rotation to 4D vector...",
+      "data": null,
+      "time": "2026-01-24T06:08:05.785Z"
+    },
+    {
+      "step": 4,
+      "message": "Original vector",
+      "data": {
+        "x": 1,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "time": "2026-01-24T06:08:05.785Z"
+    },
+    {
+      "step": 4,
+      "message": "After XY 45° rotation",
+      "data": {
+        "x": "0.7071",
+        "y": "0.7071",
+        "z": "0.0000",
+        "w": "0.0000"
+      },
+      "time": "2026-01-24T06:08:05.785Z"
+    },
+    {
+      "step": 5,
+      "message": "Composing 6D rotation (XY + XW + ZW)...",
+      "data": null,
+      "time": "2026-01-24T06:08:05.785Z"
+    },
+    {
+      "step": 5,
+      "message": "Composed 6D rotor",
+      "data": {
+        "s": "0.9532",
+        "xy": "0.1441",
+        "xw": "0.2434",
+        "zw": "0.0956"
+      },
+      "time": "2026-01-24T06:08:05.785Z"
+    },
+    {
+      "step": 6,
+      "message": "Generating SVG exports...",
+      "data": null,
+      "time": "2026-01-24T06:08:05.785Z"
+    },
+    {
+      "step": 6,
+      "message": "Generated proof-tetrahedron.svg",
+      "data": {
+        "lineCount": 45,
+        "size": "8504 bytes"
+      },
+      "time": "2026-01-24T06:08:05.789Z"
+    },
+    {
+      "step": 6,
+      "message": "Generated proof-hypercube.svg",
+      "data": {
+        "lineCount": 143,
+        "size": "24623 bytes"
+      },
+      "time": "2026-01-24T06:08:05.791Z"
+    },
+    {
+      "step": 6,
+      "message": "Generated proof-torus.svg",
+      "data": {
+        "lineCount": 677,
+        "size": "112888 bytes"
+      },
+      "time": "2026-01-24T06:08:05.797Z"
+    },
+    {
+      "step": 7,
+      "message": "Generating proof HTML document...",
+      "data": null,
+      "time": "2026-01-24T06:08:05.797Z"
+    },
+    {
+      "step": 7,
+      "message": "Proof HTML saved",
+      "data": {
+        "file": "SDK-PROOF.html"
+      },
+      "time": "2026-01-24T06:08:05.798Z"
+    }
+  ],
+  "outputs": [
+    {
+      "geometry": "tetrahedron",
+      "file": "proof-tetrahedron.svg",
+      "lineCount": 45,
+      "params": {
+        "rot4dXY": 0.3,
+        "rot4dXW": 0.5,
+        "rot4dZW": 0.2
+      }
+    },
+    {
+      "geometry": "hypercube",
+      "file": "proof-hypercube.svg",
+      "lineCount": 143,
+      "params": {
+        "rot4dXY": 0.3,
+        "rot4dXW": 0.5,
+        "rot4dZW": 0.2
+      }
+    },
+    {
+      "geometry": "torus",
+      "file": "proof-torus.svg",
+      "lineCount": 677,
+      "params": {
+        "rot4dXY": 0.3,
+        "rot4dXW": 0.5,
+        "rot4dZW": 0.2
+      }
+    }
+  ]
+}

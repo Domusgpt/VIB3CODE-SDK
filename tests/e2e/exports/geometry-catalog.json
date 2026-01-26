@@ -1,0 +1,242 @@
+[
+  {
+    "index": 0,
+    "name": "Tetrahedron + Base",
+    "baseIndex": 0,
+    "coreIndex": 0,
+    "encoding": "0 * 8 + 0 = 0",
+    "vertexCount": 5,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 1,
+    "name": "Hypercube + Base",
+    "baseIndex": 1,
+    "coreIndex": 0,
+    "encoding": "0 * 8 + 1 = 1",
+    "vertexCount": 16,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 2,
+    "name": "Sphere + Base",
+    "baseIndex": 2,
+    "coreIndex": 0,
+    "encoding": "0 * 8 + 2 = 2",
+    "vertexCount": 2304,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 3,
+    "name": "Torus + Base",
+    "baseIndex": 3,
+    "coreIndex": 0,
+    "encoding": "0 * 8 + 3 = 3",
+    "vertexCount": 576,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 4,
+    "name": "Klein Bottle + Base",
+    "baseIndex": 4,
+    "coreIndex": 0,
+    "encoding": "0 * 8 + 4 = 4",
+    "vertexCount": 325,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 5,
+    "name": "Fractal + Base",
+    "baseIndex": 5,
+    "coreIndex": 0,
+    "encoding": "0 * 8 + 5 = 5",
+    "vertexCount": 125,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 6,
+    "name": "Wave + Base",
+    "baseIndex": 6,
+    "coreIndex": 0,
+    "encoding": "0 * 8 + 6 = 6",
+    "vertexCount": 8125,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 7,
+    "name": "Crystal + Base",
+    "baseIndex": 7,
+    "coreIndex": 0,
+    "encoding": "0 * 8 + 7 = 7",
+    "vertexCount": 8,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 8,
+    "name": "Tetrahedron + Hypersphere Core",
+    "baseIndex": 0,
+    "coreIndex": 1,
+    "encoding": "1 * 8 + 0 = 8",
+    "vertexCount": 5,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 9,
+    "name": "Hypercube + Hypersphere Core",
+    "baseIndex": 1,
+    "coreIndex": 1,
+    "encoding": "1 * 8 + 1 = 9",
+    "vertexCount": 16,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 10,
+    "name": "Sphere + Hypersphere Core",
+    "baseIndex": 2,
+    "coreIndex": 1,
+    "encoding": "1 * 8 + 2 = 10",
+    "vertexCount": 2304,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 11,
+    "name": "Torus + Hypersphere Core",
+    "baseIndex": 3,
+    "coreIndex": 1,
+    "encoding": "1 * 8 + 3 = 11",
+    "vertexCount": 576,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 12,
+    "name": "Klein Bottle + Hypersphere Core",
+    "baseIndex": 4,
+    "coreIndex": 1,
+    "encoding": "1 * 8 + 4 = 12",
+    "vertexCount": 325,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 13,
+    "name": "Fractal + Hypersphere Core",
+    "baseIndex": 5,
+    "coreIndex": 1,
+    "encoding": "1 * 8 + 5 = 13",
+    "vertexCount": 125,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 14,
+    "name": "Wave + Hypersphere Core",
+    "baseIndex": 6,
+    "coreIndex": 1,
+    "encoding": "1 * 8 + 6 = 14",
+    "vertexCount": 8125,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 15,
+    "name": "Crystal + Hypersphere Core",
+    "baseIndex": 7,
+    "coreIndex": 1,
+    "encoding": "1 * 8 + 7 = 15",
+    "vertexCount": 8,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 16,
+    "name": "Tetrahedron + Hypertetrahedron Core",
+    "baseIndex": 0,
+    "coreIndex": 2,
+    "encoding": "2 * 8 + 0 = 16",
+    "vertexCount": 5,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 17,
+    "name": "Hypercube + Hypertetrahedron Core",
+    "baseIndex": 1,
+    "coreIndex": 2,
+    "encoding": "2 * 8 + 1 = 17",
+    "vertexCount": 16,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 18,
+    "name": "Sphere + Hypertetrahedron Core",
+    "baseIndex": 2,
+    "coreIndex": 2,
+    "encoding": "2 * 8 + 2 = 18",
+    "vertexCount": 2304,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 19,
+    "name": "Torus + Hypertetrahedron Core",
+    "baseIndex": 3,
+    "coreIndex": 2,
+    "encoding": "2 * 8 + 3 = 19",
+    "vertexCount": 576,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 20,
+    "name": "Klein Bottle + Hypertetrahedron Core",
+    "baseIndex": 4,
+    "coreIndex": 2,
+    "encoding": "2 * 8 + 4 = 20",
+    "vertexCount": 325,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 21,
+    "name": "Fractal + Hypertetrahedron Core",
+    "baseIndex": 5,
+    "coreIndex": 2,
+    "encoding": "2 * 8 + 5 = 21",
+    "vertexCount": 125,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 22,
+    "name": "Wave + Hypertetrahedron Core",
+    "baseIndex": 6,
+    "coreIndex": 2,
+    "encoding": "2 * 8 + 6 = 22",
+    "vertexCount": 8125,
+    "hasIndices": false,
+    "indexCount": 0
+  },
+  {
+    "index": 23,
+    "name": "Crystal + Hypertetrahedron Core",
+    "baseIndex": 7,
+    "coreIndex": 2,
+    "encoding": "2 * 8 + 7 = 23",
+    "vertexCount": 8,
+    "hasIndices": false,
+    "indexCount": 0
+  }
+]

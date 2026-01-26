@@ -74,7 +74,6 @@ function createGalleryModal() {
                     <button class="filter-tab" onclick="filterGallery('faceted')">🔷 Faceted</button>
                     <button class="filter-tab" onclick="filterGallery('quantum')">🌌 Quantum</button>
                     <button class="filter-tab" onclick="filterGallery('holographic')">✨ Holographic</button>
-                    <button class="filter-tab" onclick="filterGallery('polychora')">🔮 Polychora</button>
                 </div>
                 <select class="sort-select" onchange="sortGallery(this.value)">
                     <option value="newest">Newest First</option>

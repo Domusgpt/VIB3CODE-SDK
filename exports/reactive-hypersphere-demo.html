@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reactive Hypersphere Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 15px 20px;
+            color: #fff;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+        .info-panel h3 {
+            color: #00ffff;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .info-panel p {
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+        .info-panel .meta {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 10px;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="vib3-canvas"></canvas>
+
+    <div class="info-panel">
+        <h3>Reactive Hypersphere Demo</h3>
+        <p>Audio-reactive 4D hypersphere visualization with bass-driven morphing</p>
+        <div class="meta">
+            Package ID: pkg_mkukzq23_4ywd6fzj3<br>
+            System: quantum<br>
+            Geometry: 0 + Core 0<br>
+            Created: 1/26/2026
+        </div>
+    </div>
+
+    <script>
+    // VIB3+ Embedded Visualization
+    // Package: pkg_mkukzq23_4ywd6fzj3
+    // Generated: 2026-01-26T03:01:41.181Z
+
+    const CONFIG = {
+  "system": "quantum",
+  "geometry": 0,
+  "parameters": {},
+  "reactivity": {
+    "audio": {
+      "enabled": false,
+      "globalSensitivity": 1
+    },
+    "tilt": {
+      "enabled": false,
+      "dramaticMode": false
+    },
+    "interaction": {
+      "enabled": true,
+      "mouseMode": "rotation",
+      "clickMode": "burst",
+      "scrollMode": "cycle"
+    }
+  }
+};
+
+    // Shader code (simplified procedural fragment shader)
+    const vertexShader = `
+        attribute vec2 a_position;
+        void main() {
+            gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+    `;
+
+    const fragmentShader = `
+        precision highp float;
+
+        uniform float u_time;
+        uniform vec2 u_resolution;
+        uniform float u_geometry;
+        uniform float u_rot4dXY, u_rot4dXZ, u_rot4dYZ;
+        uniform float u_rot4dXW, u_rot4dYW, u_rot4dZW;
+        uniform float u_gridDensity;
+        uniform float u_morphFactor;
+        uniform float u_chaos;
+        uniform float u_speed;
+        uniform float u_hue;
+        uniform float u_intensity;
+        uniform float u_saturation;
+        uniform float u_dimension;
+        uniform float u_mouseX, u_mouseY;
+        uniform float u_audioLevel;
+
+        #define PI 3.14159265359
+
+        // 4D rotation matrices
+        mat4 rotateXY(float a) {
+            float c = cos(a), s = sin(a);
+            return mat4(c,-s,0,0, s,c,0,0, 0,0,1,0, 0,0,0,1);
+        }
+        mat4 rotateXZ(float a) {
+            float c = cos(a), s = sin(a);
+            return mat4(c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1);
+        }
+        mat4 rotateYZ(float a) {
+            float c = cos(a), s = sin(a);
+            return mat4(1,0,0,0, 0,c,-s,0, 0,s,c,0, 0,0,0,1);
+        }
+        mat4 rotateXW(float a) {
+            float c = cos(a), s = sin(a);
+            return mat4(c,0,0,-s, 0,1,0,0, 0,0,1,0, s,0,0,c);
+        }
+        mat4 rotateYW(float a) {
+            float c = cos(a), s = sin(a);
+            return mat4(1,0,0,0, 0,c,0,-s, 0,0,1,0, 0,s,0,c);
+        }
+        mat4 rotateZW(float a) {
+            float c = cos(a), s = sin(a);
+            return mat4(1,0,0,0, 0,1,0,0, 0,0,c,-s, 0,0,s,c);
+        }
+
+        // Combined 6D rotation
+        mat4 rotate4D() {
+            return rotateXY(u_rot4dXY) * rotateXZ(u_rot4dXZ) * rotateYZ(u_rot4dYZ) *
+                   rotateXW(u_rot4dXW) * rotateYW(u_rot4dYW) * rotateZW(u_rot4dZW);
+        }
+
+        // HSV to RGB
+        vec3 hsv2rgb(vec3 c) {
+            vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+        }
+
+        // Geometry functions based on index
+        float getPattern(vec4 p, float t) {
+            float baseType = mod(u_geometry, 8.0);
+            float coreType = floor(u_geometry / 8.0);
+
+            // Apply core warp
+            if (coreType >= 1.0) {
+                float r = length(p);
+                p = p / (r + 0.1);
+                if (coreType >= 2.0) {
+                    p.w += sin(p.x * 3.0 + t) * 0.3;
+                }
+            }
+
+            float pattern = 0.0;
+            float density = u_gridDensity * 0.1;
+
+            // Base geometry patterns
+            if (baseType < 1.0) {
+                // Tetrahedron lattice
+                pattern = sin(p.x * density) * sin(p.y * density) * sin(p.z * density);
+            } else if (baseType < 2.0) {
+                // Hypercube grid
+                pattern = max(max(abs(sin(p.x * density)), abs(sin(p.y * density))),
+                             max(abs(sin(p.z * density)), abs(sin(p.w * density))));
+            } else if (baseType < 3.0) {
+                // Sphere harmonics
+                float r = length(p.xyz);
+                pattern = sin(r * density + t * 2.0) * cos(atan(p.y, p.x) * 3.0);
+            } else if (baseType < 4.0) {
+                // Torus
+                float r1 = length(p.xy) - 0.5;
+                float r2 = length(vec2(r1, p.z));
+                pattern = sin(r2 * density * 2.0 + t);
+            } else if (baseType < 5.0) {
+                // Klein bottle (simplified)
+                pattern = sin((p.x + p.y) * density) * cos((p.z - p.w) * density);
+            } else if (baseType < 6.0) {
+                // Fractal
+                vec3 z = p.xyz;
+                for (int i = 0; i < 4; i++) {
+                    z = abs(z) - 0.5;
+                    z *= 1.5;
+                }
+                pattern = length(z) * 0.2;
+            } else if (baseType < 7.0) {
+                // Wave interference
+                pattern = sin(p.x * density + t * 3.0) * sin(p.y * density - t * 2.0) *
+                         sin(p.z * density + t) * sin(p.w * density * 0.5);
+            } else {
+                // Crystal
+                pattern = max(abs(p.x) + abs(p.y), abs(p.z) + abs(p.w));
+                pattern = sin(pattern * density);
+            }
+
+            // Apply morph
+            pattern = mix(pattern, sin(length(p) * density * 2.0 + t), u_morphFactor * 0.5);
+
+            // Apply chaos
+            pattern += (fract(sin(dot(p.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * u_chaos;
+
+            return pattern;
+        }
+
+        void main() {
+            vec2 uv = (gl_FragCoord.xy - u_resolution * 0.5) / min(u_resolution.x, u_resolution.y);
+            float t = u_time * u_speed;
+
+            // Create 4D point
+            vec4 p = vec4(uv * 2.0, sin(t * 0.5) * 0.5, cos(t * 0.3) * 0.5);
+
+            // Apply mouse interaction
+            p.xy += vec2(u_mouseX, u_mouseY) * 0.2;
+
+            // Apply audio reactivity
+            p *= 1.0 + u_audioLevel * 0.3;
+
+            // Apply 6D rotation
+            p = rotate4D() * p;
+
+            // Project 4D -> 3D
+            float projFactor = 1.0 / (u_dimension - p.w);
+            vec3 projected = p.xyz * projFactor;
+
+            // Get pattern
+            float pattern = getPattern(p, t);
+
+            // Color
+            float hue = u_hue / 360.0 + pattern * 0.1 + t * 0.02;
+            vec3 color = hsv2rgb(vec3(hue, u_saturation, u_intensity));
+
+            // Apply pattern to color
+            color *= 0.5 + pattern * 0.5;
+
+            // Depth-based brightness
+            color *= 1.0 - length(projected) * 0.3;
+
+            gl_FragColor = vec4(color, 1.0);
+        }
+    `;
+
+    // Initialize WebGL
+    const canvas = document.getElementById('vib3-canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+    if (!gl) {
+        console.error('WebGL not supported');
+        document.body.innerHTML = '<div style="color:white;padding:20px;">WebGL not supported</div>';
+    }
+
+    // Compile shaders
+    function createShader(type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+            return null;
+        }
+        return shader;
+    }
+
+    const vs = createShader(gl.VERTEX_SHADER, vertexShader);
+    const fs = createShader(gl.FRAGMENT_SHADER, fragmentShader);
+
+    const program = gl.createProgram();
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        console.error('Program link error:', gl.getProgramInfoLog(program));
+    }
+
+    gl.useProgram(program);
+
+    // Create fullscreen quad
+    const positions = new Float32Array([-1,-1, 1,-1, -1,1, 1,1]);
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+    const positionLoc = gl.getAttribLocation(program, 'a_position');
+    gl.enableVertexAttribArray(positionLoc);
+    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+    // Get uniform locations
+    const uniforms = {};
+    ['u_time', 'u_resolution', 'u_geometry',
+     'u_rot4dXY', 'u_rot4dXZ', 'u_rot4dYZ', 'u_rot4dXW', 'u_rot4dYW', 'u_rot4dZW',
+     'u_gridDensity', 'u_morphFactor', 'u_chaos', 'u_speed',
+     'u_hue', 'u_intensity', 'u_saturation', 'u_dimension',
+     'u_mouseX', 'u_mouseY', 'u_audioLevel'].forEach(name => {
+        uniforms[name] = gl.getUniformLocation(program, name);
+    });
+
+    // Parameters from config
+    const params = CONFIG.parameters;
+
+    // Mouse tracking
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', e => {
+        mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseY = -((e.clientY / window.innerHeight) * 2 - 1);
+    });
+
+    // Audio setup (if enabled)
+    let audioLevel = 0;
+    const reactivity = CONFIG.reactivity;
+    if (reactivity?.audio?.enabled) {
+        navigator.mediaDevices?.getUserMedia({ audio: true }).then(stream => {
+            const audioCtx = new AudioContext();
+            const analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 256;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            function updateAudio() {
+                analyser.getByteFrequencyData(dataArray);
+                // Get bass level (first few bins)
+                let bass = 0;
+                for (let i = 0; i < 8; i++) bass += dataArray[i];
+                audioLevel = (bass / 8 / 255) * (reactivity.audio.globalSensitivity || 1.0);
+                requestAnimationFrame(updateAudio);
+            }
+            updateAudio();
+        }).catch(e => console.log('Audio not available:', e));
+    }
+
+    // Resize handler
+    function resize() {
+        canvas.width = window.innerWidth * devicePixelRatio;
+        canvas.height = window.innerHeight * devicePixelRatio;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Animation loop
+    const startTime = performance.now();
+    function render() {
+        const time = (performance.now() - startTime) / 1000;
+
+        gl.uniform1f(uniforms.u_time, time);
+        gl.uniform2f(uniforms.u_resolution, canvas.width, canvas.height);
+        gl.uniform1f(uniforms.u_geometry, CONFIG.geometry);
+
+        // 6D rotation
+        gl.uniform1f(uniforms.u_rot4dXY, params.rot4dXY || 0);
+        gl.uniform1f(uniforms.u_rot4dXZ, params.rot4dXZ || 0);
+        gl.uniform1f(uniforms.u_rot4dYZ, params.rot4dYZ || 0);
+        gl.uniform1f(uniforms.u_rot4dXW, params.rot4dXW || 0);
+        gl.uniform1f(uniforms.u_rot4dYW, params.rot4dYW || 0);
+        gl.uniform1f(uniforms.u_rot4dZW, params.rot4dZW || 0);
+
+        // Visual params
+        gl.uniform1f(uniforms.u_gridDensity, params.gridDensity || 32);
+        gl.uniform1f(uniforms.u_morphFactor, params.morphFactor || 0);
+        gl.uniform1f(uniforms.u_chaos, params.chaos || 0);
+        gl.uniform1f(uniforms.u_speed, params.speed || 1);
+        gl.uniform1f(uniforms.u_hue, params.hue || 180);
+        gl.uniform1f(uniforms.u_intensity, params.intensity || 1);
+        gl.uniform1f(uniforms.u_saturation, params.saturation || 1);
+        gl.uniform1f(uniforms.u_dimension, params.dimension || 4);
+
+        // Interaction
+        gl.uniform1f(uniforms.u_mouseX, mouseX);
+        gl.uniform1f(uniforms.u_mouseY, mouseY);
+        gl.uniform1f(uniforms.u_audioLevel, audioLevel);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        requestAnimationFrame(render);
+    }
+    render();
+
+    console.log('VIB3+ Visualization initialized');
+    console.log('Package:', CONFIG);
+    </script>
+</body>
+</html>

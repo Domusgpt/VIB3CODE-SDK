@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <title>VIB3+ Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%,
+                rgba(0, 255, 136, 0.15) 0%,
+                rgba(0, 100, 80, 0.05) 50%,
+                #000 100%);
+            animation: bgPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        .header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,255,136,0.2);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #00FF88;
+            letter-spacing: 2px;
+        }
+
+        .version {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .chips {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chip.quantum { background: rgba(0,255,255,0.2); color: #0FF; border: 1px solid rgba(0,255,255,0.5); }
+        .chip.faceted { background: rgba(255,0,255,0.2); color: #F0F; border: 1px solid rgba(255,0,255,0.5); }
+        .chip.holographic { background: rgba(255,255,0,0.2); color: #FF0; border: 1px solid rgba(255,255,0,0.5); }
+
+        .canvas-container {
+            position: relative;
+            margin: 16px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid rgba(0,255,136,0.3);
+            box-shadow: 0 0 30px rgba(0,255,136,0.1);
+            aspect-ratio: 1;
+            max-height: 50vh;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .overlay {
+            position: absolute;
+            left: 12px;
+            bottom: 12px;
+            background: rgba(0,0,0,0.8);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-family: monospace;
+        }
+
+        .overlay-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .overlay-label { color: #888; }
+        .overlay-value { color: #0F8; font-weight: bold; }
+
+        .fps {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            background: rgba(0,0,0,0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            color: #0F8;
+        }
+
+        .controls {
+            padding: 16px;
+            background: rgba(0,0,0,0.8);
+            margin: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .section {
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .system-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .system-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .system-btn.active {
+            background: rgba(0,255,136,0.3);
+            border: 1px solid #0F8;
+            color: #0F8;
+        }
+
+        .geometry-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .geo-btn {
+            padding: 8px 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .geo-btn.active {
+            background: rgba(0,255,136,0.2);
+            border-color: #0F8;
+            color: #0F8;
+        }
+
+        .core-btns {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .core-btn {
+            padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .core-btn.active {
+            background: rgba(255,0,255,0.2);
+            border-color: #F0F;
+            color: #F0F;
+        }
+
+        .preset-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .slider-label {
+            width: 80px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #0F8;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            width: 50px;
+            text-align: right;
+            font-size: 11px;
+            color: #0F8;
+            font-family: monospace;
+        }
+
+        .advanced-toggle {
+            width: 100%;
+            padding: 8px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .advanced { display: none; }
+        .advanced.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient" id="bgGradient"></div>
+
+    <div class="header">
+        <div>
+            <span class="logo">VIB3+</span>
+            <span class="version">v1.9.0</span>
+        </div>
+        <div class="chips">
+            <span class="chip quantum" id="systemChip">QUANTUM</span>
+            <span class="chip" id="geoChip" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.3);">Cube</span>
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+        <div class="overlay">
+            <div class="overlay-row">
+                <span class="overlay-label">Geometry:</span>
+                <span class="overlay-value" id="geoNum">1</span>
+            </div>
+            <div class="overlay-row">
+                <span class="overlay-label">XY:</span>
+                <span class="overlay-value" id="xyVal">0.00</span>
+                <span class="overlay-label" style="margin-left:8px">XW:</span>
+                <span class="overlay-value" id="xwVal">0.00</span>
+            </div>
+            <div class="overlay-row">
+                <span class="overlay-label">XZ:</span>
+                <span class="overlay-value" id="xzVal">0.00</span>
+                <span class="overlay-label" style="margin-left:8px">YW:</span>
+                <span class="overlay-value" id="ywVal">0.00</span>
+            </div>
+            <div class="overlay-row">
+                <span class="overlay-label">YZ:</span>
+                <span class="overlay-value" id="yzVal">0.00</span>
+                <span class="overlay-label" style="margin-left:8px">ZW:</span>
+                <span class="overlay-value" id="zwVal">0.00</span>
+            </div>
+        </div>
+        <div class="fps" id="fps">60 FPS</div>
+    </div>
+
+    <div class="controls">
+        <div class="section">
+            <div class="section-title">System</div>
+            <div class="system-btns">
+                <button class="system-btn active" data-system="quantum">Quantum</button>
+                <button class="system-btn" data-system="faceted">Faceted</button>
+                <button class="system-btn" data-system="holographic">Holo</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Geometry (24 variants)</div>
+            <div class="geometry-grid" id="geoGrid"></div>
+            <div class="core-btns">
+                <span style="color:rgba(255,255,255,0.5);font-size:11px;margin-right:8px;">Core:</span>
+                <button class="core-btn active" data-core="0">Base</button>
+                <button class="core-btn" data-core="1">Hypersphere</button>
+                <button class="core-btn" data-core="2">Hypertetra</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Presets</div>
+            <div class="preset-btns">
+                <button class="preset-btn" data-preset="calm">Calm</button>
+                <button class="preset-btn" data-preset="spin">Spin</button>
+                <button class="preset-btn" data-preset="chaos">Chaos</button>
+                <button class="preset-btn" data-preset="reset">Reset</button>
+            </div>
+        </div>
+
+        <button class="advanced-toggle" id="advToggle">Show Advanced ▼</button>
+
+        <div class="advanced" id="advSection">
+            <div class="section-title" style="margin-top:0">3D Space Rotations</div>
+            <div class="slider-row">
+                <span class="slider-label">XY Rotation</span>
+                <input type="range" class="slider" id="xySlider" min="0" max="628" value="0">
+                <span class="slider-value" id="xyDisplay">0.00</span>
+            </div>
+            <div class="slider-row">
+                <span class="slider-label">XZ Rotation</span>
+                <input type="range" class="slider" id="xzSlider" min="0" max="628" value="0">
+                <span class="slider-value" id="xzDisplay">0.00</span>
+            </div>
+            <div class="slider-row">
+                <span class="slider-label">YZ Rotation</span>
+                <input type="range" class="slider" id="yzSlider" min="0" max="628" value="0">
+                <span class="slider-value" id="yzDisplay">0.00</span>
+            </div>
+            <div class="section-title">4D Hyperspace Rotations</div>
+            <div class="slider-row">
+                <span class="slider-label">XW Rotation</span>
+                <input type="range" class="slider" id="xwSlider" min="0" max="628" value="0">
+                <span class="slider-value" id="xwDisplay">0.00</span>
+            </div>
+            <div class="slider-row">
+                <span class="slider-label">YW Rotation</span>
+                <input type="range" class="slider" id="ywSlider" min="0" max="628" value="0">
+                <span class="slider-value" id="ywDisplay">0.00</span>
+            </div>
+            <div class="slider-row">
+                <span class="slider-label">ZW Rotation</span>
+                <input type="range" class="slider" id="zwSlider" min="0" max="628" value="0">
+                <span class="slider-value" id="zwDisplay">0.00</span>
+            </div>
+            <div class="section-title">Visual</div>
+            <div class="slider-row">
+                <span class="slider-label">Dimension</span>
+                <input type="range" class="slider" id="dimSlider" min="300" max="450" value="350">
+                <span class="slider-value" id="dimDisplay">3.50</span>
+            </div>
+            <div class="slider-row">
+                <span class="slider-label">Hue</span>
+                <input type="range" class="slider" id="hueSlider" min="0" max="360" value="160">
+                <span class="slider-value" id="hueDisplay">160</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // VIB3+ Demo - Standalone HTML Version
+        const baseNames = ['Tetra', 'Cube', 'Sphere', 'Torus', 'Klein', 'Fractal', 'Wave', 'Crystal'];
+        const coreNames = ['Base', 'Hypersphere', 'Hypertetra'];
+
+        // State - Full 6D Rotation System
+        const state = {
+            system: 'quantum',
+            geometry: 1,
+            baseIndex: 1,
+            coreIndex: 0,
+            // 3D space rotations
+            xy: 0, xz: 0, yz: 0,
+            // 4D hyperspace rotations
+            xw: 0, yw: 0, zw: 0,
+            dimension: 3.5,
+            hue: 160,
+            speed: 1
+        };
+
+        // Canvas setup
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resize() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            width = rect.width;
+            height = rect.height;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+        }
+
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Build geometry grid
+        const geoGrid = document.getElementById('geoGrid');
+        baseNames.forEach((name, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'geo-btn' + (i === 1 ? ' active' : '');
+            btn.textContent = name;
+            btn.dataset.base = i;
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.geo-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.baseIndex = i;
+                state.geometry = state.coreIndex * 8 + state.baseIndex;
+                updateUI();
+            });
+            geoGrid.appendChild(btn);
+        });
+
+        // System buttons
+        document.querySelectorAll('.system-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.system-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.system = btn.dataset.system;
+                updateUI();
+            });
+        });
+
+        // Core buttons
+        document.querySelectorAll('.core-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.core-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.coreIndex = parseInt(btn.dataset.core);
+                state.geometry = state.coreIndex * 8 + state.baseIndex;
+                updateUI();
+            });
+        });
+
+        // Presets - Full 6D rotation values
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switch(btn.dataset.preset) {
+                    case 'calm':
+                        // All 6 planes at zero
+                        state.xy = 0; state.xz = 0; state.yz = 0;
+                        state.xw = 0; state.yw = 0; state.zw = 0;
+                        state.speed = 0.5;
+                        break;
+                    case 'spin':
+                        // Gentle 3D + moderate 4D
+                        state.xy = 0.5; state.xz = 0.3; state.yz = 0.2;
+                        state.xw = 1.5; state.yw = 0.8; state.zw = 0.5;
+                        state.speed = 1.5;
+                        break;
+                    case 'chaos':
+                        // All planes active
+                        state.xy = 2.0; state.xz = 1.5; state.yz = 1.2;
+                        state.xw = 3.14; state.yw = 2.5; state.zw = 1.8;
+                        state.speed = 2;
+                        break;
+                    case 'reset':
+                        // Full reset all 6 planes
+                        state.xy = 0; state.xz = 0; state.yz = 0;
+                        state.xw = 0; state.yw = 0; state.zw = 0;
+                        state.dimension = 3.5; state.hue = 160;
+                        state.speed = 1;
+                        break;
+                }
+                updateSliders();
+                updateUI();
+            });
+        });
+
+        // Sliders - All 6 rotation planes
+        const sliders = {
+            // 3D space rotations
+            xy: document.getElementById('xySlider'),
+            xz: document.getElementById('xzSlider'),
+            yz: document.getElementById('yzSlider'),
+            // 4D hyperspace rotations
+            xw: document.getElementById('xwSlider'),
+            yw: document.getElementById('ywSlider'),
+            zw: document.getElementById('zwSlider'),
+            // Visual
+            dim: document.getElementById('dimSlider'),
+            hue: document.getElementById('hueSlider')
+        };
+
+        // 3D space rotation handlers
+        sliders.xy.addEventListener('input', (e) => { state.xy = e.target.value / 100; updateUI(); });
+        sliders.xz.addEventListener('input', (e) => { state.xz = e.target.value / 100; updateUI(); });
+        sliders.yz.addEventListener('input', (e) => { state.yz = e.target.value / 100; updateUI(); });
+        // 4D hyperspace rotation handlers
+        sliders.xw.addEventListener('input', (e) => { state.xw = e.target.value / 100; updateUI(); });
+        sliders.yw.addEventListener('input', (e) => { state.yw = e.target.value / 100; updateUI(); });
+        sliders.zw.addEventListener('input', (e) => { state.zw = e.target.value / 100; updateUI(); });
+        // Visual handlers
+        sliders.dim.addEventListener('input', (e) => { state.dimension = e.target.value / 100; updateUI(); });
+        sliders.hue.addEventListener('input', (e) => { state.hue = parseInt(e.target.value); updateUI(); });
+
+        // Advanced toggle
+        document.getElementById('advToggle').addEventListener('click', () => {
+            const adv = document.getElementById('advSection');
+            const toggle = document.getElementById('advToggle');
+            adv.classList.toggle('show');
+            toggle.textContent = adv.classList.contains('show') ? 'Hide Advanced ▲' : 'Show Advanced ▼';
+        });
+
+        function updateSliders() {
+            // 3D space rotations
+            sliders.xy.value = state.xy * 100;
+            sliders.xz.value = state.xz * 100;
+            sliders.yz.value = state.yz * 100;
+            // 4D hyperspace rotations
+            sliders.xw.value = state.xw * 100;
+            sliders.yw.value = state.yw * 100;
+            sliders.zw.value = state.zw * 100;
+            // Visual
+            sliders.dim.value = state.dimension * 100;
+            sliders.hue.value = state.hue;
+        }
+
+        function updateUI() {
+            document.getElementById('geoNum').textContent = state.geometry;
+            // 3D space rotation displays
+            document.getElementById('xyVal').textContent = state.xy.toFixed(2);
+            document.getElementById('xzVal').textContent = state.xz.toFixed(2);
+            document.getElementById('yzVal').textContent = state.yz.toFixed(2);
+            document.getElementById('xyDisplay').textContent = state.xy.toFixed(2);
+            document.getElementById('xzDisplay').textContent = state.xz.toFixed(2);
+            document.getElementById('yzDisplay').textContent = state.yz.toFixed(2);
+            // 4D hyperspace rotation displays
+            document.getElementById('xwVal').textContent = state.xw.toFixed(2);
+            document.getElementById('ywVal').textContent = state.yw.toFixed(2);
+            document.getElementById('zwVal').textContent = state.zw.toFixed(2);
+            document.getElementById('xwDisplay').textContent = state.xw.toFixed(2);
+            document.getElementById('ywDisplay').textContent = state.yw.toFixed(2);
+            document.getElementById('zwDisplay').textContent = state.zw.toFixed(2);
+            // Visual displays
+            document.getElementById('dimDisplay').textContent = state.dimension.toFixed(2);
+            document.getElementById('hueDisplay').textContent = state.hue;
+
+            // Update chips
+            const systemChip = document.getElementById('systemChip');
+            systemChip.textContent = state.system.toUpperCase();
+            systemChip.className = 'chip ' + state.system;
+
+            const geoChip = document.getElementById('geoChip');
+            let geoText = baseNames[state.baseIndex];
+            if (state.coreIndex > 0) geoText += '+' + coreNames[state.coreIndex].substring(0,4);
+            geoChip.textContent = geoText;
+
+            // Update background gradient
+            const bg = document.getElementById('bgGradient');
+            bg.style.background = `radial-gradient(circle at 50% 50%,
+                hsla(${state.hue}, 80%, 15%, 0.8) 0%,
+                hsla(${(state.hue + 60) % 360}, 60%, 5%, 0.5) 50%,
+                #000 100%)`;
+        }
+
+        // Drawing functions
+        let time = 0;
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fps = 60;
+
+        function draw() {
+            const now = performance.now();
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            time += dt * state.speed;
+
+            frameCount++;
+            if (frameCount % 30 === 0) {
+                fps = Math.round(1 / dt);
+                document.getElementById('fps').textContent = fps + ' FPS';
+            }
+
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(0, 0, width, height);
+
+            const cx = width / 2;
+            const cy = height / 2;
+            const baseSize = Math.min(width, height) * 0.35;
+
+            // 6D projection effect - combines 3D space (xy, xz, yz) and 4D hyperspace (xw, yw, zw)
+            const space3d = 1 + Math.sin(state.xy) * 0.1 + Math.cos(state.xz) * 0.08 + Math.sin(state.yz) * 0.06;
+            const hyper4d = 1 + Math.sin(state.xw) * 0.2 + Math.cos(state.yw) * 0.15 + Math.sin(state.zw) * 0.1;
+            const size = baseSize * space3d * hyper4d;
+
+            ctx.save();
+            ctx.translate(cx, cy);
+
+            // Apply 3D space rotations (XY, XZ, YZ)
+            ctx.rotate(time + state.zw + state.xy);
+
+            // Apply XZ and YZ as scale/skew to simulate 3D tilting
+            const xzEffect = 1 - Math.abs(Math.sin(state.xz)) * 0.3;
+            const yzEffect = 1 - Math.abs(Math.sin(state.yz)) * 0.3;
+            ctx.scale(xzEffect, yzEffect);
+
+            const hue = state.hue;
+            ctx.strokeStyle = `hsl(${hue}, 80%, 50%)`;
+            ctx.fillStyle = `hsla(${hue}, 80%, 50%, 0.1)`;
+            ctx.lineWidth = 2;
+
+            // Draw based on geometry
+            switch(state.baseIndex) {
+                case 0: drawTetra(size); break;
+                case 1: drawCube(size); break;
+                case 2: drawSphere(size); break;
+                case 3: drawTorus(size); break;
+                case 4: drawKlein(size); break;
+                case 5: drawFractal(size, 4); break;
+                case 6: drawWave(size); break;
+                case 7: drawCrystal(size); break;
+            }
+
+            // Core overlay
+            if (state.coreIndex > 0) {
+                ctx.strokeStyle = state.coreIndex === 1 ?
+                    'rgba(0, 255, 255, 0.3)' : 'rgba(255, 0, 255, 0.3)';
+                ctx.lineWidth = 1;
+
+                if (state.coreIndex === 1) {
+                    for (let i = 1; i <= 3; i++) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, size * i / 3, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                } else {
+                    for (let i = 0; i < 3; i++) {
+                        const angle = i * Math.PI * 2 / 3 + Math.PI / 6;
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.lineTo(Math.cos(angle) * size * 1.2, Math.sin(angle) * size * 1.2);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            ctx.restore();
+            requestAnimationFrame(draw);
+        }
+
+        function drawTetra(r) {
+            ctx.beginPath();
+            for (let i = 0; i < 3; i++) {
+                const angle = i * Math.PI * 2 / 3 - Math.PI / 2;
+                const x = Math.cos(angle) * r;
+                const y = Math.sin(angle) * r;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            for (let i = 0; i < 3; i++) {
+                const angle = i * Math.PI * 2 / 3 - Math.PI / 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                ctx.stroke();
+            }
+        }
+
+        function drawCube(r) {
+            const inner = r * 0.5;
+            const w = state.xw * 0.5;
+
+            ctx.strokeRect(-r, -r, r * 2, r * 2);
+
+            ctx.save();
+            ctx.rotate(w);
+            ctx.strokeRect(-inner, -inner, inner * 2, inner * 2);
+            ctx.restore();
+
+            for (let i = 0; i < 4; i++) {
+                const outerAngle = i * Math.PI / 2 + Math.PI / 4;
+                const innerAngle = outerAngle + w;
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(outerAngle) * r * 1.414, Math.sin(outerAngle) * r * 1.414);
+                ctx.lineTo(Math.cos(innerAngle) * inner * 1.414, Math.sin(innerAngle) * inner * 1.414);
+                ctx.stroke();
+            }
+        }
+
+        function drawSphere(r) {
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.globalAlpha = 0.3;
+            for (let i = 1; i < 4; i++) {
+                ctx.beginPath();
+                ctx.ellipse(0, 0, r, r * i / 4, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function drawTorus(r) {
+            const majorR = r;
+            const minorR = r * 0.25;
+
+            for (let i = 0; i < 24; i++) {
+                const angle = i * Math.PI * 2 / 24;
+                const x = Math.cos(angle) * majorR;
+                const y = Math.sin(angle) * majorR * 0.3;
+                const s = minorR * (0.5 + Math.sin(angle) * 0.5);
+
+                ctx.beginPath();
+                ctx.arc(x, y, s, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        function drawKlein(r) {
+            ctx.beginPath();
+            for (let i = 0; i <= 100; i++) {
+                const t = i / 100 * Math.PI * 2;
+                const x = Math.cos(t) * (r + Math.sin(t * 2) * r * 0.3);
+                const y = Math.sin(t) * r * 0.8 + Math.cos(t * 3) * r * 0.2;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        function drawFractal(r, depth) {
+            if (depth <= 0) return;
+
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            if (depth > 1) {
+                for (let i = 0; i < 6; i++) {
+                    const angle = i * Math.PI / 3;
+                    ctx.save();
+                    ctx.translate(Math.cos(angle) * r * 0.7, Math.sin(angle) * r * 0.7);
+                    drawFractal(r * 0.35, depth - 1);
+                    ctx.restore();
+                }
+            }
+        }
+
+        function drawWave(r) {
+            ctx.beginPath();
+            for (let i = 0; i <= 100; i++) {
+                const t = i / 100 * Math.PI * 4 - Math.PI * 2;
+                const x = t / Math.PI * r / 2;
+                const y = Math.sin(t + time * 3) * r * 0.5;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            ctx.globalAlpha = 0.5;
+            ctx.beginPath();
+            for (let i = 0; i <= 100; i++) {
+                const t = i / 100 * Math.PI * 4 - Math.PI * 2;
+                const x = t / Math.PI * r / 2;
+                const y = Math.cos(t + time * 2) * r * 0.3;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+
+        function drawCrystal(r) {
+            ctx.beginPath();
+            for (let i = 0; i < 4; i++) {
+                const angle = i * Math.PI / 2;
+                const x = Math.cos(angle) * r;
+                const y = Math.sin(angle) * r;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            for (let i = 0; i < 4; i++) {
+                const angle = i * Math.PI / 2;
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                ctx.lineTo(0, 0);
+                ctx.stroke();
+            }
+        }
+
+        updateUI();
+        draw();
+    </script>
+</body>
+</html>

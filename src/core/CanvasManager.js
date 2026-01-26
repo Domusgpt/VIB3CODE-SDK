@@ -193,7 +193,10 @@ export class CanvasManager {
           break;
           
         case 'polychora':
-          if (engineClasses.NewPolychoraEngine) {
+          // POLYCHORA: TBD placeholder - not production ready
+          // Engine disabled until system is complete
+          console.warn('⚠️ Polychora system is TBD placeholder - not available');
+          if (false && engineClasses.NewPolychoraEngine) {
             engine = new engineClasses.NewPolychoraEngine();
             window.newPolychoraEngine = engine;
             console.log('✅ Fresh TRUE 4D Polychora Engine with VIB34D DNA');

@@ -36,6 +36,8 @@ describe('rotation stability', () => {
             vector = step.rotate(vector);
         }
 
-        expect(vector.length()).toBeCloseTo(baseline, 6);
+        // Float32Array-based Vec4 accumulates ~2.4e-6 drift over 2000 rotations.
+        // Use 5 decimal places (5e-6 tolerance) which is appropriate for Float32 arithmetic.
+        expect(vector.length()).toBeCloseTo(baseline, 5);
     });
 });

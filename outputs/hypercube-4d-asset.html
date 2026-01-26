@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4D Hypercube - VIB3+ Asset</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, sans-serif;
+        }
+        .asset-container {
+            text-align: center;
+        }
+        .visualization {
+            width: 512px;
+            height: 512px;
+            border: 2px solid #00ffff;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #111;
+        }
+        .visualization svg {
+            width: 100%;
+            height: 100%;
+        }
+        .meta {
+            color: #666;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+        .meta span { color: #0ff; }
+    </style>
+</head>
+<body>
+    <div class="asset-container">
+        <div class="visualization">
+            <!-- ACTUAL SDK OUTPUT - Hypercube with full 6D rotation -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-vib3-geometry="1" data-vib3-system="faceted" data-vib3-core-type="Base">
+  <defs>
+    <style>
+      :root {
+        --vib3-hue: 280;
+        --vib3-saturation: 0.8;
+        --vib3-intensity: 0.9;
+      }
+    </style>
+  </defs>
+  <rect width="512" height="512" fill="#111111"/>
+  <g id="geometry-layer">
+    <line x1="233.76" y1="287.88" x2="255.23" y2="277.20" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="233.76" y1="287.88" x2="278.39" y2="265.68" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="233.76" y1="287.88" x2="246.68" y2="278.25" stroke="hsla(100, 64%, 60%, 0.29)" stroke-width="0.44" stroke-linecap="round"/>
+    <line x1="233.76" y1="287.88" x2="226.86" y2="267.70" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.39" stroke-linecap="round"/>
+    <line x1="255.23" y1="277.20" x2="278.39" y2="265.68" stroke="hsla(100, 64%, 60%, 0.23)" stroke-width="0.34" stroke-linecap="round"/>
+    <line x1="255.23" y1="277.20" x2="246.68" y2="278.25" stroke="hsla(100, 64%, 60%, 0.34)" stroke-width="0.51" stroke-linecap="round"/>
+    <line x1="255.23" y1="277.20" x2="226.86" y2="267.70" stroke="hsla(100, 64%, 60%, 0.20)" stroke-width="0.30" stroke-linecap="round"/>
+    <line x1="255.23" y1="277.20" x2="257.36" y2="270.30" stroke="hsla(100, 64%, 60%, 0.35)" stroke-width="0.53" stroke-linecap="round"/>
+    <line x1="278.39" y1="265.68" x2="246.68" y2="278.25" stroke="hsla(100, 64%, 60%, 0.17)" stroke-width="0.26" stroke-linecap="round"/>
+    <line x1="278.39" y1="265.68" x2="257.36" y2="270.30" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="278.39" y1="265.68" x2="287.68" y2="257.64" stroke="hsla(100, 64%, 60%, 0.32)" stroke-width="0.48" stroke-linecap="round"/>
+    <line x1="246.68" y1="278.25" x2="226.86" y2="267.70" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="246.68" y1="278.25" x2="257.36" y2="270.30" stroke="hsla(100, 64%, 60%, 0.31)" stroke-width="0.47" stroke-linecap="round"/>
+    <line x1="246.68" y1="278.25" x2="287.68" y2="257.64" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="246.68" y1="278.25" x2="275.72" y2="260.98" stroke="hsla(100, 64%, 60%, 0.17)" stroke-width="0.26" stroke-linecap="round"/>
+    <line x1="226.86" y1="267.70" x2="257.36" y2="270.30" stroke="hsla(100, 64%, 60%, 0.20)" stroke-width="0.29" stroke-linecap="round"/>
+    <line x1="226.86" y1="267.70" x2="275.72" y2="260.98" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="257.36" y1="270.30" x2="287.68" y2="257.64" stroke="hsla(100, 64%, 60%, 0.18)" stroke-width="0.27" stroke-linecap="round"/>
+    <line x1="257.36" y1="270.30" x2="275.72" y2="260.98" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.39" stroke-linecap="round"/>
+    <line x1="257.36" y1="270.30" x2="273.00" y2="242.82" stroke="hsla(100, 64%, 60%, 0.19)" stroke-width="0.28" stroke-linecap="round"/>
+    <line x1="257.36" y1="270.30" x2="295.25" y2="251.08" stroke="hsla(100, 64%, 60%, 0.12)" stroke-width="0.18" stroke-linecap="round"/>
+    <line x1="287.68" y1="257.64" x2="275.72" y2="260.98" stroke="hsla(100, 64%, 60%, 0.32)" stroke-width="0.48" stroke-linecap="round"/>
+    <line x1="287.68" y1="257.64" x2="273.00" y2="242.82" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.39" stroke-linecap="round"/>
+    <line x1="287.68" y1="257.64" x2="295.25" y2="251.08" stroke="hsla(100, 64%, 60%, 0.33)" stroke-width="0.50" stroke-linecap="round"/>
+    <line x1="287.68" y1="257.64" x2="252.54" y2="253.12" stroke="hsla(100, 64%, 60%, 0.16)" stroke-width="0.25" stroke-linecap="round"/>
+    <line x1="275.72" y1="260.98" x2="273.00" y2="242.82" stroke="hsla(100, 64%, 60%, 0.28)" stroke-width="0.42" stroke-linecap="round"/>
+    <line x1="275.72" y1="260.98" x2="295.25" y2="251.08" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="275.72" y1="260.98" x2="252.54" y2="253.12" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="273.00" y1="242.82" x2="295.25" y2="251.08" stroke="hsla(100, 64%, 60%, 0.24)" stroke-width="0.36" stroke-linecap="round"/>
+    <line x1="273.00" y1="242.82" x2="252.54" y2="253.12" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.37" stroke-linecap="round"/>
+    <line x1="295.25" y1="251.08" x2="252.54" y2="253.12" stroke="hsla(100, 64%, 60%, 0.11)" stroke-width="0.17" stroke-linecap="round"/>
+    <line x1="252.54" y1="253.12" x2="219.34" y2="245.70" stroke="hsla(100, 64%, 60%, 0.17)" stroke-width="0.26" stroke-linecap="round"/>
+    <line x1="252.54" y1="253.12" x2="242.23" y2="232.28" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.37" stroke-linecap="round"/>
+    <line x1="252.54" y1="253.12" x2="234.79" y2="239.63" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="219.34" y1="245.70" x2="242.23" y2="232.28" stroke="hsla(100, 64%, 60%, 0.22)" stroke-width="0.33" stroke-linecap="round"/>
+    <line x1="219.34" y1="245.70" x2="234.79" y2="239.63" stroke="hsla(100, 64%, 60%, 0.29)" stroke-width="0.43" stroke-linecap="round"/>
+    <line x1="242.23" y1="232.28" x2="234.79" y2="239.63" stroke="hsla(100, 64%, 60%, 0.33)" stroke-width="0.50" stroke-linecap="round"/>
+    <line x1="242.23" y1="232.28" x2="291.54" y2="232.04" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="242.23" y1="232.28" x2="274.32" y2="218.63" stroke="hsla(100, 64%, 60%, 0.18)" stroke-width="0.27" stroke-linecap="round"/>
+    <line x1="242.23" y1="232.28" x2="262.97" y2="224.31" stroke="hsla(100, 64%, 60%, 0.26)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="234.79" y1="239.63" x2="291.54" y2="232.04" stroke="hsla(100, 64%, 60%, 0.10)" stroke-width="0.15" stroke-linecap="round"/>
+    <line x1="234.79" y1="239.63" x2="262.97" y2="224.31" stroke="hsla(100, 64%, 60%, 0.25)" stroke-width="0.38" stroke-linecap="round"/>
+    <line x1="291.54" y1="232.04" x2="274.32" y2="218.63" stroke="hsla(100, 64%, 60%, 0.28)" stroke-width="0.42" stroke-linecap="round"/>
+    <line x1="291.54" y1="232.04" x2="262.97" y2="224.31" stroke="hsla(100, 64%, 60%, 0.18)" stroke-width="0.27" stroke-linecap="round"/>
+    <line x1="274.32" y1="218.63" x2="262.97" y2="224.31" stroke="hsla(100, 64%, 60%, 0.32)" stroke-width="0.48" stroke-linecap="round"/>
+  </g>
+</svg>
+        </div>
+        <p class="meta">
+            VIB3+ SDK Output | Geometry: <span>Hypercube</span> |
+            Rotations: <span>XY=0.3 XZ=0.2 YZ=0.4 XW=0.5 YW=0.3 ZW=0.2</span>
+        </p>
+    </div>
+</body>
+</html>

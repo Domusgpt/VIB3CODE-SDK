@@ -1,0 +1,711 @@
+{
+  "name": "VIB3+ Complete Geometry Gallery",
+  "description": "All 24 geometry variants with 6D rotation",
+  "version": "1.0",
+  "type": "vib3-gallery-collection",
+  "totalVariations": 24,
+  "created": "2026-01-25T05:57:04.417Z",
+  "systems": [
+    "quantum",
+    "faceted",
+    "holographic"
+  ],
+  "variations": [
+    {
+      "id": 0,
+      "name": "Base Tetrahedron",
+      "geometryIndex": 0,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 0,
+        "baseIndex": 0,
+        "coreType": "Base",
+        "baseGeometry": "Tetrahedron"
+      },
+      "parameters": {
+        "geometry": 0,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 0,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0,
+        "rot4dYW": 0,
+        "rot4dZW": 0
+      },
+      "system": "quantum"
+    },
+    {
+      "id": 1,
+      "name": "Base Hypercube",
+      "geometryIndex": 1,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 0,
+        "baseIndex": 1,
+        "coreType": "Base",
+        "baseGeometry": "Hypercube"
+      },
+      "parameters": {
+        "geometry": 1,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 15,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.1,
+        "rot4dYW": 0.05,
+        "rot4dZW": 0.08
+      },
+      "system": "faceted"
+    },
+    {
+      "id": 2,
+      "name": "Base Sphere",
+      "geometryIndex": 2,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 0,
+        "baseIndex": 2,
+        "coreType": "Base",
+        "baseGeometry": "Sphere"
+      },
+      "parameters": {
+        "geometry": 2,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 30,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.2,
+        "rot4dYW": 0.1,
+        "rot4dZW": 0.16
+      },
+      "system": "holographic"
+    },
+    {
+      "id": 3,
+      "name": "Base Torus",
+      "geometryIndex": 3,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 0,
+        "baseIndex": 3,
+        "coreType": "Base",
+        "baseGeometry": "Torus"
+      },
+      "parameters": {
+        "geometry": 3,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 45,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.30000000000000004,
+        "rot4dYW": 0.15000000000000002,
+        "rot4dZW": 0.24
+      },
+      "system": "quantum"
+    },
+    {
+      "id": 4,
+      "name": "Base Klein Bottle",
+      "geometryIndex": 4,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 0,
+        "baseIndex": 4,
+        "coreType": "Base",
+        "baseGeometry": "Klein Bottle"
+      },
+      "parameters": {
+        "geometry": 4,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 60,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.4,
+        "rot4dYW": 0.2,
+        "rot4dZW": 0.32
+      },
+      "system": "faceted"
+    },
+    {
+      "id": 5,
+      "name": "Base Fractal",
+      "geometryIndex": 5,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 0,
+        "baseIndex": 5,
+        "coreType": "Base",
+        "baseGeometry": "Fractal"
+      },
+      "parameters": {
+        "geometry": 5,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 75,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.5,
+        "rot4dYW": 0.25,
+        "rot4dZW": 0.4
+      },
+      "system": "holographic"
+    },
+    {
+      "id": 6,
+      "name": "Base Wave",
+      "geometryIndex": 6,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 0,
+        "baseIndex": 6,
+        "coreType": "Base",
+        "baseGeometry": "Wave"
+      },
+      "parameters": {
+        "geometry": 6,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 90,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.6000000000000001,
+        "rot4dYW": 0.30000000000000004,
+        "rot4dZW": 0.48
+      },
+      "system": "quantum"
+    },
+    {
+      "id": 7,
+      "name": "Base Crystal",
+      "geometryIndex": 7,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 0,
+        "baseIndex": 7,
+        "coreType": "Base",
+        "baseGeometry": "Crystal"
+      },
+      "parameters": {
+        "geometry": 7,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 105,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.7000000000000001,
+        "rot4dYW": 0.35000000000000003,
+        "rot4dZW": 0.56
+      },
+      "system": "faceted"
+    },
+    {
+      "id": 8,
+      "name": "Hypersphere Tetrahedron",
+      "geometryIndex": 8,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 1,
+        "baseIndex": 0,
+        "coreType": "Hypersphere",
+        "baseGeometry": "Tetrahedron"
+      },
+      "parameters": {
+        "geometry": 8,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 120,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.8,
+        "rot4dYW": 0.4,
+        "rot4dZW": 0.64
+      },
+      "system": "holographic"
+    },
+    {
+      "id": 9,
+      "name": "Hypersphere Hypercube",
+      "geometryIndex": 9,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 1,
+        "baseIndex": 1,
+        "coreType": "Hypersphere",
+        "baseGeometry": "Hypercube"
+      },
+      "parameters": {
+        "geometry": 9,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 135,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 0.9,
+        "rot4dYW": 0.45,
+        "rot4dZW": 0.72
+      },
+      "system": "quantum"
+    },
+    {
+      "id": 10,
+      "name": "Hypersphere Sphere",
+      "geometryIndex": 10,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 1,
+        "baseIndex": 2,
+        "coreType": "Hypersphere",
+        "baseGeometry": "Sphere"
+      },
+      "parameters": {
+        "geometry": 10,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 150,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 1,
+        "rot4dYW": 0.5,
+        "rot4dZW": 0.8
+      },
+      "system": "faceted"
+    },
+    {
+      "id": 11,
+      "name": "Hypersphere Torus",
+      "geometryIndex": 11,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 1,
+        "baseIndex": 3,
+        "coreType": "Hypersphere",
+        "baseGeometry": "Torus"
+      },
+      "parameters": {
+        "geometry": 11,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 165,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 1.1,
+        "rot4dYW": 0.55,
+        "rot4dZW": 0.88
+      },
+      "system": "holographic"
+    },
+    {
+      "id": 12,
+      "name": "Hypersphere Klein Bottle",
+      "geometryIndex": 12,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 1,
+        "baseIndex": 4,
+        "coreType": "Hypersphere",
+        "baseGeometry": "Klein Bottle"
+      },
+      "parameters": {
+        "geometry": 12,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 180,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 1.2000000000000002,
+        "rot4dYW": 0.6000000000000001,
+        "rot4dZW": 0.96
+      },
+      "system": "quantum"
+    },
+    {
+      "id": 13,
+      "name": "Hypersphere Fractal",
+      "geometryIndex": 13,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 1,
+        "baseIndex": 5,
+        "coreType": "Hypersphere",
+        "baseGeometry": "Fractal"
+      },
+      "parameters": {
+        "geometry": 13,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 195,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 1.3,
+        "rot4dYW": 0.65,
+        "rot4dZW": 1.04
+      },
+      "system": "faceted"
+    },
+    {
+      "id": 14,
+      "name": "Hypersphere Wave",
+      "geometryIndex": 14,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 1,
+        "baseIndex": 6,
+        "coreType": "Hypersphere",
+        "baseGeometry": "Wave"
+      },
+      "parameters": {
+        "geometry": 14,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 210,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 1.4000000000000001,
+        "rot4dYW": 0.7000000000000001,
+        "rot4dZW": 1.12
+      },
+      "system": "holographic"
+    },
+    {
+      "id": 15,
+      "name": "Hypersphere Crystal",
+      "geometryIndex": 15,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 1,
+        "baseIndex": 7,
+        "coreType": "Hypersphere",
+        "baseGeometry": "Crystal"
+      },
+      "parameters": {
+        "geometry": 15,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 225,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 1.5,
+        "rot4dYW": 0.75,
+        "rot4dZW": 1.2
+      },
+      "system": "quantum"
+    },
+    {
+      "id": 16,
+      "name": "Hypertetrahedron Tetrahedron",
+      "geometryIndex": 16,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 2,
+        "baseIndex": 0,
+        "coreType": "Hypertetrahedron",
+        "baseGeometry": "Tetrahedron"
+      },
+      "parameters": {
+        "geometry": 16,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 240,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 1.6,
+        "rot4dYW": 0.8,
+        "rot4dZW": 1.28
+      },
+      "system": "faceted"
+    },
+    {
+      "id": 17,
+      "name": "Hypertetrahedron Hypercube",
+      "geometryIndex": 17,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 2,
+        "baseIndex": 1,
+        "coreType": "Hypertetrahedron",
+        "baseGeometry": "Hypercube"
+      },
+      "parameters": {
+        "geometry": 17,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 255,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 1.7000000000000002,
+        "rot4dYW": 0.8500000000000001,
+        "rot4dZW": 1.36
+      },
+      "system": "holographic"
+    },
+    {
+      "id": 18,
+      "name": "Hypertetrahedron Sphere",
+      "geometryIndex": 18,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 2,
+        "baseIndex": 2,
+        "coreType": "Hypertetrahedron",
+        "baseGeometry": "Sphere"
+      },
+      "parameters": {
+        "geometry": 18,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 270,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 1.8,
+        "rot4dYW": 0.9,
+        "rot4dZW": 1.44
+      },
+      "system": "quantum"
+    },
+    {
+      "id": 19,
+      "name": "Hypertetrahedron Torus",
+      "geometryIndex": 19,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 2,
+        "baseIndex": 3,
+        "coreType": "Hypertetrahedron",
+        "baseGeometry": "Torus"
+      },
+      "parameters": {
+        "geometry": 19,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 285,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 1.9000000000000001,
+        "rot4dYW": 0.9500000000000001,
+        "rot4dZW": 1.52
+      },
+      "system": "faceted"
+    },
+    {
+      "id": 20,
+      "name": "Hypertetrahedron Klein Bottle",
+      "geometryIndex": 20,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 2,
+        "baseIndex": 4,
+        "coreType": "Hypertetrahedron",
+        "baseGeometry": "Klein Bottle"
+      },
+      "parameters": {
+        "geometry": 20,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 300,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 2,
+        "rot4dYW": 1,
+        "rot4dZW": 1.6
+      },
+      "system": "holographic"
+    },
+    {
+      "id": 21,
+      "name": "Hypertetrahedron Fractal",
+      "geometryIndex": 21,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 2,
+        "baseIndex": 5,
+        "coreType": "Hypertetrahedron",
+        "baseGeometry": "Fractal"
+      },
+      "parameters": {
+        "geometry": 21,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 315,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 2.1,
+        "rot4dYW": 1.05,
+        "rot4dZW": 1.68
+      },
+      "system": "quantum"
+    },
+    {
+      "id": 22,
+      "name": "Hypertetrahedron Wave",
+      "geometryIndex": 22,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 2,
+        "baseIndex": 6,
+        "coreType": "Hypertetrahedron",
+        "baseGeometry": "Wave"
+      },
+      "parameters": {
+        "geometry": 22,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 330,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 2.2,
+        "rot4dYW": 1.1,
+        "rot4dZW": 1.76
+      },
+      "system": "faceted"
+    },
+    {
+      "id": 23,
+      "name": "Hypertetrahedron Crystal",
+      "geometryIndex": 23,
+      "encoding": {
+        "formula": "geometry = coreIndex * 8 + baseIndex",
+        "coreIndex": 2,
+        "baseIndex": 7,
+        "coreType": "Hypertetrahedron",
+        "baseGeometry": "Crystal"
+      },
+      "parameters": {
+        "geometry": 23,
+        "gridDensity": 15,
+        "morphFactor": 1,
+        "chaos": 0.2,
+        "speed": 1,
+        "hue": 345,
+        "intensity": 0.7,
+        "saturation": 0.8,
+        "rot4dXY": 0,
+        "rot4dXZ": 0,
+        "rot4dYZ": 0,
+        "rot4dXW": 2.3000000000000003,
+        "rot4dYW": 1.1500000000000001,
+        "rot4dZW": 1.84
+      },
+      "system": "holographic"
+    }
+  ]
+}

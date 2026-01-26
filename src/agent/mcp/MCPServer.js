@@ -136,6 +136,33 @@ export class MCPServer {
                 case 'get_parameter_schema':
                     result = this.getParameterSchema();
                     break;
+                case 'get_sdk_context':
+                    result = this.getSDKContext();
+                    break;
+                case 'verify_knowledge':
+                    result = this.verifyKnowledge(args);
+                    break;
+                // Reactivity tools (Phase 6.5)
+                case 'set_reactivity_config':
+                    result = this.setReactivityConfig(args);
+                    break;
+                case 'get_reactivity_config':
+                    result = this.getReactivityConfig();
+                    break;
+                case 'configure_audio_band':
+                    result = this.configureAudioBand(args);
+                    break;
+                // Export tools (Phase 6.5)
+                case 'export_package':
+                    result = this.exportPackage(args);
+                    break;
+                // Preset tools (Phase 6.6)
+                case 'apply_behavior_preset':
+                    result = this.applyBehaviorPreset(args);
+                    break;
+                case 'list_behavior_presets':
+                    result = this.listBehaviorPresets();
+                    break;
                 default:
                     throw new Error(`Unknown tool: ${toolName}`);
             }
@@ -495,6 +522,167 @@ export class MCPServer {
     }
 
     /**
+     * Get SDK context for agent onboarding
+     */
+    getSDKContext() {
+        return {
+            sdk_name: 'VIB3+ SDK',
+            version: '1.9.0',
+            purpose: 'General-purpose 4D rotation visualization SDK for plugins, extensions, wearables, and agentic use',
+
+            quick_reference: {
+                active_visualization_systems: 3,
+                placeholder_systems: 1,
+                rotation_planes: 6,
+                base_geometries: 8,
+                core_warp_types: 3,
+                total_geometries: 24,
+                canvas_layers_per_system: 5
+            },
+
+            systems: {
+                ACTIVE: [
+                    { name: 'quantum', description: 'Complex quantum lattice visualizations with 24 geometries' },
+                    { name: 'faceted', description: 'Clean 2D geometric patterns with 4D rotation' },
+                    { name: 'holographic', description: '5-layer audio-reactive holographic effects' }
+                ],
+                PLACEHOLDER_TBD: [
+                    { name: 'polychora', status: 'TBD', description: '4D polytopes - placeholder, not production ready' }
+                ]
+            },
+
+            geometry_encoding: {
+                formula: 'geometry_index = core_index * 8 + base_index',
+                base_geometries: ['tetrahedron', 'hypercube', 'sphere', 'torus', 'klein_bottle', 'fractal', 'wave', 'crystal'],
+                core_types: ['base (0)', 'hypersphere (1)', 'hypertetrahedron (2)'],
+                example: 'geometry 10 = hypersphere(sphere) because 1*8+2=10'
+            },
+
+            rotation_planes: {
+                total: 6,
+                '3D_space': ['XY', 'XZ', 'YZ'],
+                '4D_hyperspace': ['XW', 'YW', 'ZW'],
+                range: '-6.28 to 6.28 radians'
+            },
+
+            canvas_layers: {
+                count: 5,
+                names: ['background', 'shadow', 'content', 'highlight', 'accent']
+            },
+
+            knowledge_quiz: {
+                IMPORTANT: 'Call verify_knowledge with multiple choice answers (a/b/c/d) to confirm understanding',
+                questions: [
+                    'Q1: How many rotation planes? a)3 b)4 c)6 d)8',
+                    'Q2: Geometry encoding formula? a)base*3+core b)core*8+base c)base+core d)core*base',
+                    'Q3: Canvas layers per system? a)3 b)4 c)5 d)6',
+                    'Q4: Which are the 3 ACTIVE systems? a)quantum,faceted,holographic b)quantum,faceted,polychora c)all four d)none',
+                    'Q5: How many base geometry types? a)6 b)8 c)10 d)24',
+                    'Q6: Core warp types? a)base,sphere,cube b)base,hypersphere,hypertetrahedron c)2D,3D,4D d)none'
+                ]
+            },
+
+            documentation: {
+                primary: 'DOCS/SYSTEM_INVENTORY.md',
+                geometry: '24-GEOMETRY-6D-ROTATION-SUMMARY.md',
+                controls: 'DOCS/CONTROL_REFERENCE.md',
+                cli: 'DOCS/CLI_ONBOARDING.md'
+            },
+
+            suggested_next_actions: ['verify_knowledge', 'create_4d_visualization', 'search_geometries']
+        };
+    }
+
+    /**
+     * Verify agent knowledge of SDK (multiple choice)
+     */
+    verifyKnowledge(answers) {
+        const correctAnswers = {
+            q1_rotation_planes: 'c',      // 6 rotation planes
+            q2_geometry_formula: 'b',     // core*8+base
+            q3_canvas_layers: 'c',        // 5 layers
+            q4_active_systems: 'a',       // quantum, faceted, holographic (polychora is TBD)
+            q5_base_geometries: 'b',      // 8 base geometries
+            q6_core_types: 'b'            // base, hypersphere, hypertetrahedron
+        };
+
+        const docReferences = {
+            q1_rotation_planes: {
+                topic: '6D ROTATION SYSTEM',
+                doc: 'DOCS/SYSTEM_INVENTORY.md#the-6d-rotation-system',
+                reason: '6 planes: XY, XZ, YZ (3D) + XW, YW, ZW (4D hyperspace)'
+            },
+            q2_geometry_formula: {
+                topic: 'GEOMETRY ENCODING',
+                doc: '24-GEOMETRY-6D-ROTATION-SUMMARY.md',
+                reason: 'geometry = coreIndex * 8 + baseIndex. Example: 10 = 1*8+2 = hypersphere+sphere'
+            },
+            q3_canvas_layers: {
+                topic: 'CANVAS LAYER SYSTEM',
+                doc: 'DOCS/SYSTEM_INVENTORY.md#the-4-visualization-systems',
+                reason: '5 layers: background, shadow, content, highlight, accent'
+            },
+            q4_active_systems: {
+                topic: 'ACTIVE VS PLACEHOLDER SYSTEMS',
+                doc: 'DOCS/SYSTEM_INVENTORY.md',
+                reason: 'Only 3 ACTIVE: quantum, faceted, holographic. Polychora is TBD/placeholder!'
+            },
+            q5_base_geometries: {
+                topic: 'BASE GEOMETRY TYPES',
+                doc: '24-GEOMETRY-6D-ROTATION-SUMMARY.md',
+                reason: '8 base: tetrahedron, hypercube, sphere, torus, klein, fractal, wave, crystal'
+            },
+            q6_core_types: {
+                topic: 'CORE WARP TYPES',
+                doc: '24-GEOMETRY-6D-ROTATION-SUMMARY.md',
+                reason: '3 cores: base (no warp), hypersphere, hypertetrahedron'
+            }
+        };
+
+        const results = {
+            score: 0,
+            max_score: 6,
+            details: [],
+            REVIEW_REQUIRED: []
+        };
+
+        // Check each answer
+        for (const [question, correct] of Object.entries(correctAnswers)) {
+            const given = answers[question]?.toLowerCase?.() || answers[question];
+            if (given === correct) {
+                results.score++;
+                results.details.push({ question, status: '✓ CORRECT' });
+            } else if (given !== undefined) {
+                results.details.push({
+                    question,
+                    status: '✗ WRONG',
+                    your_answer: given,
+                    correct_answer: correct
+                });
+                results.REVIEW_REQUIRED.push(docReferences[question]);
+            }
+        }
+
+        results.percentage = Math.round((results.score / results.max_score) * 100);
+
+        // Build response
+        if (results.REVIEW_REQUIRED.length > 0) {
+            results.MESSAGE = `Score: ${results.score}/${results.max_score}. YOU MAY PROCEED but PLEASE review the topics below to avoid errors.`;
+            results.URGENT = results.REVIEW_REQUIRED.map(ref => ({
+                TOPIC: ref.topic,
+                READ: ref.doc,
+                WHY: ref.reason
+            }));
+        } else {
+            results.MESSAGE = `PERFECT SCORE! You understand the VIB3+ SDK architecture.`;
+        }
+
+        results.suggested_next_actions = ['create_4d_visualization', 'get_state', 'search_geometries'];
+
+        return results;
+    }
+
+    /**
      * Get available tools (for progressive disclosure)
      */
     listTools(includeSchemas = false) {
@@ -506,6 +694,254 @@ export class MCPServer {
             name,
             description: toolDefinitions[name].description
         }));
+    }
+
+    // ===== REACTIVITY HANDLERS (Phase 6.5) =====
+
+    /**
+     * Set reactivity configuration
+     */
+    setReactivityConfig(args) {
+        const { audio, tilt, interaction } = args;
+
+        // Update via global reactivity manager if available (browser only)
+        const isBrowser = typeof window !== 'undefined';
+        if (isBrowser && window.reactivityManager) {
+            if (audio) {
+                if (audio.enabled !== undefined) window.audioEnabled = audio.enabled;
+                if (audio.globalSensitivity !== undefined) {
+                    window.reactivityManager.setAudioSensitivity?.(audio.globalSensitivity);
+                }
+            }
+            if (tilt) {
+                if (tilt.enabled !== undefined) window.toggleDeviceTilt?.();
+                if (tilt.dramaticMode !== undefined) {
+                    window.setDramaticMode?.(tilt.dramaticMode);
+                }
+            }
+            if (interaction) {
+                if (interaction.mouseMode) window.setMouseMode?.(interaction.mouseMode);
+                if (interaction.clickMode) window.setClickMode?.(interaction.clickMode);
+                if (interaction.scrollMode) window.setScrollMode?.(interaction.scrollMode);
+            }
+        }
+
+        telemetry.recordEvent(EventType.PARAMETER_CHANGE, { type: 'reactivity' });
+
+        return {
+            updated: true,
+            config: { audio: audio || {}, tilt: tilt || {}, interaction: interaction || {} },
+            suggested_next_actions: ['get_reactivity_config', 'apply_behavior_preset']
+        };
+    }
+
+    /**
+     * Get current reactivity configuration
+     */
+    getReactivityConfig() {
+        const isBrowser = typeof window !== 'undefined';
+        return {
+            config: {
+                audio: {
+                    enabled: isBrowser ? (window.audioEnabled || false) : false,
+                    globalSensitivity: isBrowser ? (window.reactivityManager?.audioSensitivity || 1.0) : 1.0
+                },
+                tilt: {
+                    enabled: isBrowser ? (window.deviceTiltHandler?.isEnabled || false) : false,
+                    dramaticMode: isBrowser ? (window.dramaticMode || false) : false
+                },
+                interaction: {
+                    enabled: isBrowser ? (window.interactivityEnabled !== false) : true,
+                    mouseMode: isBrowser ? (window.currentMouseMode || 'rotation') : 'rotation',
+                    clickMode: isBrowser ? (window.currentClickMode || 'burst') : 'burst',
+                    scrollMode: isBrowser ? (window.currentScrollMode || 'cycle') : 'cycle'
+                }
+            },
+            suggested_next_actions: ['set_reactivity_config', 'configure_audio_band', 'apply_behavior_preset']
+        };
+    }
+
+    /**
+     * Configure a single audio band
+     */
+    configureAudioBand(args) {
+        const { band, enabled, sensitivity, targets } = args;
+
+        const isBrowser = typeof window !== 'undefined';
+        if (isBrowser && window.reactivityManager?.configureAudioBand) {
+            window.reactivityManager.configureAudioBand(band, { enabled, sensitivity, targets });
+        }
+
+        telemetry.recordEvent(EventType.PARAMETER_CHANGE, { type: 'audio_band', band });
+
+        return {
+            band,
+            updated: true,
+            config: { enabled, sensitivity, targets },
+            suggested_next_actions: ['get_reactivity_config', 'configure_audio_band']
+        };
+    }
+
+    // ===== EXPORT HANDLERS (Phase 6.5) =====
+
+    /**
+     * Export VIB3Package
+     */
+    exportPackage(args) {
+        const { name, description, includeReactivity = true, includeEmbed = true, format = 'json' } = args;
+
+        const visualParams = this.getState()?.parameters || {};
+        const isBrowser = typeof window !== 'undefined';
+        const system = isBrowser ? (window.currentSystem || 'quantum') : 'quantum';
+        const reactivityConfig = includeReactivity ? this.getReactivityConfig().config : null;
+
+        const package_ = {
+            id: generateId('pkg'),
+            version: '2.0',
+            type: 'vib3-package',
+            name: name || `VIB3 ${system} Export`,
+            description: description || 'Exported visualization package',
+            created: new Date().toISOString(),
+            system,
+            visual: {
+                parameters: visualParams,
+                geometry: {
+                    index: visualParams.geometry || 0,
+                    coreIndex: Math.floor((visualParams.geometry || 0) / 8),
+                    baseIndex: (visualParams.geometry || 0) % 8
+                }
+            }
+        };
+
+        if (includeReactivity && reactivityConfig) package_.reactivity = reactivityConfig;
+        if (includeEmbed) {
+            package_.embed = {
+                html: `<div id="vib3-container" data-package="${package_.id}"></div>`,
+                js: `VIB3.loadPackage(${JSON.stringify(package_.id)});`,
+                iframe: `<iframe src="https://vib3.app/embed/${package_.id}" width="100%" height="400"></iframe>`
+            };
+        }
+
+        return { package: package_, format, suggested_next_actions: ['save_to_gallery', 'apply_behavior_preset'] };
+    }
+
+    // ===== PRESET HANDLERS (Phase 6.6) =====
+
+    static BEHAVIOR_PRESETS = {
+        ambient: {
+            name: 'Ambient',
+            description: 'Calm, slow, minimal reactivity - perfect for backgrounds',
+            config: {
+                audio: { enabled: false },
+                tilt: { enabled: true, sensitivity: 0.3, dramaticMode: false },
+                interaction: { mouseMode: 'shimmer', clickMode: 'none', scrollMode: 'none' }
+            },
+            visualOverrides: { speed: 0.3, chaos: 0.1 }
+        },
+        reactive: {
+            name: 'Reactive',
+            description: 'High audio reactivity - responds to music/sound',
+            config: {
+                audio: { enabled: true, globalSensitivity: 1.5 },
+                tilt: { enabled: false },
+                interaction: { mouseMode: 'rotation', clickMode: 'burst', scrollMode: 'cycle' }
+            },
+            visualOverrides: { speed: 1.0, chaos: 0.3 }
+        },
+        immersive: {
+            name: 'Immersive',
+            description: 'Full tilt control with dramatic rotations',
+            config: {
+                audio: { enabled: true, globalSensitivity: 0.8 },
+                tilt: { enabled: true, sensitivity: 1.0, dramaticMode: true },
+                interaction: { mouseMode: 'velocity', clickMode: 'ripple', scrollMode: 'zoom' }
+            },
+            visualOverrides: { speed: 0.8 }
+        },
+        energetic: {
+            name: 'Energetic',
+            description: 'Fast, chaotic, high-energy visuals',
+            config: {
+                audio: { enabled: true, globalSensitivity: 2.0 },
+                tilt: { enabled: true, sensitivity: 1.5, dramaticMode: true },
+                interaction: { mouseMode: 'velocity', clickMode: 'blast', scrollMode: 'wave' }
+            },
+            visualOverrides: { speed: 2.5, chaos: 0.8, morphFactor: 1.5 }
+        },
+        calm: {
+            name: 'Calm',
+            description: 'Slow, smooth, meditative patterns',
+            config: {
+                audio: { enabled: false },
+                tilt: { enabled: true, sensitivity: 0.2, dramaticMode: false },
+                interaction: { mouseMode: 'shimmer', clickMode: 'pulse', scrollMode: 'none' }
+            },
+            visualOverrides: { speed: 0.2, chaos: 0.05, morphFactor: 0.3 }
+        },
+        cinematic: {
+            name: 'Cinematic',
+            description: 'Dramatic rotations, smooth transitions for video',
+            config: {
+                audio: { enabled: false },
+                tilt: { enabled: false },
+                interaction: { mouseMode: 'none', clickMode: 'none', scrollMode: 'none' }
+            },
+            visualOverrides: { speed: 0.5, chaos: 0.2 }
+        }
+    };
+
+    /**
+     * Apply a behavior preset
+     */
+    applyBehaviorPreset(args) {
+        const { preset } = args;
+        const presetConfig = MCPServer.BEHAVIOR_PRESETS[preset];
+
+        if (!presetConfig) {
+            return {
+                error: {
+                    type: 'ValidationError',
+                    code: 'INVALID_PRESET',
+                    message: `Unknown preset: ${preset}`,
+                    valid_options: Object.keys(MCPServer.BEHAVIOR_PRESETS)
+                }
+            };
+        }
+
+        this.setReactivityConfig(presetConfig.config);
+
+        if (presetConfig.visualOverrides && this.engine) {
+            for (const [param, value] of Object.entries(presetConfig.visualOverrides)) {
+                this.engine.setParameter(param, value);
+            }
+        }
+
+        telemetry.recordEvent(EventType.PARAMETER_CHANGE, { type: 'preset', preset });
+
+        return {
+            preset,
+            applied: true,
+            name: presetConfig.name,
+            description: presetConfig.description,
+            config: presetConfig.config,
+            visualOverrides: presetConfig.visualOverrides,
+            suggested_next_actions: ['get_reactivity_config', 'set_visual_parameters', 'export_package']
+        };
+    }
+
+    /**
+     * List available behavior presets
+     */
+    listBehaviorPresets() {
+        return {
+            count: Object.keys(MCPServer.BEHAVIOR_PRESETS).length,
+            presets: Object.entries(MCPServer.BEHAVIOR_PRESETS).map(([key, value]) => ({
+                id: key,
+                name: value.name,
+                description: value.description
+            })),
+            suggested_next_actions: ['apply_behavior_preset']
+        };
     }
 }
 

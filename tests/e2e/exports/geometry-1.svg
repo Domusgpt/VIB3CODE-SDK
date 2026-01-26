@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="100%" height="100%" fill="#111"/>
+  
+  <rect x="30" y="30" width="140" height="140" fill="#00FF8822" stroke="#00FF88" stroke-width="2"/>
+  <text x="100" y="190" text-anchor="middle" fill="#888" font-size="10" font-family="monospace">
+    Cube 
+  </text>
+  <text x="100" y="15" text-anchor="middle" fill="#666" font-size="8" font-family="monospace">
+    Geometry 1
+  </text>
+</svg>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>VIB3+ Simple API Demo</title>
+    <style>
+        body { margin: 0; background: #0a0a0f; color: #fff; font-family: system-ui; }
+        .container { display: flex; height: 100vh; }
+        .canvas-wrap { flex: 1; }
+        canvas { width: 100%; height: 100%; display: block; }
+        .sidebar {
+            width: 280px;
+            padding: 20px;
+            background: #12121a;
+            overflow-y: auto;
+        }
+        h1 {
+            font-size: 18px;
+            background: linear-gradient(90deg, #0ff, #f0f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 20px 0;
+        }
+        .section { margin-bottom: 20px; }
+        .section h3 { color: #0ff; font-size: 12px; margin: 0 0 10px 0; text-transform: uppercase; }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: #1a1a24;
+            color: #fff;
+            border: 1px solid #333;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { border-color: #0ff; }
+        button.active { background: #0ff; color: #000; }
+        input[type="range"] { width: 100%; accent-color: #0ff; }
+        .val { font-size: 11px; color: #888; text-align: right; }
+        pre {
+            background: #1a1a24;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            overflow-x: auto;
+            color: #0f0;
+        }
+        .export-btns { display: flex; gap: 10px; }
+        .export-btns button { flex: 1; background: linear-gradient(90deg, #0ff, #f0f); color: #000; border: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="canvas-wrap">
+            <canvas id="canvas"></canvas>
+        </div>
+        <div class="sidebar">
+            <h1>VIB3+ Simple API</h1>
+
+            <div class="section">
+                <h3>Geometry</h3>
+                <div id="geoBtns"></div>
+            </div>
+
+            <div class="section">
+                <h3>4D Rotation</h3>
+                <label>XW (4D)</label>
+                <input type="range" id="rotXW" min="0" max="6.28" step="0.01" value="0">
+                <div class="val" id="rotXWVal">0.00</div>
+
+                <label>YW (4D)</label>
+                <input type="range" id="rotYW" min="0" max="6.28" step="0.01" value="0">
+                <div class="val" id="rotYWVal">0.00</div>
+
+                <label>ZW (4D)</label>
+                <input type="range" id="rotZW" min="0" max="6.28" step="0.01" value="0">
+                <div class="val" id="rotZWVal">0.00</div>
+            </div>
+
+            <div class="section">
+                <h3>Visual</h3>
+                <label>Grid Density</label>
+                <input type="range" id="density" min="2" max="10" step="0.1" value="4">
+                <div class="val" id="densityVal">4.0</div>
+
+                <label>Hue</label>
+                <input type="range" id="hue" min="0" max="1" step="0.01" value="0.6">
+                <div class="val" id="hueVal">0.60</div>
+            </div>
+
+            <div class="section">
+                <h3>Export</h3>
+                <div class="export-btns">
+                    <button onclick="vib3.exportPNG()">PNG</button>
+                    <button onclick="recordAnimation()">Record</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Code Example</h3>
+                <pre>
+const vib3 = new VIB3('#canvas');
+
+vib3.setGeometry('hypercube');
+vib3.setRotation({ xw: 0.5 });
+vib3.start();
+
+// Export
+vib3.exportPNG();
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { VIB3 } from '../src/VIB3.js';
+
+        // Create VIB3 instance
+        const vib3 = new VIB3('#canvas');
+        window.vib3 = vib3; // For console access
+
+        // Start animation
+        vib3.start();
+
+        // Geometry buttons
+        const geometries = ['Tetrahedron', 'Hypercube', 'Sphere', 'Torus', 'Klein', 'Fractal', 'Wave', 'Crystal'];
+        const geoBtns = document.getElementById('geoBtns');
+
+        geometries.forEach((name, i) => {
+            const btn = document.createElement('button');
+            btn.textContent = name;
+            btn.className = i === 1 ? 'active' : '';
+            btn.onclick = () => {
+                vib3.setGeometry(i);
+                geoBtns.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+            geoBtns.appendChild(btn);
+        });
+
+        // Rotation sliders
+        ['rotXW', 'rotYW', 'rotZW'].forEach(id => {
+            const slider = document.getElementById(id);
+            const val = document.getElementById(id + 'Val');
+            slider.oninput = () => {
+                const v = parseFloat(slider.value);
+                val.textContent = v.toFixed(2);
+                const key = id.replace('rot', '').toLowerCase();
+                vib3.setRotation({ [key]: v });
+            };
+        });
+
+        // Visual sliders
+        document.getElementById('density').oninput = function() {
+            document.getElementById('densityVal').textContent = parseFloat(this.value).toFixed(1);
+            vib3.setParams({ gridDensity: parseFloat(this.value) });
+        };
+
+        document.getElementById('hue').oninput = function() {
+            document.getElementById('hueVal').textContent = parseFloat(this.value).toFixed(2);
+            vib3.setParams({ hue: parseFloat(this.value) });
+        };
+
+        // Record animation
+        window.recordAnimation = async function() {
+            const btn = event.target;
+            btn.textContent = 'Recording...';
+            btn.disabled = true;
+
+            const frames = await vib3.recordFrames(2, 24);
+
+            // Download first frame as sample
+            const link = document.createElement('a');
+            link.download = 'vib3-frame-001.png';
+            link.href = frames[0];
+            link.click();
+
+            btn.textContent = `Done! ${frames.length} frames`;
+            setTimeout(() => {
+                btn.textContent = 'Record';
+                btn.disabled = false;
+            }, 2000);
+        };
+
+        console.log('VIB3+ loaded. Access via window.vib3');
+        console.log('Try: vib3.setGeometry("torus").setRotation({ xw: 1 })');
+    </script>
+</body>
+</html>

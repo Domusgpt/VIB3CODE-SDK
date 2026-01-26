@@ -419,4 +419,86 @@ export class FacetedSystem {
     updateParameters(params) {
         Object.assign(this.parameters, params);
     }
+
+    // ============================================
+    // RendererContract Compliance Methods
+    // ============================================
+
+    /**
+     * Initialize the renderer (RendererContract.init)
+     * Alias for initialize() with context support
+     * @param {Object} [context] - Optional context with canvas or canvasId
+     * @returns {boolean} Success status
+     */
+    init(context = {}) {
+        const canvasOverride = context.canvas || (context.canvasId ? document.getElementById(context.canvasId) : null);
+        return this.initialize(canvasOverride);
+    }
+
+    /**
+     * Handle canvas resize (RendererContract.resize)
+     * @param {number} width - New width in pixels
+     * @param {number} height - New height in pixels
+     * @param {number} [pixelRatio=1] - Device pixel ratio
+     */
+    resize(width, height, pixelRatio = 1) {
+        if (!this.canvas || !this.gl) return;
+
+        this.canvas.width = width * pixelRatio;
+        this.canvas.height = height * pixelRatio;
+        this.canvas.style.width = `${width}px`;
+        this.canvas.style.height = `${height}px`;
+        this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+
+        console.log(`🔷 Faceted resized to ${width}x${height} @${pixelRatio}x`);
+    }
+
+    /**
+     * Render a single frame (RendererContract.render)
+     * @param {Object} [frameState] - Frame state with time, params, audio
+     */
+    render(frameState = {}) {
+        // Apply frameState parameters if provided
+        if (frameState.params) {
+            Object.assign(this.parameters, frameState.params);
+        }
+        if (typeof frameState.time === 'number') {
+            this.time = frameState.time;
+        }
+
+        // Delegate to existing renderFrame
+        this.renderFrame();
+    }
+
+    /**
+     * Clean up all resources (RendererContract.dispose)
+     */
+    dispose() {
+        this.isActive = false;
+
+        // Clean up WebGL resources
+        if (this.gl && this.program) {
+            this.gl.deleteProgram(this.program);
+            this.program = null;
+        }
+
+        // Lose WebGL context to free GPU memory
+        if (this.gl) {
+            const loseContext = this.gl.getExtension('WEBGL_lose_context');
+            if (loseContext) {
+                loseContext.loseContext();
+            }
+            this.gl = null;
+        }
+
+        this.canvas = null;
+        console.log('🧹 Faceted System disposed');
+    }
+
+    /**
+     * Alias for dispose (for backward compatibility)
+     */
+    destroy() {
+        this.dispose();
+    }
 }

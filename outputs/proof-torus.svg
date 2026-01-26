@@ -1,0 +1,882 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" data-vib3-geometry="3" data-vib3-system="quantum" data-vib3-core-type="Base">
+  <defs>
+    <style>
+      :root {
+        --vib3-hue: 360;
+        --vib3-saturation: 0.8;
+        --vib3-intensity: 0.9;
+      }
+    </style>
+  </defs>
+  <g id="geometry-layer">
+    <line x1="189.670" y1="226.459" x2="182.057" y2="221.126" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.507" stroke-linecap="round"/>
+    <line x1="189.670" y1="226.459" x2="185.513" y2="217.553" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.502" stroke-linecap="round"/>
+    <line x1="189.670" y1="226.459" x2="199.626" y2="223.356" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.496" stroke-linecap="round"/>
+    <line x1="191.869" y1="222.057" x2="182.057" y2="221.126" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.501" stroke-linecap="round"/>
+    <line x1="191.869" y1="222.057" x2="185.513" y2="217.553" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.522" stroke-linecap="round"/>
+    <line x1="191.869" y1="222.057" x2="199.626" y2="223.356" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.521" stroke-linecap="round"/>
+    <line x1="191.869" y1="222.057" x2="198.914" y2="228.025" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.508" stroke-linecap="round"/>
+    <line x1="182.057" y1="221.126" x2="199.626" y2="223.356" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.423" stroke-linecap="round"/>
+    <line x1="182.057" y1="221.126" x2="198.914" y2="228.025" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.418" stroke-linecap="round"/>
+    <line x1="182.057" y1="221.126" x2="181.364" y2="210.310" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.492" stroke-linecap="round"/>
+    <line x1="185.513" y1="217.553" x2="199.626" y2="223.356" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.447" stroke-linecap="round"/>
+    <line x1="185.513" y1="217.553" x2="198.914" y2="228.025" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.430" stroke-linecap="round"/>
+    <line x1="185.513" y1="217.553" x2="181.364" y2="210.310" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.517" stroke-linecap="round"/>
+    <line x1="185.513" y1="217.553" x2="177.002" y2="212.527" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.501" stroke-linecap="round"/>
+    <line x1="199.626" y1="223.356" x2="181.364" y2="210.310" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.376" stroke-linecap="round"/>
+    <line x1="199.626" y1="223.356" x2="177.002" y2="212.527" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.349" stroke-linecap="round"/>
+    <line x1="199.626" y1="223.356" x2="187.540" y2="229.884" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.463" stroke-linecap="round"/>
+    <line x1="198.914" y1="228.025" x2="181.364" y2="210.310" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.351" stroke-linecap="round"/>
+    <line x1="198.914" y1="228.025" x2="177.002" y2="212.527" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.332" stroke-linecap="round"/>
+    <line x1="198.914" y1="228.025" x2="187.540" y2="229.884" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.485" stroke-linecap="round"/>
+    <line x1="198.914" y1="228.025" x2="207.869" y2="221.263" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.488" stroke-linecap="round"/>
+    <line x1="181.364" y1="210.310" x2="187.540" y2="229.884" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.395" stroke-linecap="round"/>
+    <line x1="181.364" y1="210.310" x2="207.869" y2="221.263" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.313" stroke-linecap="round"/>
+    <line x1="181.364" y1="210.310" x2="178.971" y2="223.938" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.462" stroke-linecap="round"/>
+    <line x1="177.002" y1="212.527" x2="187.540" y2="229.884" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.397" stroke-linecap="round"/>
+    <line x1="177.002" y1="212.527" x2="207.869" y2="221.263" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.279" stroke-linecap="round"/>
+    <line x1="177.002" y1="212.527" x2="178.971" y2="223.938" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.484" stroke-linecap="round"/>
+    <line x1="177.002" y1="212.527" x2="193.583" y2="217.758" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.426" stroke-linecap="round"/>
+    <line x1="187.540" y1="229.884" x2="207.869" y2="221.263" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.379" stroke-linecap="round"/>
+    <line x1="187.540" y1="229.884" x2="178.971" y2="223.938" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.496" stroke-linecap="round"/>
+    <line x1="187.540" y1="229.884" x2="193.583" y2="217.758" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.465" stroke-linecap="round"/>
+    <line x1="187.540" y1="229.884" x2="208.762" y2="225.604" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.384" stroke-linecap="round"/>
+    <line x1="207.869" y1="221.263" x2="178.971" y2="223.938" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.310" stroke-linecap="round"/>
+    <line x1="207.869" y1="221.263" x2="193.583" y2="217.758" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.453" stroke-linecap="round"/>
+    <line x1="207.869" y1="221.263" x2="188.476" y2="214.101" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.393" stroke-linecap="round"/>
+    <line x1="178.971" y1="223.938" x2="193.583" y2="217.758" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.441" stroke-linecap="round"/>
+    <line x1="178.971" y1="223.938" x2="208.762" y2="225.604" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.302" stroke-linecap="round"/>
+    <line x1="178.971" y1="223.938" x2="188.476" y2="214.101" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.463" stroke-linecap="round"/>
+    <line x1="178.971" y1="223.938" x2="197.897" y2="231.656" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.396" stroke-linecap="round"/>
+    <line x1="193.583" y1="217.758" x2="208.762" y2="225.604" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.429" stroke-linecap="round"/>
+    <line x1="193.583" y1="217.758" x2="188.476" y2="214.101" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.537" stroke-linecap="round"/>
+    <line x1="193.583" y1="217.758" x2="197.897" y2="231.656" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.454" stroke-linecap="round"/>
+    <line x1="193.583" y1="217.758" x2="199.842" y2="218.794" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.537" stroke-linecap="round"/>
+    <line x1="208.762" y1="225.604" x2="188.476" y2="214.101" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.367" stroke-linecap="round"/>
+    <line x1="208.762" y1="225.604" x2="197.897" y2="231.656" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.476" stroke-linecap="round"/>
+    <line x1="208.762" y1="225.604" x2="199.842" y2="218.794" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.488" stroke-linecap="round"/>
+    <line x1="208.762" y1="225.604" x2="180.085" y2="201.107" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.223" stroke-linecap="round"/>
+    <line x1="188.476" y1="214.101" x2="197.897" y2="231.656" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.401" stroke-linecap="round"/>
+    <line x1="188.476" y1="214.101" x2="199.842" y2="218.794" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.477" stroke-linecap="round"/>
+    <line x1="188.476" y1="214.101" x2="180.085" y2="201.107" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.445" stroke-linecap="round"/>
+    <line x1="188.476" y1="214.101" x2="185.193" y2="208.235" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.533" stroke-linecap="round"/>
+    <line x1="197.897" y1="231.656" x2="199.842" y2="218.794" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.470" stroke-linecap="round"/>
+    <line x1="197.897" y1="231.656" x2="180.085" y2="201.107" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.246" stroke-linecap="round"/>
+    <line x1="197.897" y1="231.656" x2="185.193" y2="208.235" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.334" stroke-linecap="round"/>
+    <line x1="197.897" y1="231.656" x2="175.312" y2="201.510" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.223" stroke-linecap="round"/>
+    <line x1="199.842" y1="218.794" x2="180.085" y2="201.107" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.335" stroke-linecap="round"/>
+    <line x1="199.842" y1="218.794" x2="185.193" y2="208.235" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.419" stroke-linecap="round"/>
+    <line x1="199.842" y1="218.794" x2="175.312" y2="201.510" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.300" stroke-linecap="round"/>
+    <line x1="199.842" y1="218.794" x2="173.200" y2="214.335" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.330" stroke-linecap="round"/>
+    <line x1="180.085" y1="201.107" x2="185.193" y2="208.235" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.512" stroke-linecap="round"/>
+    <line x1="180.085" y1="201.107" x2="173.200" y2="214.335" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.451" stroke-linecap="round"/>
+    <line x1="180.085" y1="201.107" x2="206.471" y2="217.057" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.292" stroke-linecap="round"/>
+    <line x1="185.193" y1="208.235" x2="175.312" y2="201.510" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.480" stroke-linecap="round"/>
+    <line x1="185.193" y1="208.235" x2="173.200" y2="214.335" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.465" stroke-linecap="round"/>
+    <line x1="185.193" y1="208.235" x2="206.471" y2="217.057" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.370" stroke-linecap="round"/>
+    <line x1="185.193" y1="208.235" x2="215.587" y2="215.895" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.287" stroke-linecap="round"/>
+    <line x1="175.312" y1="201.510" x2="173.200" y2="214.335" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.470" stroke-linecap="round"/>
+    <line x1="175.312" y1="201.510" x2="206.471" y2="217.057" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.252" stroke-linecap="round"/>
+    <line x1="175.312" y1="201.510" x2="215.587" y2="215.895" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.172" stroke-linecap="round"/>
+    <line x1="175.312" y1="201.510" x2="208.945" y2="229.008" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.166" stroke-linecap="round"/>
+    <line x1="173.200" y1="214.335" x2="206.471" y2="217.057" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.266" stroke-linecap="round"/>
+    <line x1="173.200" y1="214.335" x2="215.587" y2="215.895" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.176" stroke-linecap="round"/>
+    <line x1="173.200" y1="214.335" x2="208.945" y2="229.008" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.214" stroke-linecap="round"/>
+    <line x1="173.200" y1="214.335" x2="218.067" y2="219.280" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="206.471" y1="217.057" x2="215.587" y2="215.895" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.508" stroke-linecap="round"/>
+    <line x1="206.471" y1="217.057" x2="208.945" y2="229.008" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.478" stroke-linecap="round"/>
+    <line x1="206.471" y1="217.057" x2="218.067" y2="219.280" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.482" stroke-linecap="round"/>
+    <line x1="206.471" y1="217.057" x2="184.259" y2="200.845" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.325" stroke-linecap="round"/>
+    <line x1="215.587" y1="215.895" x2="208.945" y2="229.008" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.453" stroke-linecap="round"/>
+    <line x1="215.587" y1="215.895" x2="184.259" y2="200.845" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.252" stroke-linecap="round"/>
+    <line x1="215.587" y1="215.895" x2="185.992" y2="231.521" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.265" stroke-linecap="round"/>
+    <line x1="208.945" y1="229.008" x2="218.067" y2="219.280" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.467" stroke-linecap="round"/>
+    <line x1="208.945" y1="229.008" x2="184.259" y2="200.845" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.225" stroke-linecap="round"/>
+    <line x1="208.945" y1="229.008" x2="185.992" y2="231.521" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.369" stroke-linecap="round"/>
+    <line x1="208.945" y1="229.008" x2="182.096" y2="191.083" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="218.067" y1="219.280" x2="184.259" y2="200.845" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.215" stroke-linecap="round"/>
+    <line x1="218.067" y1="219.280" x2="185.992" y2="231.521" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.257" stroke-linecap="round"/>
+    <line x1="218.067" y1="219.280" x2="182.096" y2="191.083" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="218.067" y1="219.280" x2="212.619" y2="212.679" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.514" stroke-linecap="round"/>
+    <line x1="184.259" y1="200.845" x2="185.992" y2="231.521" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.293" stroke-linecap="round"/>
+    <line x1="184.259" y1="200.845" x2="182.096" y2="191.083" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.500" stroke-linecap="round"/>
+    <line x1="184.259" y1="200.845" x2="212.619" y2="212.679" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.293" stroke-linecap="round"/>
+    <line x1="184.259" y1="200.845" x2="177.001" y2="225.316" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.345" stroke-linecap="round"/>
+    <line x1="185.992" y1="231.521" x2="182.096" y2="191.083" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.194" stroke-linecap="round"/>
+    <line x1="185.992" y1="231.521" x2="212.619" y2="212.679" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.274" stroke-linecap="round"/>
+    <line x1="185.992" y1="231.521" x2="177.001" y2="225.316" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.491" stroke-linecap="round"/>
+    <line x1="185.992" y1="231.521" x2="194.327" y2="214.719" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.412" stroke-linecap="round"/>
+    <line x1="182.096" y1="191.083" x2="212.619" y2="212.679" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.226" stroke-linecap="round"/>
+    <line x1="182.096" y1="191.083" x2="177.001" y2="225.316" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.254" stroke-linecap="round"/>
+    <line x1="182.096" y1="191.083" x2="194.327" y2="214.719" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.334" stroke-linecap="round"/>
+    <line x1="182.096" y1="191.083" x2="171.144" y2="201.951" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.446" stroke-linecap="round"/>
+    <line x1="212.619" y1="212.679" x2="177.001" y2="225.316" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.222" stroke-linecap="round"/>
+    <line x1="212.619" y1="212.679" x2="194.327" y2="214.719" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.416" stroke-linecap="round"/>
+    <line x1="212.619" y1="212.679" x2="171.144" y2="201.951" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.172" stroke-linecap="round"/>
+    <line x1="212.619" y1="212.679" x2="190.132" y2="211.694" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.375" stroke-linecap="round"/>
+    <line x1="177.001" y1="225.316" x2="194.327" y2="214.719" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.397" stroke-linecap="round"/>
+    <line x1="177.001" y1="225.316" x2="171.144" y2="201.951" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.359" stroke-linecap="round"/>
+    <line x1="177.001" y1="225.316" x2="190.132" y2="211.694" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.411" stroke-linecap="round"/>
+    <line x1="177.001" y1="225.316" x2="196.825" y2="233.383" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.386" stroke-linecap="round"/>
+    <line x1="194.327" y1="214.719" x2="171.144" y2="201.951" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.335" stroke-linecap="round"/>
+    <line x1="194.327" y1="214.719" x2="190.132" y2="211.694" stroke="hsla(180, 64%, 60%, 0.37)" stroke-width="0.548" stroke-linecap="round"/>
+    <line x1="194.327" y1="214.719" x2="196.825" y2="233.383" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.412" stroke-linecap="round"/>
+    <line x1="194.327" y1="214.719" x2="221.698" y2="207.741" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.318" stroke-linecap="round"/>
+    <line x1="171.144" y1="201.951" x2="190.132" y2="211.694" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.387" stroke-linecap="round"/>
+    <line x1="171.144" y1="201.951" x2="196.825" y2="233.383" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.194" stroke-linecap="round"/>
+    <line x1="171.144" y1="201.951" x2="177.561" y2="189.360" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.459" stroke-linecap="round"/>
+    <line x1="190.132" y1="211.694" x2="196.825" y2="233.383" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.373" stroke-linecap="round"/>
+    <line x1="190.132" y1="211.694" x2="221.698" y2="207.741" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.282" stroke-linecap="round"/>
+    <line x1="190.132" y1="211.694" x2="177.561" y2="189.360" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.344" stroke-linecap="round"/>
+    <line x1="190.132" y1="211.694" x2="199.478" y2="215.564" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.499" stroke-linecap="round"/>
+    <line x1="196.825" y1="233.383" x2="221.698" y2="207.741" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.243" stroke-linecap="round"/>
+    <line x1="196.825" y1="233.383" x2="177.561" y2="189.360" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="196.825" y1="233.383" x2="199.478" y2="215.564" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.420" stroke-linecap="round"/>
+    <line x1="196.825" y1="233.383" x2="185.962" y2="192.893" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.181" stroke-linecap="round"/>
+    <line x1="221.698" y1="207.741" x2="177.561" y2="189.360" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="221.698" y1="207.741" x2="199.478" y2="215.564" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.364" stroke-linecap="round"/>
+    <line x1="221.698" y1="207.741" x2="185.962" y2="192.893" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.213" stroke-linecap="round"/>
+    <line x1="221.698" y1="207.741" x2="187.462" y2="206.854" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.258" stroke-linecap="round"/>
+    <line x1="177.561" y1="189.360" x2="199.478" y2="215.564" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.258" stroke-linecap="round"/>
+    <line x1="177.561" y1="189.360" x2="185.962" y2="192.893" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.509" stroke-linecap="round"/>
+    <line x1="177.561" y1="189.360" x2="187.462" y2="206.854" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.399" stroke-linecap="round"/>
+    <line x1="199.478" y1="215.564" x2="185.962" y2="192.893" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.336" stroke-linecap="round"/>
+    <line x1="199.478" y1="215.564" x2="187.462" y2="206.854" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.452" stroke-linecap="round"/>
+    <line x1="199.478" y1="215.564" x2="219.448" y2="221.987" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.390" stroke-linecap="round"/>
+    <line x1="199.478" y1="215.564" x2="170.896" y2="215.287" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.314" stroke-linecap="round"/>
+    <line x1="185.962" y1="192.893" x2="187.462" y2="206.854" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.460" stroke-linecap="round"/>
+    <line x1="185.962" y1="192.893" x2="219.448" y2="221.987" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.156" stroke-linecap="round"/>
+    <line x1="185.962" y1="192.893" x2="170.896" y2="215.287" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.330" stroke-linecap="round"/>
+    <line x1="185.962" y1="192.893" x2="204.918" y2="214.107" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.316" stroke-linecap="round"/>
+    <line x1="187.462" y1="206.854" x2="219.448" y2="221.987" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.246" stroke-linecap="round"/>
+    <line x1="187.462" y1="206.854" x2="170.896" y2="215.287" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.414" stroke-linecap="round"/>
+    <line x1="187.462" y1="206.854" x2="204.918" y2="214.107" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.411" stroke-linecap="round"/>
+    <line x1="187.462" y1="206.854" x2="217.404" y2="206.116" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.300" stroke-linecap="round"/>
+    <line x1="219.448" y1="221.987" x2="170.896" y2="215.287" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="219.448" y1="221.987" x2="204.918" y2="214.107" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.435" stroke-linecap="round"/>
+    <line x1="219.448" y1="221.987" x2="217.404" y2="206.116" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.440" stroke-linecap="round"/>
+    <line x1="219.448" y1="221.987" x2="225.554" y2="209.543" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.461" stroke-linecap="round"/>
+    <line x1="170.896" y1="215.287" x2="204.918" y2="214.107" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.260" stroke-linecap="round"/>
+    <line x1="170.896" y1="215.287" x2="217.404" y2="206.116" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="170.896" y1="215.287" x2="187.402" y2="181.717" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.226" stroke-linecap="round"/>
+    <line x1="204.918" y1="214.107" x2="217.404" y2="206.116" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.452" stroke-linecap="round"/>
+    <line x1="204.918" y1="214.107" x2="225.554" y2="209.543" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.389" stroke-linecap="round"/>
+    <line x1="204.918" y1="214.107" x2="187.402" y2="181.717" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.232" stroke-linecap="round"/>
+    <line x1="204.918" y1="214.107" x2="186.741" y2="200.794" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.375" stroke-linecap="round"/>
+    <line x1="217.404" y1="206.116" x2="225.554" y2="209.543" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.512" stroke-linecap="round"/>
+    <line x1="217.404" y1="206.116" x2="187.402" y2="181.717" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.213" stroke-linecap="round"/>
+    <line x1="217.404" y1="206.116" x2="186.741" y2="200.794" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.289" stroke-linecap="round"/>
+    <line x1="217.404" y1="206.116" x2="208.377" y2="230.645" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.339" stroke-linecap="round"/>
+    <line x1="225.554" y1="209.543" x2="187.402" y2="181.717" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="225.554" y1="209.543" x2="186.741" y2="200.794" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.202" stroke-linecap="round"/>
+    <line x1="225.554" y1="209.543" x2="208.377" y2="230.645" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.328" stroke-linecap="round"/>
+    <line x1="225.554" y1="209.543" x2="190.239" y2="185.566" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.173" stroke-linecap="round"/>
+    <line x1="187.402" y1="181.717" x2="186.741" y2="200.794" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.409" stroke-linecap="round"/>
+    <line x1="187.402" y1="181.717" x2="209.923" y2="210.477" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.235" stroke-linecap="round"/>
+    <line x1="186.741" y1="200.794" x2="208.377" y2="230.645" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.231" stroke-linecap="round"/>
+    <line x1="186.741" y1="200.794" x2="190.239" y2="185.566" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.444" stroke-linecap="round"/>
+    <line x1="186.741" y1="200.794" x2="209.923" y2="210.477" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.349" stroke-linecap="round"/>
+    <line x1="186.741" y1="200.794" x2="225.143" y2="197.757" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.215" stroke-linecap="round"/>
+    <line x1="208.377" y1="230.645" x2="190.239" y2="185.566" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="208.377" y1="230.645" x2="209.923" y2="210.477" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.398" stroke-linecap="round"/>
+    <line x1="208.377" y1="230.645" x2="225.143" y2="197.757" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.231" stroke-linecap="round"/>
+    <line x1="208.377" y1="230.645" x2="220.010" y2="198.189" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.255" stroke-linecap="round"/>
+    <line x1="190.239" y1="185.566" x2="209.923" y2="210.477" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.283" stroke-linecap="round"/>
+    <line x1="190.239" y1="185.566" x2="225.143" y2="197.757" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.230" stroke-linecap="round"/>
+    <line x1="190.239" y1="185.566" x2="220.010" y2="198.189" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.277" stroke-linecap="round"/>
+    <line x1="190.239" y1="185.566" x2="173.510" y2="188.165" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.431" stroke-linecap="round"/>
+    <line x1="209.923" y1="210.477" x2="225.143" y2="197.757" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.402" stroke-linecap="round"/>
+    <line x1="209.923" y1="210.477" x2="220.010" y2="198.189" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.441" stroke-linecap="round"/>
+    <line x1="209.923" y1="210.477" x2="173.510" y2="188.165" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.173" stroke-linecap="round"/>
+    <line x1="209.923" y1="210.477" x2="185.411" y2="230.944" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.281" stroke-linecap="round"/>
+    <line x1="225.143" y1="197.757" x2="220.010" y2="198.189" stroke="hsla(180, 64%, 60%, 0.37)" stroke-width="0.548" stroke-linecap="round"/>
+    <line x1="225.143" y1="197.757" x2="183.865" y2="177.843" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="220.010" y1="198.189" x2="173.510" y2="188.165" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="220.010" y1="198.189" x2="185.411" y2="230.944" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="220.010" y1="198.189" x2="183.865" y2="177.843" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.185" stroke-linecap="round"/>
+    <line x1="220.010" y1="198.189" x2="188.178" y2="194.330" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.279" stroke-linecap="round"/>
+    <line x1="173.510" y1="188.165" x2="185.411" y2="230.944" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.156" stroke-linecap="round"/>
+    <line x1="173.510" y1="188.165" x2="183.865" y2="177.843" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.454" stroke-linecap="round"/>
+    <line x1="173.510" y1="188.165" x2="188.178" y2="194.330" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.441" stroke-linecap="round"/>
+    <line x1="173.510" y1="188.165" x2="176.651" y2="224.895" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.231" stroke-linecap="round"/>
+    <line x1="185.411" y1="230.944" x2="188.178" y2="194.330" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.233" stroke-linecap="round"/>
+    <line x1="185.411" y1="230.944" x2="176.651" y2="224.895" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.494" stroke-linecap="round"/>
+    <line x1="185.411" y1="230.944" x2="168.644" y2="202.318" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.268" stroke-linecap="round"/>
+    <line x1="183.865" y1="177.843" x2="188.178" y2="194.330" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.430" stroke-linecap="round"/>
+    <line x1="183.865" y1="177.843" x2="176.651" y2="224.895" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="183.865" y1="177.843" x2="168.644" y2="202.318" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.312" stroke-linecap="round"/>
+    <line x1="183.865" y1="177.843" x2="195.417" y2="174.669" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.480" stroke-linecap="round"/>
+    <line x1="188.178" y1="194.330" x2="176.651" y2="224.895" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.273" stroke-linecap="round"/>
+    <line x1="188.178" y1="194.330" x2="168.644" y2="202.318" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.389" stroke-linecap="round"/>
+    <line x1="188.178" y1="194.330" x2="195.417" y2="174.669" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.390" stroke-linecap="round"/>
+    <line x1="188.178" y1="194.330" x2="195.959" y2="232.754" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.208" stroke-linecap="round"/>
+    <line x1="176.651" y1="224.895" x2="168.644" y2="202.318" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.360" stroke-linecap="round"/>
+    <line x1="176.651" y1="224.895" x2="195.959" y2="232.754" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.392" stroke-linecap="round"/>
+    <line x1="176.651" y1="224.895" x2="213.765" y2="205.086" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.179" stroke-linecap="round"/>
+    <line x1="168.644" y1="202.318" x2="195.417" y2="174.669" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.215" stroke-linecap="round"/>
+    <line x1="168.644" y1="202.318" x2="195.959" y2="232.754" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.191" stroke-linecap="round"/>
+    <line x1="168.644" y1="202.318" x2="213.765" y2="205.086" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="168.644" y1="202.318" x2="193.839" y2="213.864" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.323" stroke-linecap="round"/>
+    <line x1="195.417" y1="174.669" x2="213.765" y2="205.086" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.245" stroke-linecap="round"/>
+    <line x1="195.417" y1="174.669" x2="193.839" y2="213.864" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.208" stroke-linecap="round"/>
+    <line x1="195.417" y1="174.669" x2="196.573" y2="180.132" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.544" stroke-linecap="round"/>
+    <line x1="195.959" y1="232.754" x2="213.765" y2="205.086" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.271" stroke-linecap="round"/>
+    <line x1="195.959" y1="232.754" x2="193.839" y2="213.864" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.410" stroke-linecap="round"/>
+    <line x1="195.959" y1="232.754" x2="189.953" y2="211.059" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.375" stroke-linecap="round"/>
+    <line x1="213.765" y1="205.086" x2="193.839" y2="213.864" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.382" stroke-linecap="round"/>
+    <line x1="213.765" y1="205.086" x2="196.573" y2="180.132" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.297" stroke-linecap="round"/>
+    <line x1="213.765" y1="205.086" x2="189.953" y2="211.059" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.354" stroke-linecap="round"/>
+    <line x1="213.765" y1="205.086" x2="229.909" y2="197.454" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.421" stroke-linecap="round"/>
+    <line x1="193.839" y1="213.864" x2="196.573" y2="180.132" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.262" stroke-linecap="round"/>
+    <line x1="193.839" y1="213.864" x2="229.909" y2="197.454" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.204" stroke-linecap="round"/>
+    <line x1="193.839" y1="213.864" x2="227.994" y2="211.067" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.257" stroke-linecap="round"/>
+    <line x1="196.573" y1="180.132" x2="189.953" y2="211.059" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.284" stroke-linecap="round"/>
+    <line x1="196.573" y1="180.132" x2="229.909" y2="197.454" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.224" stroke-linecap="round"/>
+    <line x1="196.573" y1="180.132" x2="227.994" y2="211.067" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.159" stroke-linecap="round"/>
+    <line x1="196.573" y1="180.132" x2="198.607" y2="214.645" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.254" stroke-linecap="round"/>
+    <line x1="189.953" y1="211.059" x2="229.909" y2="197.454" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.178" stroke-linecap="round"/>
+    <line x1="189.953" y1="211.059" x2="227.994" y2="211.067" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.220" stroke-linecap="round"/>
+    <line x1="189.953" y1="211.059" x2="198.607" y2="214.645" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.506" stroke-linecap="round"/>
+    <line x1="189.953" y1="211.059" x2="225.095" y2="187.400" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.176" stroke-linecap="round"/>
+    <line x1="229.909" y1="197.454" x2="227.994" y2="211.067" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.463" stroke-linecap="round"/>
+    <line x1="229.909" y1="197.454" x2="198.607" y2="214.645" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.243" stroke-linecap="round"/>
+    <line x1="229.909" y1="197.454" x2="225.095" y2="187.400" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.489" stroke-linecap="round"/>
+    <line x1="229.909" y1="197.454" x2="219.850" y2="190.072" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.475" stroke-linecap="round"/>
+    <line x1="227.994" y1="211.067" x2="198.607" y2="214.645" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.304" stroke-linecap="round"/>
+    <line x1="227.994" y1="211.067" x2="225.095" y2="187.400" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.362" stroke-linecap="round"/>
+    <line x1="227.994" y1="211.067" x2="219.850" y2="190.072" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.375" stroke-linecap="round"/>
+    <line x1="227.994" y1="211.067" x2="219.377" y2="223.336" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.450" stroke-linecap="round"/>
+    <line x1="198.607" y1="214.645" x2="225.095" y2="187.400" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.220" stroke-linecap="round"/>
+    <line x1="198.607" y1="214.645" x2="219.850" y2="190.072" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.275" stroke-linecap="round"/>
+    <line x1="198.607" y1="214.645" x2="219.377" y2="223.336" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.375" stroke-linecap="round"/>
+    <line x1="198.607" y1="214.645" x2="187.481" y2="206.575" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.463" stroke-linecap="round"/>
+    <line x1="225.095" y1="187.400" x2="219.850" y2="190.072" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.541" stroke-linecap="round"/>
+    <line x1="225.095" y1="187.400" x2="219.377" y2="223.336" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.236" stroke-linecap="round"/>
+    <line x1="225.095" y1="187.400" x2="187.481" y2="206.575" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.178" stroke-linecap="round"/>
+    <line x1="225.095" y1="187.400" x2="191.684" y2="188.435" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.266" stroke-linecap="round"/>
+    <line x1="219.850" y1="190.072" x2="219.377" y2="223.336" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.267" stroke-linecap="round"/>
+    <line x1="219.850" y1="190.072" x2="187.481" y2="206.575" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.237" stroke-linecap="round"/>
+    <line x1="219.850" y1="190.072" x2="191.684" y2="188.435" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.318" stroke-linecap="round"/>
+    <line x1="219.377" y1="223.336" x2="187.481" y2="206.575" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.240" stroke-linecap="round"/>
+    <line x1="219.377" y1="223.336" x2="191.684" y2="188.435" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.154" stroke-linecap="round"/>
+    <line x1="219.377" y1="223.336" x2="170.702" y2="215.125" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="219.377" y1="223.336" x2="203.632" y2="213.288" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.413" stroke-linecap="round"/>
+    <line x1="187.481" y1="206.575" x2="191.684" y2="188.435" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.414" stroke-linecap="round"/>
+    <line x1="187.481" y1="206.575" x2="170.702" y2="215.125" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.412" stroke-linecap="round"/>
+    <line x1="187.481" y1="206.575" x2="203.632" y2="213.288" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.425" stroke-linecap="round"/>
+    <line x1="187.481" y1="206.575" x2="203.976" y2="177.663" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.267" stroke-linecap="round"/>
+    <line x1="191.684" y1="188.435" x2="170.702" y2="215.125" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.260" stroke-linecap="round"/>
+    <line x1="191.684" y1="188.435" x2="203.632" y2="213.288" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.324" stroke-linecap="round"/>
+    <line x1="191.684" y1="188.435" x2="203.976" y2="177.663" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.437" stroke-linecap="round"/>
+    <line x1="191.684" y1="188.435" x2="204.890" y2="171.410" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.385" stroke-linecap="round"/>
+    <line x1="170.702" y1="215.125" x2="203.632" y2="213.288" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.270" stroke-linecap="round"/>
+    <line x1="170.702" y1="215.125" x2="215.800" y2="198.640" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="203.632" y1="213.288" x2="203.976" y2="177.663" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.244" stroke-linecap="round"/>
+    <line x1="203.632" y1="213.288" x2="204.890" y2="171.410" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.181" stroke-linecap="round"/>
+    <line x1="203.632" y1="213.288" x2="215.800" y2="198.640" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.410" stroke-linecap="round"/>
+    <line x1="203.632" y1="213.288" x2="216.757" y2="183.149" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.271" stroke-linecap="round"/>
+    <line x1="203.976" y1="177.663" x2="204.890" y2="171.410" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.537" stroke-linecap="round"/>
+    <line x1="203.976" y1="177.663" x2="215.800" y2="198.640" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.359" stroke-linecap="round"/>
+    <line x1="203.976" y1="177.663" x2="216.757" y2="183.149" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.461" stroke-linecap="round"/>
+    <line x1="203.976" y1="177.663" x2="221.251" y2="178.474" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.427" stroke-linecap="round"/>
+    <line x1="204.890" y1="171.410" x2="215.800" y2="198.640" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.307" stroke-linecap="round"/>
+    <line x1="204.890" y1="171.410" x2="216.757" y2="183.149" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.433" stroke-linecap="round"/>
+    <line x1="204.890" y1="171.410" x2="221.251" y2="178.474" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.422" stroke-linecap="round"/>
+    <line x1="215.800" y1="198.640" x2="216.757" y2="183.149" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.445" stroke-linecap="round"/>
+    <line x1="215.800" y1="198.640" x2="221.251" y2="178.474" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.391" stroke-linecap="round"/>
+    <line x1="215.800" y1="198.640" x2="207.186" y2="230.076" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.274" stroke-linecap="round"/>
+    <line x1="215.800" y1="198.640" x2="211.142" y2="178.724" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.395" stroke-linecap="round"/>
+    <line x1="216.757" y1="183.149" x2="221.251" y2="178.474" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.535" stroke-linecap="round"/>
+    <line x1="216.757" y1="183.149" x2="207.186" y2="230.076" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="216.757" y1="183.149" x2="211.142" y2="178.724" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.529" stroke-linecap="round"/>
+    <line x1="216.757" y1="183.149" x2="193.601" y2="169.045" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.329" stroke-linecap="round"/>
+    <line x1="221.251" y1="178.474" x2="211.142" y2="178.724" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.499" stroke-linecap="round"/>
+    <line x1="221.251" y1="178.474" x2="193.601" y2="169.045" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.308" stroke-linecap="round"/>
+    <line x1="221.251" y1="178.474" x2="186.816" y2="200.975" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.189" stroke-linecap="round"/>
+    <line x1="207.186" y1="230.076" x2="186.816" y2="200.975" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.245" stroke-linecap="round"/>
+    <line x1="211.142" y1="178.724" x2="193.601" y2="169.045" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.400" stroke-linecap="round"/>
+    <line x1="211.142" y1="178.724" x2="186.816" y2="200.975" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.270" stroke-linecap="round"/>
+    <line x1="211.142" y1="178.724" x2="214.090" y2="172.747" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.533" stroke-linecap="round"/>
+    <line x1="211.142" y1="178.724" x2="196.810" y2="184.108" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.447" stroke-linecap="round"/>
+    <line x1="193.601" y1="169.045" x2="186.816" y2="200.975" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.274" stroke-linecap="round"/>
+    <line x1="193.601" y1="169.045" x2="214.090" y2="172.747" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.392" stroke-linecap="round"/>
+    <line x1="193.601" y1="169.045" x2="196.810" y2="184.108" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.446" stroke-linecap="round"/>
+    <line x1="193.601" y1="169.045" x2="208.238" y2="209.922" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.166" stroke-linecap="round"/>
+    <line x1="186.816" y1="200.975" x2="214.090" y2="172.747" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.207" stroke-linecap="round"/>
+    <line x1="186.816" y1="200.975" x2="196.810" y2="184.108" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.404" stroke-linecap="round"/>
+    <line x1="186.816" y1="200.975" x2="208.238" y2="209.922" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.368" stroke-linecap="round"/>
+    <line x1="186.816" y1="200.975" x2="180.526" y2="174.951" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.332" stroke-linecap="round"/>
+    <line x1="214.090" y1="172.747" x2="196.810" y2="184.108" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.393" stroke-linecap="round"/>
+    <line x1="214.090" y1="172.747" x2="208.238" y2="209.922" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.224" stroke-linecap="round"/>
+    <line x1="214.090" y1="172.747" x2="180.526" y2="174.951" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.264" stroke-linecap="round"/>
+    <line x1="214.090" y1="172.747" x2="230.029" y2="184.738" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.401" stroke-linecap="round"/>
+    <line x1="196.810" y1="184.108" x2="208.238" y2="209.922" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.318" stroke-linecap="round"/>
+    <line x1="196.810" y1="184.108" x2="180.526" y2="174.951" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.413" stroke-linecap="round"/>
+    <line x1="196.810" y1="184.108" x2="230.029" y2="184.738" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.268" stroke-linecap="round"/>
+    <line x1="196.810" y1="184.108" x2="185.985" y2="228.213" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="208.238" y1="209.922" x2="180.526" y2="174.951" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.154" stroke-linecap="round"/>
+    <line x1="208.238" y1="209.922" x2="230.029" y2="184.738" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.267" stroke-linecap="round"/>
+    <line x1="208.238" y1="209.922" x2="185.985" y2="228.213" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.312" stroke-linecap="round"/>
+    <line x1="208.238" y1="209.922" x2="215.588" y2="192.100" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.407" stroke-linecap="round"/>
+    <line x1="180.526" y1="174.951" x2="215.588" y2="192.100" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.210" stroke-linecap="round"/>
+    <line x1="180.526" y1="174.951" x2="178.071" y2="222.716" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="230.029" y1="184.738" x2="215.588" y2="192.100" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.438" stroke-linecap="round"/>
+    <line x1="185.985" y1="228.213" x2="215.588" y2="192.100" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="185.985" y1="228.213" x2="178.071" y2="222.716" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.504" stroke-linecap="round"/>
+    <line x1="185.985" y1="228.213" x2="171.015" y2="187.824" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.169" stroke-linecap="round"/>
+    <line x1="185.985" y1="228.213" x2="195.529" y2="229.840" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.503" stroke-linecap="round"/>
+    <line x1="215.588" y1="192.100" x2="178.071" y2="222.716" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="215.588" y1="192.100" x2="171.015" y2="187.824" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.152" stroke-linecap="round"/>
+    <line x1="215.588" y1="192.100" x2="195.529" y2="229.840" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.173" stroke-linecap="round"/>
+    <line x1="215.588" y1="192.100" x2="188.142" y2="195.018" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.324" stroke-linecap="round"/>
+    <line x1="178.071" y1="222.716" x2="171.015" y2="187.824" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.244" stroke-linecap="round"/>
+    <line x1="178.071" y1="222.716" x2="195.529" y2="229.840" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.411" stroke-linecap="round"/>
+    <line x1="178.071" y1="222.716" x2="188.142" y2="195.018" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.305" stroke-linecap="round"/>
+    <line x1="178.071" y1="222.716" x2="202.760" y2="182.168" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="171.015" y1="187.824" x2="195.529" y2="229.840" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="171.015" y1="187.824" x2="188.142" y2="195.018" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.414" stroke-linecap="round"/>
+    <line x1="171.015" y1="187.824" x2="202.760" y2="182.168" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.278" stroke-linecap="round"/>
+    <line x1="171.015" y1="187.824" x2="192.211" y2="215.532" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.251" stroke-linecap="round"/>
+    <line x1="195.529" y1="229.840" x2="188.142" y2="195.018" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.244" stroke-linecap="round"/>
+    <line x1="195.529" y1="229.840" x2="202.760" y2="182.168" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="195.529" y1="229.840" x2="192.211" y2="215.532" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.453" stroke-linecap="round"/>
+    <line x1="195.529" y1="229.840" x2="233.071" y2="197.359" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="188.142" y1="195.018" x2="202.760" y2="182.168" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.405" stroke-linecap="round"/>
+    <line x1="188.142" y1="195.018" x2="192.211" y2="215.532" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.391" stroke-linecap="round"/>
+    <line x1="188.142" y1="195.018" x2="233.071" y2="197.359" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="188.142" y1="195.018" x2="213.042" y2="186.561" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.337" stroke-linecap="round"/>
+    <line x1="202.760" y1="182.168" x2="192.211" y2="215.532" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.250" stroke-linecap="round"/>
+    <line x1="202.760" y1="182.168" x2="233.071" y2="197.359" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.261" stroke-linecap="round"/>
+    <line x1="202.760" y1="182.168" x2="213.042" y2="186.561" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.488" stroke-linecap="round"/>
+    <line x1="202.760" y1="182.168" x2="187.917" y2="212.450" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.263" stroke-linecap="round"/>
+    <line x1="192.211" y1="215.532" x2="233.071" y2="197.359" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.153" stroke-linecap="round"/>
+    <line x1="192.211" y1="215.532" x2="213.042" y2="186.561" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.243" stroke-linecap="round"/>
+    <line x1="192.211" y1="215.532" x2="187.917" y2="212.450" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.547" stroke-linecap="round"/>
+    <line x1="192.211" y1="215.532" x2="168.505" y2="202.515" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.330" stroke-linecap="round"/>
+    <line x1="233.071" y1="197.359" x2="213.042" y2="186.561" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.372" stroke-linecap="round"/>
+    <line x1="233.071" y1="197.359" x2="187.917" y2="212.450" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="233.071" y1="197.359" x2="197.462" y2="216.397" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.196" stroke-linecap="round"/>
+    <line x1="213.042" y1="186.561" x2="187.917" y2="212.450" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.239" stroke-linecap="round"/>
+    <line x1="213.042" y1="186.561" x2="168.505" y2="202.515" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="213.042" y1="186.561" x2="197.462" y2="216.397" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.263" stroke-linecap="round"/>
+    <line x1="213.042" y1="186.561" x2="208.510" y2="183.030" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.543" stroke-linecap="round"/>
+    <line x1="187.917" y1="212.450" x2="168.505" y2="202.515" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.382" stroke-linecap="round"/>
+    <line x1="187.917" y1="212.450" x2="197.462" y2="216.397" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.497" stroke-linecap="round"/>
+    <line x1="187.917" y1="212.450" x2="208.510" y2="183.030" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.241" stroke-linecap="round"/>
+    <line x1="187.917" y1="212.450" x2="211.752" y2="204.937" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.350" stroke-linecap="round"/>
+    <line x1="168.505" y1="202.515" x2="197.462" y2="216.397" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.279" stroke-linecap="round"/>
+    <line x1="168.505" y1="202.515" x2="208.510" y2="183.030" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.155" stroke-linecap="round"/>
+    <line x1="168.505" y1="202.515" x2="211.752" y2="204.937" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.167" stroke-linecap="round"/>
+    <line x1="197.462" y1="216.397" x2="208.510" y2="183.030" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.249" stroke-linecap="round"/>
+    <line x1="197.462" y1="216.397" x2="211.752" y2="204.937" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.417" stroke-linecap="round"/>
+    <line x1="197.462" y1="216.397" x2="228.360" y2="211.914" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.288" stroke-linecap="round"/>
+    <line x1="208.510" y1="183.030" x2="211.752" y2="204.937" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.379" stroke-linecap="round"/>
+    <line x1="208.510" y1="183.030" x2="205.259" y2="164.902" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.416" stroke-linecap="round"/>
+    <line x1="208.510" y1="183.030" x2="228.360" y2="211.914" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.250" stroke-linecap="round"/>
+    <line x1="208.510" y1="183.030" x2="225.427" y2="173.661" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.407" stroke-linecap="round"/>
+    <line x1="211.752" y1="204.937" x2="205.259" y2="164.902" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.194" stroke-linecap="round"/>
+    <line x1="211.752" y1="204.937" x2="228.360" y2="211.914" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.420" stroke-linecap="round"/>
+    <line x1="211.752" y1="204.937" x2="225.427" y2="173.661" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.259" stroke-linecap="round"/>
+    <line x1="211.752" y1="204.937" x2="185.163" y2="207.519" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.333" stroke-linecap="round"/>
+    <line x1="205.259" y1="164.902" x2="225.427" y2="173.661" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.380" stroke-linecap="round"/>
+    <line x1="205.259" y1="164.902" x2="185.163" y2="207.519" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="228.360" y1="211.914" x2="225.427" y2="173.661" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.216" stroke-linecap="round"/>
+    <line x1="228.360" y1="211.914" x2="185.163" y2="207.519" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.166" stroke-linecap="round"/>
+    <line x1="228.360" y1="211.914" x2="217.842" y2="222.950" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.448" stroke-linecap="round"/>
+    <line x1="225.427" y1="173.661" x2="217.842" y2="222.950" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="225.427" y1="173.661" x2="216.630" y2="166.524" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.487" stroke-linecap="round"/>
+    <line x1="185.163" y1="207.519" x2="172.742" y2="213.854" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.461" stroke-linecap="round"/>
+    <line x1="185.163" y1="207.519" x2="217.842" y2="222.950" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.239" stroke-linecap="round"/>
+    <line x1="185.163" y1="207.519" x2="202.994" y2="214.918" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.407" stroke-linecap="round"/>
+    <line x1="172.742" y1="213.854" x2="217.842" y2="222.950" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="172.742" y1="213.854" x2="202.994" y2="214.918" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.297" stroke-linecap="round"/>
+    <line x1="172.742" y1="213.854" x2="191.368" y2="189.605" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.294" stroke-linecap="round"/>
+    <line x1="217.842" y1="222.950" x2="202.994" y2="214.918" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.431" stroke-linecap="round"/>
+    <line x1="217.842" y1="222.950" x2="191.368" y2="189.605" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.174" stroke-linecap="round"/>
+    <line x1="217.842" y1="222.950" x2="187.619" y2="223.947" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.298" stroke-linecap="round"/>
+    <line x1="216.630" y1="166.524" x2="191.368" y2="189.605" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.258" stroke-linecap="round"/>
+    <line x1="202.994" y1="214.918" x2="191.368" y2="189.605" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.321" stroke-linecap="round"/>
+    <line x1="202.994" y1="214.918" x2="187.619" y2="223.947" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.422" stroke-linecap="round"/>
+    <line x1="202.994" y1="214.918" x2="205.657" y2="227.369" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.473" stroke-linecap="round"/>
+    <line x1="202.994" y1="214.918" x2="189.910" y2="219.267" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.462" stroke-linecap="round"/>
+    <line x1="191.368" y1="189.605" x2="187.619" y2="223.947" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.255" stroke-linecap="round"/>
+    <line x1="191.368" y1="189.605" x2="205.657" y2="227.369" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.196" stroke-linecap="round"/>
+    <line x1="191.368" y1="189.605" x2="189.910" y2="219.267" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.303" stroke-linecap="round"/>
+    <line x1="191.368" y1="189.605" x2="180.968" y2="219.278" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.286" stroke-linecap="round"/>
+    <line x1="187.619" y1="223.947" x2="205.657" y2="227.369" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.416" stroke-linecap="round"/>
+    <line x1="187.619" y1="223.947" x2="189.910" y2="219.267" stroke="hsla(180, 64%, 60%, 0.37)" stroke-width="0.548" stroke-linecap="round"/>
+    <line x1="187.619" y1="223.947" x2="180.968" y2="219.278" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.519" stroke-linecap="round"/>
+    <line x1="187.619" y1="223.947" x2="213.586" y2="198.996" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.240" stroke-linecap="round"/>
+    <line x1="205.657" y1="227.369" x2="189.910" y2="219.267" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.423" stroke-linecap="round"/>
+    <line x1="205.657" y1="227.369" x2="180.968" y2="219.278" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.340" stroke-linecap="round"/>
+    <line x1="205.657" y1="227.369" x2="213.586" y2="198.996" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.305" stroke-linecap="round"/>
+    <line x1="205.657" y1="227.369" x2="184.595" y2="215.491" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.358" stroke-linecap="round"/>
+    <line x1="189.910" y1="219.267" x2="180.968" y2="219.278" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.511" stroke-linecap="round"/>
+    <line x1="189.910" y1="219.267" x2="213.586" y2="198.996" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.288" stroke-linecap="round"/>
+    <line x1="189.910" y1="219.267" x2="184.595" y2="215.491" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.535" stroke-linecap="round"/>
+    <line x1="189.910" y1="219.267" x2="195.672" y2="225.304" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.517" stroke-linecap="round"/>
+    <line x1="180.968" y1="219.278" x2="213.586" y2="198.996" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.216" stroke-linecap="round"/>
+    <line x1="180.968" y1="219.278" x2="184.595" y2="215.491" stroke="hsla(180, 64%, 60%, 0.37)" stroke-width="0.548" stroke-linecap="round"/>
+    <line x1="180.968" y1="219.278" x2="195.672" y2="225.304" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.441" stroke-linecap="round"/>
+    <line x1="180.968" y1="219.278" x2="196.379" y2="220.344" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.446" stroke-linecap="round"/>
+    <line x1="213.586" y1="198.996" x2="184.595" y2="215.491" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.266" stroke-linecap="round"/>
+    <line x1="213.586" y1="198.996" x2="195.672" y2="225.304" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.282" stroke-linecap="round"/>
+    <line x1="213.586" y1="198.996" x2="196.379" y2="220.344" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.326" stroke-linecap="round"/>
+    <line x1="213.586" y1="198.996" x2="191.575" y2="164.738" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.193" stroke-linecap="round"/>
+    <line x1="184.595" y1="215.491" x2="195.672" y2="225.304" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.452" stroke-linecap="round"/>
+    <line x1="184.595" y1="215.491" x2="196.379" y2="220.344" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.473" stroke-linecap="round"/>
+    <line x1="184.595" y1="215.491" x2="184.383" y2="201.345" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.459" stroke-linecap="round"/>
+    <line x1="195.672" y1="225.304" x2="196.379" y2="220.344" stroke="hsla(180, 64%, 60%, 0.37)" stroke-width="0.550" stroke-linecap="round"/>
+    <line x1="195.672" y1="225.304" x2="184.383" y2="201.345" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.335" stroke-linecap="round"/>
+    <line x1="195.672" y1="225.304" x2="208.072" y2="211.225" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.412" stroke-linecap="round"/>
+    <line x1="196.379" y1="220.344" x2="184.383" y2="201.345" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.375" stroke-linecap="round"/>
+    <line x1="196.379" y1="220.344" x2="208.072" y2="211.225" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.452" stroke-linecap="round"/>
+    <line x1="196.379" y1="220.344" x2="196.076" y2="185.646" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.253" stroke-linecap="round"/>
+    <line x1="191.575" y1="164.738" x2="184.383" y2="201.345" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.227" stroke-linecap="round"/>
+    <line x1="191.575" y1="164.738" x2="208.072" y2="211.225" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="191.575" y1="164.738" x2="196.076" y2="185.646" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.386" stroke-linecap="round"/>
+    <line x1="191.575" y1="164.738" x2="233.344" y2="182.786" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="184.383" y1="201.345" x2="208.072" y2="211.225" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.343" stroke-linecap="round"/>
+    <line x1="184.383" y1="201.345" x2="196.076" y2="185.646" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.404" stroke-linecap="round"/>
+    <line x1="184.383" y1="201.345" x2="181.131" y2="209.437" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.513" stroke-linecap="round"/>
+    <line x1="208.072" y1="211.225" x2="196.076" y2="185.646" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.317" stroke-linecap="round"/>
+    <line x1="208.072" y1="211.225" x2="233.344" y2="182.786" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.220" stroke-linecap="round"/>
+    <line x1="208.072" y1="211.225" x2="181.131" y2="209.437" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.330" stroke-linecap="round"/>
+    <line x1="208.072" y1="211.225" x2="176.555" y2="211.772" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.285" stroke-linecap="round"/>
+    <line x1="196.076" y1="185.646" x2="233.344" y2="182.786" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.226" stroke-linecap="round"/>
+    <line x1="196.076" y1="185.646" x2="181.131" y2="209.437" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.319" stroke-linecap="round"/>
+    <line x1="196.076" y1="185.646" x2="176.555" y2="211.772" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.274" stroke-linecap="round"/>
+    <line x1="196.076" y1="185.646" x2="213.353" y2="192.987" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.412" stroke-linecap="round"/>
+    <line x1="233.344" y1="182.786" x2="213.353" y2="192.987" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.376" stroke-linecap="round"/>
+    <line x1="181.131" y1="209.437" x2="176.555" y2="211.772" stroke="hsla(180, 64%, 60%, 0.37)" stroke-width="0.549" stroke-linecap="round"/>
+    <line x1="181.131" y1="209.437" x2="213.353" y2="192.987" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.238" stroke-linecap="round"/>
+    <line x1="181.131" y1="209.437" x2="178.298" y2="173.864" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.243" stroke-linecap="round"/>
+    <line x1="181.131" y1="209.437" x2="203.202" y2="218.564" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.361" stroke-linecap="round"/>
+    <line x1="176.555" y1="211.772" x2="213.353" y2="192.987" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.187" stroke-linecap="round"/>
+    <line x1="176.555" y1="211.772" x2="178.298" y2="173.864" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.221" stroke-linecap="round"/>
+    <line x1="176.555" y1="211.772" x2="203.202" y2="218.564" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.325" stroke-linecap="round"/>
+    <line x1="176.555" y1="211.772" x2="170.840" y2="202.483" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.491" stroke-linecap="round"/>
+    <line x1="213.353" y1="192.987" x2="178.298" y2="173.864" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.201" stroke-linecap="round"/>
+    <line x1="213.353" y1="192.987" x2="203.202" y2="218.564" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.325" stroke-linecap="round"/>
+    <line x1="213.353" y1="192.987" x2="170.840" y2="202.483" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.164" stroke-linecap="round"/>
+    <line x1="213.353" y1="192.987" x2="204.190" y2="223.156" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.285" stroke-linecap="round"/>
+    <line x1="178.298" y1="173.864" x2="170.840" y2="202.483" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.304" stroke-linecap="round"/>
+    <line x1="178.298" y1="173.864" x2="170.800" y2="188.456" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.436" stroke-linecap="round"/>
+    <line x1="203.202" y1="218.564" x2="170.840" y2="202.483" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.239" stroke-linecap="round"/>
+    <line x1="203.202" y1="218.564" x2="170.800" y2="188.456" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.158" stroke-linecap="round"/>
+    <line x1="203.202" y1="218.564" x2="201.533" y2="183.879" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.253" stroke-linecap="round"/>
+    <line x1="170.840" y1="202.483" x2="204.190" y2="223.156" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.208" stroke-linecap="round"/>
+    <line x1="170.840" y1="202.483" x2="170.800" y2="188.456" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.460" stroke-linecap="round"/>
+    <line x1="170.840" y1="202.483" x2="201.533" y2="183.879" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.241" stroke-linecap="round"/>
+    <line x1="170.840" y1="202.483" x2="185.800" y2="194.753" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.432" stroke-linecap="round"/>
+    <line x1="204.190" y1="223.156" x2="170.800" y2="188.456" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="204.190" y1="223.156" x2="201.533" y2="183.879" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.206" stroke-linecap="round"/>
+    <line x1="204.190" y1="223.156" x2="185.800" y2="194.753" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.262" stroke-linecap="round"/>
+    <line x1="204.190" y1="223.156" x2="210.984" y2="187.909" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.241" stroke-linecap="round"/>
+    <line x1="170.800" y1="188.456" x2="201.533" y2="183.879" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.289" stroke-linecap="round"/>
+    <line x1="170.800" y1="188.456" x2="185.800" y2="194.753" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.437" stroke-linecap="round"/>
+    <line x1="170.800" y1="188.456" x2="210.984" y2="187.909" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.198" stroke-linecap="round"/>
+    <line x1="170.800" y1="188.456" x2="206.811" y2="184.675" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.238" stroke-linecap="round"/>
+    <line x1="201.533" y1="183.879" x2="185.800" y2="194.753" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.409" stroke-linecap="round"/>
+    <line x1="201.533" y1="183.879" x2="210.984" y2="187.909" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.497" stroke-linecap="round"/>
+    <line x1="201.533" y1="183.879" x2="206.811" y2="184.675" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.547" stroke-linecap="round"/>
+    <line x1="201.533" y1="183.879" x2="215.200" y2="220.872" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.206" stroke-linecap="round"/>
+    <line x1="185.800" y1="194.753" x2="210.984" y2="187.909" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.339" stroke-linecap="round"/>
+    <line x1="185.800" y1="194.753" x2="206.811" y2="184.675" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.367" stroke-linecap="round"/>
+    <line x1="185.800" y1="194.753" x2="215.200" y2="220.872" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.207" stroke-linecap="round"/>
+    <line x1="185.800" y1="194.753" x2="233.730" y2="197.506" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="210.984" y1="187.909" x2="206.811" y2="184.675" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.547" stroke-linecap="round"/>
+    <line x1="210.984" y1="187.909" x2="215.200" y2="220.872" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.268" stroke-linecap="round"/>
+    <line x1="210.984" y1="187.909" x2="233.730" y2="197.506" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.353" stroke-linecap="round"/>
+    <line x1="210.984" y1="187.909" x2="211.958" y2="205.735" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.421" stroke-linecap="round"/>
+    <line x1="206.811" y1="184.675" x2="215.200" y2="220.872" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.228" stroke-linecap="round"/>
+    <line x1="206.811" y1="184.675" x2="233.730" y2="197.506" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.302" stroke-linecap="round"/>
+    <line x1="206.811" y1="184.675" x2="211.958" y2="205.735" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.383" stroke-linecap="round"/>
+    <line x1="206.811" y1="184.675" x2="226.499" y2="211.840" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.265" stroke-linecap="round"/>
+    <line x1="215.200" y1="220.872" x2="233.730" y2="197.506" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.302" stroke-linecap="round"/>
+    <line x1="215.200" y1="220.872" x2="211.958" y2="205.735" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.445" stroke-linecap="round"/>
+    <line x1="215.200" y1="220.872" x2="226.499" y2="211.840" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.455" stroke-linecap="round"/>
+    <line x1="233.730" y1="197.506" x2="211.958" y2="205.735" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.367" stroke-linecap="round"/>
+    <line x1="233.730" y1="197.506" x2="226.499" y2="211.840" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.439" stroke-linecap="round"/>
+    <line x1="233.730" y1="197.506" x2="204.952" y2="159.862" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="211.958" y1="205.735" x2="226.499" y2="211.840" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.442" stroke-linecap="round"/>
+    <line x1="211.958" y1="205.735" x2="204.952" y2="159.862" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="211.958" y1="205.735" x2="180.068" y2="201.804" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.279" stroke-linecap="round"/>
+    <line x1="211.958" y1="205.735" x2="228.154" y2="169.982" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.207" stroke-linecap="round"/>
+    <line x1="226.499" y1="211.840" x2="180.068" y2="201.804" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="226.499" y1="211.840" x2="228.154" y2="169.982" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.181" stroke-linecap="round"/>
+    <line x1="204.952" y1="159.862" x2="180.068" y2="201.804" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="204.952" y1="159.862" x2="228.154" y2="169.982" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.347" stroke-linecap="round"/>
+    <line x1="180.068" y1="201.804" x2="175.081" y2="202.223" stroke="hsla(180, 64%, 60%, 0.37)" stroke-width="0.550" stroke-linecap="round"/>
+    <line x1="180.068" y1="201.804" x2="209.506" y2="214.058" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.281" stroke-linecap="round"/>
+    <line x1="228.154" y1="169.982" x2="209.506" y2="214.058" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="228.154" y1="169.982" x2="218.055" y2="161.703" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.469" stroke-linecap="round"/>
+    <line x1="228.154" y1="169.982" x2="189.332" y2="188.737" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.169" stroke-linecap="round"/>
+    <line x1="175.081" y1="202.223" x2="209.506" y2="214.058" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.236" stroke-linecap="round"/>
+    <line x1="175.081" y1="202.223" x2="189.332" y2="188.737" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.404" stroke-linecap="round"/>
+    <line x1="175.081" y1="202.223" x2="212.136" y2="217.612" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.199" stroke-linecap="round"/>
+    <line x1="209.506" y1="214.058" x2="189.332" y2="188.737" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.276" stroke-linecap="round"/>
+    <line x1="209.506" y1="214.058" x2="213.997" y2="199.162" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.444" stroke-linecap="round"/>
+    <line x1="218.055" y1="161.703" x2="189.332" y2="188.737" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.206" stroke-linecap="round"/>
+    <line x1="218.055" y1="161.703" x2="213.997" y2="199.162" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.223" stroke-linecap="round"/>
+    <line x1="189.332" y1="188.737" x2="212.136" y2="217.612" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.232" stroke-linecap="round"/>
+    <line x1="189.332" y1="188.737" x2="213.997" y2="199.162" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.332" stroke-linecap="round"/>
+    <line x1="189.332" y1="188.737" x2="172.989" y2="189.913" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.436" stroke-linecap="round"/>
+    <line x1="189.332" y1="188.737" x2="181.722" y2="193.577" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.510" stroke-linecap="round"/>
+    <line x1="212.136" y1="217.612" x2="213.997" y2="199.162" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.415" stroke-linecap="round"/>
+    <line x1="212.136" y1="217.612" x2="172.989" y2="189.913" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="212.136" y1="217.612" x2="181.722" y2="193.577" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.212" stroke-linecap="round"/>
+    <line x1="213.997" y1="199.162" x2="172.989" y2="189.913" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.180" stroke-linecap="round"/>
+    <line x1="213.997" y1="199.162" x2="181.722" y2="193.577" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.272" stroke-linecap="round"/>
+    <line x1="213.997" y1="199.162" x2="189.891" y2="163.019" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.166" stroke-linecap="round"/>
+    <line x1="213.997" y1="199.162" x2="194.532" y2="184.317" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.355" stroke-linecap="round"/>
+    <line x1="172.989" y1="189.913" x2="181.722" y2="193.577" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.505" stroke-linecap="round"/>
+    <line x1="172.989" y1="189.913" x2="189.891" y2="163.019" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.282" stroke-linecap="round"/>
+    <line x1="172.989" y1="189.913" x2="194.532" y2="184.317" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.377" stroke-linecap="round"/>
+    <line x1="172.989" y1="189.913" x2="214.389" y2="207.285" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.151" stroke-linecap="round"/>
+    <line x1="181.722" y1="193.577" x2="189.891" y2="163.019" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.284" stroke-linecap="round"/>
+    <line x1="181.722" y1="193.577" x2="194.532" y2="184.317" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.442" stroke-linecap="round"/>
+    <line x1="181.722" y1="193.577" x2="214.389" y2="207.285" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.246" stroke-linecap="round"/>
+    <line x1="181.722" y1="193.577" x2="177.848" y2="174.955" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.410" stroke-linecap="round"/>
+    <line x1="189.891" y1="163.019" x2="194.532" y2="184.317" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.382" stroke-linecap="round"/>
+    <line x1="189.891" y1="163.019" x2="177.848" y2="174.955" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.430" stroke-linecap="round"/>
+    <line x1="194.532" y1="184.317" x2="214.389" y2="207.285" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.296" stroke-linecap="round"/>
+    <line x1="194.532" y1="184.317" x2="177.848" y2="174.955" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.409" stroke-linecap="round"/>
+    <line x1="194.532" y1="184.317" x2="222.852" y2="210.836" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.212" stroke-linecap="round"/>
+    <line x1="194.532" y1="184.317" x2="213.746" y2="192.486" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.391" stroke-linecap="round"/>
+    <line x1="214.389" y1="207.285" x2="177.848" y2="174.955" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="214.389" y1="207.285" x2="222.852" y2="210.836" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.508" stroke-linecap="round"/>
+    <line x1="214.389" y1="207.285" x2="213.746" y2="192.486" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.452" stroke-linecap="round"/>
+    <line x1="214.389" y1="207.285" x2="234.048" y2="182.116" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.281" stroke-linecap="round"/>
+    <line x1="177.848" y1="174.955" x2="213.746" y2="192.486" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.201" stroke-linecap="round"/>
+    <line x1="177.848" y1="174.955" x2="177.008" y2="191.798" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.431" stroke-linecap="round"/>
+    <line x1="222.852" y1="210.836" x2="213.746" y2="192.486" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.395" stroke-linecap="round"/>
+    <line x1="222.852" y1="210.836" x2="234.048" y2="182.116" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.292" stroke-linecap="round"/>
+    <line x1="222.852" y1="210.836" x2="177.008" y2="191.798" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="222.852" y1="210.836" x2="231.618" y2="197.863" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.443" stroke-linecap="round"/>
+    <line x1="213.746" y1="192.486" x2="234.048" y2="182.116" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.372" stroke-linecap="round"/>
+    <line x1="213.746" y1="192.486" x2="177.008" y2="191.798" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.233" stroke-linecap="round"/>
+    <line x1="213.746" y1="192.486" x2="231.618" y2="197.863" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.413" stroke-linecap="round"/>
+    <line x1="213.746" y1="192.486" x2="200.592" y2="182.335" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.434" stroke-linecap="round"/>
+    <line x1="234.048" y1="182.116" x2="231.618" y2="197.863" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.441" stroke-linecap="round"/>
+    <line x1="234.048" y1="182.116" x2="200.592" y2="182.335" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.265" stroke-linecap="round"/>
+    <line x1="234.048" y1="182.116" x2="211.115" y2="186.828" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.366" stroke-linecap="round"/>
+    <line x1="177.008" y1="191.798" x2="200.592" y2="182.335" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.346" stroke-linecap="round"/>
+    <line x1="177.008" y1="191.798" x2="211.115" y2="186.828" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.255" stroke-linecap="round"/>
+    <line x1="177.008" y1="191.798" x2="218.397" y2="209.163" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.151" stroke-linecap="round"/>
+    <line x1="231.618" y1="197.863" x2="200.592" y2="182.335" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.253" stroke-linecap="round"/>
+    <line x1="231.618" y1="197.863" x2="211.115" y2="186.828" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.367" stroke-linecap="round"/>
+    <line x1="231.618" y1="197.863" x2="218.397" y2="209.163" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.426" stroke-linecap="round"/>
+    <line x1="231.618" y1="197.863" x2="206.468" y2="183.218" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.309" stroke-linecap="round"/>
+    <line x1="200.592" y1="182.335" x2="211.115" y2="186.828" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.486" stroke-linecap="round"/>
+    <line x1="200.592" y1="182.335" x2="218.397" y2="209.163" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.278" stroke-linecap="round"/>
+    <line x1="200.592" y1="182.335" x2="206.468" y2="183.218" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.541" stroke-linecap="round"/>
+    <line x1="200.592" y1="182.335" x2="186.051" y2="185.984" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.450" stroke-linecap="round"/>
+    <line x1="211.115" y1="186.828" x2="218.397" y2="209.163" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.365" stroke-linecap="round"/>
+    <line x1="211.115" y1="186.828" x2="206.468" y2="183.218" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.541" stroke-linecap="round"/>
+    <line x1="211.115" y1="186.828" x2="186.051" y2="185.984" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.349" stroke-linecap="round"/>
+    <line x1="211.115" y1="186.828" x2="204.013" y2="157.811" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.301" stroke-linecap="round"/>
+    <line x1="218.397" y1="209.163" x2="206.468" y2="183.218" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.314" stroke-linecap="round"/>
+    <line x1="218.397" y1="209.163" x2="186.051" y2="185.984" stroke="hsla(180, 64%, 60%, 0.13)" stroke-width="0.202" stroke-linecap="round"/>
+    <line x1="218.397" y1="209.163" x2="217.012" y2="199.087" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.498" stroke-linecap="round"/>
+    <line x1="206.468" y1="183.218" x2="186.051" y2="185.984" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.394" stroke-linecap="round"/>
+    <line x1="206.468" y1="183.218" x2="204.013" y2="157.811" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.345" stroke-linecap="round"/>
+    <line x1="206.468" y1="183.218" x2="217.012" y2="199.087" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.409" stroke-linecap="round"/>
+    <line x1="206.468" y1="183.218" x2="228.579" y2="168.542" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.335" stroke-linecap="round"/>
+    <line x1="186.051" y1="185.984" x2="204.013" y2="157.811" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.266" stroke-linecap="round"/>
+    <line x1="186.051" y1="185.984" x2="217.012" y2="199.087" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.264" stroke-linecap="round"/>
+    <line x1="186.051" y1="185.984" x2="228.579" y2="168.542" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="186.051" y1="185.984" x2="179.350" y2="177.964" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.495" stroke-linecap="round"/>
+    <line x1="204.013" y1="157.811" x2="217.012" y2="199.087" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.167" stroke-linecap="round"/>
+    <line x1="204.013" y1="157.811" x2="228.579" y2="168.542" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.332" stroke-linecap="round"/>
+    <line x1="204.013" y1="157.811" x2="179.350" y2="177.964" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.282" stroke-linecap="round"/>
+    <line x1="204.013" y1="157.811" x2="217.888" y2="159.750" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.460" stroke-linecap="round"/>
+    <line x1="217.012" y1="199.087" x2="228.579" y2="168.542" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.273" stroke-linecap="round"/>
+    <line x1="217.012" y1="199.087" x2="179.350" y2="177.964" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.168" stroke-linecap="round"/>
+    <line x1="217.012" y1="199.087" x2="217.888" y2="159.750" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.207" stroke-linecap="round"/>
+    <line x1="217.012" y1="199.087" x2="182.380" y2="182.032" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.214" stroke-linecap="round"/>
+    <line x1="228.579" y1="168.542" x2="217.888" y2="159.750" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.462" stroke-linecap="round"/>
+    <line x1="228.579" y1="168.542" x2="182.380" y2="182.032" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="228.579" y1="168.542" x2="227.261" y2="198.333" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.302" stroke-linecap="round"/>
+    <line x1="179.350" y1="177.964" x2="217.888" y2="159.750" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.174" stroke-linecap="round"/>
+    <line x1="179.350" y1="177.964" x2="182.380" y2="182.032" stroke="hsla(180, 64%, 60%, 0.37)" stroke-width="0.549" stroke-linecap="round"/>
+    <line x1="179.350" y1="177.964" x2="189.053" y2="164.500" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.434" stroke-linecap="round"/>
+    <line x1="217.888" y1="159.750" x2="182.380" y2="182.032" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.181" stroke-linecap="round"/>
+    <line x1="217.888" y1="159.750" x2="227.261" y2="198.333" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.203" stroke-linecap="round"/>
+    <line x1="217.888" y1="159.750" x2="189.053" y2="164.500" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.308" stroke-linecap="round"/>
+    <line x1="217.888" y1="159.750" x2="192.543" y2="180.344" stroke="hsla(180, 64%, 60%, 0.18)" stroke-width="0.273" stroke-linecap="round"/>
+    <line x1="182.380" y1="182.032" x2="227.261" y2="198.333" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="182.380" y1="182.032" x2="189.053" y2="164.500" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.412" stroke-linecap="round"/>
+    <line x1="182.380" y1="182.032" x2="192.543" y2="180.344" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.497" stroke-linecap="round"/>
+    <line x1="182.380" y1="182.032" x2="221.880" y2="198.783" stroke="hsla(180, 64%, 60%, 0.11)" stroke-width="0.171" stroke-linecap="round"/>
+    <line x1="227.261" y1="198.333" x2="192.543" y2="180.344" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.209" stroke-linecap="round"/>
+    <line x1="227.261" y1="198.333" x2="221.880" y2="198.783" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.546" stroke-linecap="round"/>
+    <line x1="227.261" y1="198.333" x2="216.770" y2="190.673" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.470" stroke-linecap="round"/>
+    <line x1="189.053" y1="164.500" x2="192.543" y2="180.344" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.438" stroke-linecap="round"/>
+    <line x1="189.053" y1="164.500" x2="221.880" y2="198.783" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="189.053" y1="164.500" x2="216.770" y2="190.673" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.219" stroke-linecap="round"/>
+    <line x1="189.053" y1="164.500" x2="231.834" y2="182.973" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="192.543" y1="180.344" x2="221.880" y2="198.783" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.253" stroke-linecap="round"/>
+    <line x1="192.543" y1="180.344" x2="216.770" y2="190.673" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.337" stroke-linecap="round"/>
+    <line x1="192.543" y1="180.344" x2="231.834" y2="182.973" stroke="hsla(180, 64%, 60%, 0.14)" stroke-width="0.206" stroke-linecap="round"/>
+    <line x1="192.543" y1="180.344" x2="200.187" y2="177.780" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.519" stroke-linecap="round"/>
+    <line x1="221.880" y1="198.783" x2="216.770" y2="190.673" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.504" stroke-linecap="round"/>
+    <line x1="221.880" y1="198.783" x2="231.834" y2="182.973" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.413" stroke-linecap="round"/>
+    <line x1="221.880" y1="198.783" x2="200.187" y2="177.780" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.298" stroke-linecap="round"/>
+    <line x1="221.880" y1="198.783" x2="213.498" y2="183.484" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.426" stroke-linecap="round"/>
+    <line x1="216.770" y1="190.673" x2="231.834" y2="182.973" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.431" stroke-linecap="round"/>
+    <line x1="216.770" y1="190.673" x2="200.187" y2="177.780" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.390" stroke-linecap="round"/>
+    <line x1="216.770" y1="190.673" x2="213.498" y2="183.484" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.521" stroke-linecap="round"/>
+    <line x1="216.770" y1="190.673" x2="207.630" y2="178.883" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.451" stroke-linecap="round"/>
+    <line x1="231.834" y1="182.973" x2="200.187" y2="177.780" stroke="hsla(180, 64%, 60%, 0.19)" stroke-width="0.279" stroke-linecap="round"/>
+    <line x1="231.834" y1="182.973" x2="213.498" y2="183.484" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.417" stroke-linecap="round"/>
+    <line x1="231.834" y1="182.973" x2="207.630" y2="178.883" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.355" stroke-linecap="round"/>
+    <line x1="231.834" y1="182.973" x2="189.326" y2="168.810" stroke="hsla(180, 64%, 60%, 0.10)" stroke-width="0.152" stroke-linecap="round"/>
+    <line x1="200.187" y1="177.780" x2="213.498" y2="183.484" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.455" stroke-linecap="round"/>
+    <line x1="200.187" y1="177.780" x2="207.630" y2="178.883" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.525" stroke-linecap="round"/>
+    <line x1="200.187" y1="177.780" x2="189.326" y2="168.810" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.459" stroke-linecap="round"/>
+    <line x1="200.187" y1="177.780" x2="190.624" y2="174.664" stroke="hsla(180, 64%, 60%, 0.33)" stroke-width="0.499" stroke-linecap="round"/>
+    <line x1="213.498" y1="183.484" x2="207.630" y2="178.883" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.525" stroke-linecap="round"/>
+    <line x1="213.498" y1="183.484" x2="189.326" y2="168.810" stroke="hsla(180, 64%, 60%, 0.21)" stroke-width="0.317" stroke-linecap="round"/>
+    <line x1="213.498" y1="183.484" x2="190.624" y2="174.664" stroke="hsla(180, 64%, 60%, 0.24)" stroke-width="0.355" stroke-linecap="round"/>
+    <line x1="213.498" y1="183.484" x2="202.690" y2="159.500" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.337" stroke-linecap="round"/>
+    <line x1="207.630" y1="178.883" x2="189.326" y2="168.810" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.391" stroke-linecap="round"/>
+    <line x1="207.630" y1="178.883" x2="190.624" y2="174.664" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.425" stroke-linecap="round"/>
+    <line x1="207.630" y1="178.883" x2="202.690" y2="159.500" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.400" stroke-linecap="round"/>
+    <line x1="207.630" y1="178.883" x2="221.726" y2="187.981" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.432" stroke-linecap="round"/>
+    <line x1="189.326" y1="168.810" x2="190.624" y2="174.664" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.540" stroke-linecap="round"/>
+    <line x1="189.326" y1="168.810" x2="202.690" y2="159.500" stroke="hsla(180, 64%, 60%, 0.29)" stroke-width="0.437" stroke-linecap="round"/>
+    <line x1="189.326" y1="168.810" x2="221.726" y2="187.981" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.224" stroke-linecap="round"/>
+    <line x1="189.326" y1="168.810" x2="227.282" y2="185.139" stroke="hsla(180, 64%, 60%, 0.12)" stroke-width="0.187" stroke-linecap="round"/>
+    <line x1="190.624" y1="174.664" x2="202.690" y2="159.500" stroke="hsla(180, 64%, 60%, 0.27)" stroke-width="0.406" stroke-linecap="round"/>
+    <line x1="190.624" y1="174.664" x2="221.726" y2="187.981" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.262" stroke-linecap="round"/>
+    <line x1="190.624" y1="174.664" x2="227.282" y2="185.139" stroke="hsla(180, 64%, 60%, 0.15)" stroke-width="0.219" stroke-linecap="round"/>
+    <line x1="190.624" y1="174.664" x2="226.471" y2="169.867" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.238" stroke-linecap="round"/>
+    <line x1="202.690" y1="159.500" x2="221.726" y2="187.981" stroke="hsla(180, 64%, 60%, 0.17)" stroke-width="0.257" stroke-linecap="round"/>
+    <line x1="202.690" y1="159.500" x2="227.282" y2="185.139" stroke="hsla(180, 64%, 60%, 0.16)" stroke-width="0.245" stroke-linecap="round"/>
+    <line x1="202.690" y1="159.500" x2="226.471" y2="169.867" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.341" stroke-linecap="round"/>
+    <line x1="202.690" y1="159.500" x2="216.101" y2="161.384" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.465" stroke-linecap="round"/>
+    <line x1="221.726" y1="187.981" x2="227.282" y2="185.139" stroke="hsla(180, 64%, 60%, 0.36)" stroke-width="0.538" stroke-linecap="round"/>
+    <line x1="221.726" y1="187.981" x2="226.471" y2="169.867" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.413" stroke-linecap="round"/>
+    <line x1="221.726" y1="187.981" x2="216.101" y2="161.384" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.328" stroke-linecap="round"/>
+    <line x1="221.726" y1="187.981" x2="200.461" y2="171.250" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.329" stroke-linecap="round"/>
+    <line x1="227.282" y1="185.139" x2="226.471" y2="169.867" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.447" stroke-linecap="round"/>
+    <line x1="227.282" y1="185.139" x2="216.101" y2="161.384" stroke="hsla(180, 64%, 60%, 0.22)" stroke-width="0.337" stroke-linecap="round"/>
+    <line x1="227.282" y1="185.139" x2="200.461" y2="171.250" stroke="hsla(180, 64%, 60%, 0.20)" stroke-width="0.298" stroke-linecap="round"/>
+    <line x1="227.282" y1="185.139" x2="217.622" y2="178.648" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.484" stroke-linecap="round"/>
+    <line x1="226.471" y1="169.867" x2="216.101" y2="161.384" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.466" stroke-linecap="round"/>
+    <line x1="226.471" y1="169.867" x2="200.461" y2="171.250" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.340" stroke-linecap="round"/>
+    <line x1="226.471" y1="169.867" x2="217.622" y2="178.648" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.475" stroke-linecap="round"/>
+    <line x1="226.471" y1="169.867" x2="201.376" y2="164.490" stroke="hsla(180, 64%, 60%, 0.23)" stroke-width="0.343" stroke-linecap="round"/>
+    <line x1="216.101" y1="161.384" x2="200.461" y2="171.250" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.415" stroke-linecap="round"/>
+    <line x1="216.101" y1="161.384" x2="217.622" y2="178.648" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.427" stroke-linecap="round"/>
+    <line x1="216.101" y1="161.384" x2="201.376" y2="164.490" stroke="hsla(180, 64%, 60%, 0.30)" stroke-width="0.450" stroke-linecap="round"/>
+    <line x1="216.101" y1="161.384" x2="222.411" y2="173.615" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.462" stroke-linecap="round"/>
+    <line x1="200.461" y1="171.250" x2="217.622" y2="178.648" stroke="hsla(180, 64%, 60%, 0.28)" stroke-width="0.413" stroke-linecap="round"/>
+    <line x1="200.461" y1="171.250" x2="201.376" y2="164.490" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.532" stroke-linecap="round"/>
+    <line x1="200.461" y1="171.250" x2="222.411" y2="173.615" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.379" stroke-linecap="round"/>
+    <line x1="200.461" y1="171.250" x2="210.081" y2="172.650" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.503" stroke-linecap="round"/>
+    <line x1="217.622" y1="178.648" x2="201.376" y2="164.490" stroke="hsla(180, 64%, 60%, 0.26)" stroke-width="0.385" stroke-linecap="round"/>
+    <line x1="217.622" y1="178.648" x2="222.411" y2="173.615" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.531" stroke-linecap="round"/>
+    <line x1="217.622" y1="178.648" x2="210.081" y2="172.650" stroke="hsla(180, 64%, 60%, 0.34)" stroke-width="0.504" stroke-linecap="round"/>
+    <line x1="217.622" y1="178.648" x2="213.205" y2="166.177" stroke="hsla(180, 64%, 60%, 0.31)" stroke-width="0.468" stroke-linecap="round"/>
+    <line x1="201.376" y1="164.490" x2="222.411" y2="173.615" stroke="hsla(180, 64%, 60%, 0.25)" stroke-width="0.371" stroke-linecap="round"/>
+    <line x1="201.376" y1="164.490" x2="210.081" y2="172.650" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.481" stroke-linecap="round"/>
+    <line x1="201.376" y1="164.490" x2="213.205" y2="166.177" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.481" stroke-linecap="round"/>
+    <line x1="222.411" y1="173.615" x2="210.081" y2="172.650" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.476" stroke-linecap="round"/>
+    <line x1="222.411" y1="173.615" x2="213.205" y2="166.177" stroke="hsla(180, 64%, 60%, 0.32)" stroke-width="0.482" stroke-linecap="round"/>
+    <line x1="210.081" y1="172.650" x2="213.205" y2="166.177" stroke="hsla(180, 64%, 60%, 0.35)" stroke-width="0.528" stroke-linecap="round"/>
+    <circle cx="189.670" cy="226.459" r="3.334" fill="hsla(27, 80%, 76%, 0.72)"/>
+    <circle cx="191.869" cy="222.057" r="3.335" fill="hsla(27, 80%, 76%, 0.72)"/>
+    <circle cx="182.057" cy="221.126" r="3.337" fill="hsla(27, 80%, 76%, 0.72)"/>
+    <circle cx="185.513" cy="217.553" r="3.338" fill="hsla(27, 80%, 76%, 0.72)"/>
+    <circle cx="199.626" cy="223.356" r="3.342" fill="hsla(27, 80%, 76%, 0.72)"/>
+    <circle cx="198.914" cy="228.025" r="3.342" fill="hsla(27, 80%, 76%, 0.72)"/>
+    <circle cx="181.364" cy="210.310" r="3.350" fill="hsla(27, 80%, 76%, 0.72)"/>
+    <circle cx="177.002" cy="212.527" r="3.352" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="187.540" cy="229.884" r="3.356" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="207.869" cy="221.263" r="3.358" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="178.971" cy="223.938" r="3.360" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="193.583" cy="217.758" r="3.360" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="208.762" cy="225.604" r="3.361" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="188.476" cy="214.101" r="3.363" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="197.897" cy="231.656" r="3.366" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="199.842" cy="218.794" r="3.366" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="180.085" cy="201.107" r="3.370" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="185.193" cy="208.235" r="3.373" fill="hsla(27, 80%, 76%, 0.73)"/>
+    <circle cx="175.312" cy="201.510" r="3.376" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="173.200" cy="214.335" r="3.377" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="206.471" cy="217.057" r="3.379" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="215.587" cy="215.895" r="3.380" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="208.945" cy="229.008" r="3.387" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="218.067" cy="219.280" r="3.388" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="184.259" cy="200.845" r="3.389" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="185.992" cy="231.521" r="3.396" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="182.096" cy="191.083" r="3.397" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="212.619" cy="212.679" r="3.397" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="177.001" cy="225.316" r="3.400" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="194.327" cy="214.719" r="3.404" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="171.144" cy="201.951" r="3.405" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="190.132" cy="211.694" r="3.406" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="196.825" cy="233.383" r="3.406" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="221.698" cy="207.741" r="3.408" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="177.561" cy="189.360" r="3.408" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="199.478" cy="215.564" r="3.408" fill="hsla(28, 80%, 76%, 0.73)"/>
+    <circle cx="185.962" cy="192.893" r="3.411" fill="hsla(28, 80%, 76%, 0.74)"/>
+    <circle cx="187.462" cy="206.854" r="3.415" fill="hsla(28, 80%, 76%, 0.74)"/>
+    <circle cx="219.448" cy="221.987" r="3.419" fill="hsla(28, 80%, 76%, 0.74)"/>
+    <circle cx="170.896" cy="215.287" r="3.419" fill="hsla(28, 80%, 76%, 0.74)"/>
+    <circle cx="204.918" cy="214.107" r="3.419" fill="hsla(28, 80%, 76%, 0.74)"/>
+    <circle cx="217.404" cy="206.116" r="3.419" fill="hsla(28, 80%, 76%, 0.74)"/>
+    <circle cx="225.554" cy="209.543" r="3.422" fill="hsla(28, 80%, 76%, 0.74)"/>
+    <circle cx="187.402" cy="181.717" r="3.426" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="186.741" cy="200.794" r="3.429" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="208.377" cy="230.645" r="3.429" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="190.239" cy="185.566" r="3.434" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="209.923" cy="210.477" r="3.435" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="225.143" cy="197.757" r="3.436" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="220.010" cy="198.189" r="3.442" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="173.510" cy="188.165" r="3.443" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="185.411" cy="230.944" r="3.444" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="183.865" cy="177.843" r="3.444" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="188.178" cy="194.330" r="3.447" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="176.651" cy="224.895" r="3.449" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="168.644" cy="202.318" r="3.451" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="195.417" cy="174.669" r="3.453" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="195.959" cy="232.754" r="3.454" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="213.765" cy="205.086" r="3.454" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="193.839" cy="213.864" r="3.454" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="196.573" cy="180.132" r="3.455" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="189.953" cy="211.059" r="3.456" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="229.909" cy="197.454" r="3.457" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="227.994" cy="211.067" r="3.458" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="198.607" cy="214.645" r="3.459" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="225.095" cy="187.400" r="3.460" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="219.850" cy="190.072" r="3.461" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="219.377" cy="223.336" r="3.464" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="187.481" cy="206.575" r="3.465" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="191.684" cy="188.435" r="3.467" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="170.702" cy="215.125" r="3.468" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="203.632" cy="213.288" r="3.469" fill="hsla(29, 80%, 77%, 0.74)"/>
+    <circle cx="203.976" cy="177.663" r="3.471" fill="hsla(29, 80%, 77%, 0.75)"/>
+    <circle cx="204.890" cy="171.410" r="3.473" fill="hsla(29, 80%, 77%, 0.75)"/>
+    <circle cx="215.800" cy="198.640" r="3.473" fill="hsla(29, 80%, 77%, 0.75)"/>
+    <circle cx="216.757" cy="183.149" r="3.474" fill="hsla(29, 80%, 77%, 0.75)"/>
+    <circle cx="221.251" cy="178.474" r="3.477" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="207.186" cy="230.076" r="3.477" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="211.142" cy="178.724" r="3.478" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="193.601" cy="169.045" r="3.478" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="186.816" cy="200.975" r="3.479" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="214.090" cy="172.747" r="3.481" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="196.810" cy="184.108" r="3.485" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="208.238" cy="209.922" r="3.485" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="180.526" cy="174.951" r="3.486" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="230.029" cy="184.738" r="3.487" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="185.985" cy="228.213" r="3.488" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="215.588" cy="192.100" r="3.489" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="178.071" cy="222.716" r="3.493" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="171.015" cy="187.824" r="3.493" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="195.529" cy="229.840" r="3.497" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="188.142" cy="195.018" r="3.497" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="202.760" cy="182.168" r="3.497" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="192.211" cy="215.532" r="3.497" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="233.071" cy="197.359" r="3.499" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="213.042" cy="186.561" r="3.500" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="187.917" cy="212.450" r="3.500" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="168.505" cy="202.515" r="3.501" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="197.462" cy="216.397" r="3.502" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="208.510" cy="183.030" r="3.503" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="211.752" cy="204.937" r="3.503" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="205.259" cy="164.902" r="3.503" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="228.360" cy="211.914" r="3.507" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="225.427" cy="173.661" r="3.508" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="185.163" cy="207.519" r="3.510" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="172.742" cy="213.854" r="3.511" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="217.842" cy="222.950" r="3.513" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="216.630" cy="166.524" r="3.514" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="202.994" cy="214.918" r="3.515" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="191.368" cy="189.605" r="3.516" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="187.619" cy="223.947" r="3.516" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="205.657" cy="227.369" r="3.519" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="189.910" cy="219.267" r="3.520" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="180.968" cy="219.278" r="3.521" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="213.586" cy="198.996" r="3.521" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="184.595" cy="215.491" r="3.524" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="195.672" cy="225.304" r="3.524" fill="hsla(30, 80%, 77%, 0.75)"/>
+    <circle cx="196.379" cy="220.344" r="3.527" fill="hsla(31, 80%, 77%, 0.75)"/>
+    <circle cx="191.575" cy="164.738" r="3.527" fill="hsla(31, 80%, 77%, 0.75)"/>
+    <circle cx="184.383" cy="201.345" r="3.527" fill="hsla(31, 80%, 77%, 0.75)"/>
+    <circle cx="208.072" cy="211.225" r="3.532" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="196.076" cy="185.646" r="3.533" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="233.344" cy="182.786" r="3.536" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="181.131" cy="209.437" r="3.537" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="176.555" cy="211.772" r="3.537" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="213.353" cy="192.987" r="3.537" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="178.298" cy="173.864" r="3.540" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="203.202" cy="218.564" r="3.542" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="170.840" cy="202.483" r="3.542" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="204.190" cy="223.156" r="3.543" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="170.800" cy="188.456" r="3.544" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="201.533" cy="183.879" r="3.545" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="185.800" cy="194.753" r="3.548" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="210.984" cy="187.909" r="3.548" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="206.811" cy="184.675" r="3.551" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="215.200" cy="220.872" r="3.552" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="233.730" cy="197.506" r="3.553" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="211.958" cy="205.735" r="3.553" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="226.499" cy="211.840" r="3.557" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="204.952" cy="159.862" r="3.557" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="180.068" cy="201.804" r="3.558" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="228.154" cy="169.982" r="3.562" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="175.081" cy="202.223" r="3.564" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="209.506" cy="214.058" r="3.564" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="218.055" cy="161.703" r="3.569" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="189.332" cy="188.737" r="3.570" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="212.136" cy="217.612" r="3.572" fill="hsla(31, 80%, 77%, 0.76)"/>
+    <circle cx="213.997" cy="199.162" r="3.575" fill="hsla(32, 80%, 78%, 0.76)"/>
+    <circle cx="172.989" cy="189.913" r="3.583" fill="hsla(32, 80%, 78%, 0.76)"/>
+    <circle cx="181.722" cy="193.577" r="3.585" fill="hsla(32, 80%, 78%, 0.76)"/>
+    <circle cx="189.891" cy="163.019" r="3.586" fill="hsla(32, 80%, 78%, 0.76)"/>
+    <circle cx="194.532" cy="184.317" r="3.590" fill="hsla(32, 80%, 78%, 0.76)"/>
+    <circle cx="214.389" cy="207.285" r="3.592" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="177.848" cy="174.955" r="3.593" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="222.852" cy="210.836" r="3.593" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="213.746" cy="192.486" r="3.594" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="234.048" cy="182.116" r="3.595" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="177.008" cy="191.798" r="3.598" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="231.618" cy="197.863" r="3.604" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="200.592" cy="182.335" r="3.604" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="211.115" cy="186.828" r="3.606" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="218.397" cy="209.163" r="3.606" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="206.468" cy="183.218" r="3.610" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="186.051" cy="185.984" r="3.614" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="204.013" cy="157.811" r="3.619" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="217.012" cy="199.087" r="3.620" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="228.579" cy="168.542" r="3.624" fill="hsla(32, 80%, 78%, 0.77)"/>
+    <circle cx="179.350" cy="177.964" r="3.628" fill="hsla(33, 80%, 78%, 0.77)"/>
+    <circle cx="217.888" cy="159.750" r="3.633" fill="hsla(33, 80%, 78%, 0.77)"/>
+    <circle cx="182.380" cy="182.032" r="3.635" fill="hsla(33, 80%, 78%, 0.77)"/>
+    <circle cx="227.261" cy="198.333" r="3.637" fill="hsla(33, 80%, 78%, 0.77)"/>
+    <circle cx="189.053" cy="164.500" r="3.638" fill="hsla(33, 80%, 78%, 0.77)"/>
+    <circle cx="192.543" cy="180.344" r="3.640" fill="hsla(33, 80%, 78%, 0.77)"/>
+    <circle cx="221.880" cy="198.783" r="3.643" fill="hsla(33, 80%, 78%, 0.77)"/>
+    <circle cx="216.770" cy="190.673" r="3.644" fill="hsla(33, 80%, 78%, 0.77)"/>
+    <circle cx="231.834" cy="182.973" r="3.646" fill="hsla(33, 80%, 78%, 0.77)"/>
+    <circle cx="200.187" cy="177.780" r="3.658" fill="hsla(33, 80%, 78%, 0.78)"/>
+    <circle cx="213.498" cy="183.484" r="3.661" fill="hsla(33, 80%, 78%, 0.78)"/>
+    <circle cx="207.630" cy="178.883" r="3.666" fill="hsla(33, 80%, 78%, 0.78)"/>
+    <circle cx="189.326" cy="168.810" r="3.669" fill="hsla(33, 80%, 78%, 0.78)"/>
+    <circle cx="190.624" cy="174.664" r="3.669" fill="hsla(33, 80%, 78%, 0.78)"/>
+    <circle cx="202.690" cy="159.500" r="3.672" fill="hsla(33, 80%, 78%, 0.78)"/>
+    <circle cx="221.726" cy="187.981" r="3.675" fill="hsla(34, 80%, 78%, 0.78)"/>
+    <circle cx="227.282" cy="185.139" r="3.676" fill="hsla(34, 80%, 78%, 0.78)"/>
+    <circle cx="226.471" cy="169.867" r="3.676" fill="hsla(34, 80%, 78%, 0.78)"/>
+    <circle cx="216.101" cy="161.384" r="3.686" fill="hsla(34, 80%, 78%, 0.78)"/>
+    <circle cx="200.461" cy="171.250" r="3.694" fill="hsla(34, 80%, 78%, 0.78)"/>
+    <circle cx="217.622" cy="178.648" r="3.697" fill="hsla(34, 80%, 78%, 0.78)"/>
+    <circle cx="201.376" cy="164.490" r="3.700" fill="hsla(34, 80%, 78%, 0.78)"/>
+    <circle cx="222.411" cy="173.615" r="3.703" fill="hsla(34, 80%, 78%, 0.78)"/>
+    <circle cx="210.081" cy="172.650" r="3.704" fill="hsla(34, 80%, 78%, 0.78)"/>
+    <circle cx="213.205" cy="166.177" r="3.712" fill="hsla(34, 80%, 78%, 0.79)"/>
+  </g>
+</svg>

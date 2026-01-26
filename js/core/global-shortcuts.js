@@ -25,8 +25,8 @@ const SHORTCUTS = {
         shortcuts: [
             { keys: ['1'], action: 'switchToFaceted', desc: 'Switch to Faceted System' },
             { keys: ['2'], action: 'switchToQuantum', desc: 'Switch to Quantum System' },
-            { keys: ['3'], action: 'switchToHolographic', desc: 'Switch to Holographic System' },
-            { keys: ['4'], action: 'switchToPolychora', desc: 'Switch to Polychora System' }
+            { keys: ['3'], action: 'switchToHolographic', desc: 'Switch to Holographic System' }
+            // key 4 reserved for future Polychora (TBD placeholder)
         ]
     },
 
@@ -139,11 +139,12 @@ function handleKeyDown(e) {
             window.switchSystem('holographic');
             return;
         }
-        if (e.key === '4' && window.switchSystem) {
-            e.preventDefault();
-            window.switchSystem('polychora');
-            return;
-        }
+        // Key 4 reserved for future Polychora (TBD placeholder)
+        // if (e.key === '4' && window.switchSystem) {
+        //     e.preventDefault();
+        //     window.switchSystem('polychora');
+        //     return;
+        // }
 
         // Feature toggles (single letters without modifiers)
         if (e.key.toLowerCase() === 'a' && window.toggleAudio) {
@@ -262,7 +263,7 @@ function navigateGeometry(direction) {
  * Navigate to next/previous system
  */
 function navigateSystem(direction) {
-    const systems = ['faceted', 'quantum', 'holographic', 'polychora'];
+    const systems = ['faceted', 'quantum', 'holographic']; // 3 active systems (polychora TBD)
     const currentSystem = window.currentSystem || 'faceted';
     const currentIndex = systems.indexOf(currentSystem);
     let newIndex = currentIndex + direction;

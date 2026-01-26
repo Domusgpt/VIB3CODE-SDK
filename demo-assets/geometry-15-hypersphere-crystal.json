@@ -1,0 +1,34 @@
+{
+  "version": "2.0",
+  "type": "vib3-sdk-config",
+  "name": "Hypersphere Crystal",
+  "geometryIndex": 15,
+  "encoding": {
+    "formula": "geometry = coreIndex * 8 + baseIndex",
+    "coreIndex": 1,
+    "baseIndex": 7,
+    "coreType": "Hypersphere",
+    "baseGeometry": "Crystal"
+  },
+  "parameters": {
+    "geometry": 15,
+    "gridDensity": 15,
+    "morphFactor": 1,
+    "chaos": 0.2,
+    "speed": 1,
+    "hue": 225,
+    "intensity": 0.7,
+    "saturation": 0.8,
+    "rot4dXY": 0,
+    "rot4dXZ": 0,
+    "rot4dYZ": 0,
+    "rot4dXW": 1.5,
+    "rot4dYW": 0.75,
+    "rot4dZW": 1.2
+  },
+  "timestamp": 1769320624414,
+  "metadata": {
+    "sdk": "VIB3+ SDK v1.9.0",
+    "author": "Demo Generator"
+  }
+}

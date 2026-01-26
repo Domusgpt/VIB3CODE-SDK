@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB3+ SDK Basic Demo - 4D Geometry Visualization</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0f;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(0,255,255,0.1) 0%, transparent 100%);
+            border-bottom: 1px solid rgba(0,255,255,0.2);
+        }
+        .header h1 {
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 24px;
+        }
+        .header p { color: #888; margin-top: 8px; }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            min-height: 400px;
+        }
+        #mainCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .controls {
+            padding: 20px;
+            background: #12121a;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .control-group {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .control-group label {
+            display: block;
+            color: #00ffff;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .control-group input[type="range"] {
+            width: 100%;
+            accent-color: #00ffff;
+        }
+        .control-group select {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a24;
+            color: #fff;
+            border: 1px solid rgba(0,255,255,0.3);
+            border-radius: 4px;
+        }
+        .value-display {
+            text-align: right;
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+        }
+        #status {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0,255,136,0.1);
+            color: #00ff88;
+            font-size: 12px;
+        }
+        #status.error {
+            background: rgba(255,0,0,0.1);
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>VIB3+ SDK Basic Demo</h1>
+        <p>4D Geometry Visualization with 6D Rotation</p>
+    </div>
+
+    <div id="status">Initializing SDK...</div>
+
+    <div class="main">
+        <div class="canvas-container">
+            <canvas id="mainCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Geometry Type</label>
+                <select id="geometry">
+                    <option value="0">Tetrahedron</option>
+                    <option value="1">Hypercube</option>
+                    <option value="2">Sphere</option>
+                    <option value="3">Torus</option>
+                    <option value="4">Klein Bottle</option>
+                    <option value="5">Fractal</option>
+                    <option value="6">Wave</option>
+                    <option value="7">Crystal</option>
+                    <option value="8">Tetra + Hypersphere</option>
+                    <option value="9">Cube + Hypersphere</option>
+                    <option value="16">Tetra + Hypertetra</option>
+                    <option value="17">Cube + Hypertetra</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>XY Rotation (3D)</label>
+                <input type="range" id="rot4dXY" min="0" max="6.28" step="0.01" value="0">
+                <div class="value-display" id="rot4dXYVal">0.00</div>
+            </div>
+
+            <div class="control-group">
+                <label>XW Rotation (4D)</label>
+                <input type="range" id="rot4dXW" min="0" max="6.28" step="0.01" value="0">
+                <div class="value-display" id="rot4dXWVal">0.00</div>
+            </div>
+
+            <div class="control-group">
+                <label>ZW Rotation (4D)</label>
+                <input type="range" id="rot4dZW" min="0" max="6.28" step="0.01" value="0">
+                <div class="value-display" id="rot4dZWVal">0.00</div>
+            </div>
+
+            <div class="control-group">
+                <label>Grid Density</label>
+                <input type="range" id="gridDensity" min="5" max="50" step="1" value="15">
+                <div class="value-display" id="gridDensityVal">15</div>
+            </div>
+
+            <div class="control-group">
+                <label>Morph Factor</label>
+                <input type="range" id="morphFactor" min="0" max="2" step="0.01" value="1">
+                <div class="value-display" id="morphFactorVal">1.00</div>
+            </div>
+
+            <div class="control-group">
+                <label>Animation Speed</label>
+                <input type="range" id="speed" min="0.1" max="3" step="0.1" value="1">
+                <div class="value-display" id="speedVal">1.0</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // ============================================================
+        // VIB3+ SDK BASIC DEMO
+        // This demonstrates direct usage of the SDK for 4D visualization
+        // ============================================================
+
+        import { Rotor4D } from '../src/math/Rotor4D.js';
+        import { Vec4 } from '../src/math/Vec4.js';
+
+        const status = document.getElementById('status');
+        const canvas = document.getElementById('mainCanvas');
+        let gl;
+        let program;
+        let uniforms = {};
+        let startTime = Date.now();
+
+        // Current parameters
+        const params = {
+            geometry: 0,
+            rot4dXY: 0, rot4dXZ: 0, rot4dYZ: 0,
+            rot4dXW: 0, rot4dYW: 0, rot4dZW: 0,
+            gridDensity: 15,
+            morphFactor: 1.0,
+            speed: 1.0,
+            intensity: 0.8
+        };
+
+        // Initialize WebGL
+        function initWebGL() {
+            gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+            if (!gl) {
+                throw new Error('WebGL not supported');
+            }
+
+            // Resize canvas
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+
+            return gl;
+        }
+
+        // Create shader program
+        function createProgram() {
+            const vs = `
+                attribute vec2 a_position;
+                void main() {
+                    gl_Position = vec4(a_position, 0.0, 1.0);
+                }
+            `;
+
+            const fs = `
+                precision highp float;
+
+                uniform vec2 u_resolution;
+                uniform float u_time;
+                uniform float u_geometry;
+                uniform float u_gridDensity;
+                uniform float u_morphFactor;
+                uniform float u_speed;
+                uniform float u_intensity;
+                uniform float u_rot4dXY;
+                uniform float u_rot4dXZ;
+                uniform float u_rot4dYZ;
+                uniform float u_rot4dXW;
+                uniform float u_rot4dYW;
+                uniform float u_rot4dZW;
+
+                // 4D rotation matrices
+                mat4 rotateXY(float t) { float c=cos(t),s=sin(t); return mat4(c,-s,0,0, s,c,0,0, 0,0,1,0, 0,0,0,1); }
+                mat4 rotateXZ(float t) { float c=cos(t),s=sin(t); return mat4(c,0,s,0, 0,1,0,0, -s,0,c,0, 0,0,0,1); }
+                mat4 rotateYZ(float t) { float c=cos(t),s=sin(t); return mat4(1,0,0,0, 0,c,-s,0, 0,s,c,0, 0,0,0,1); }
+                mat4 rotateXW(float t) { float c=cos(t),s=sin(t); return mat4(c,0,0,-s, 0,1,0,0, 0,0,1,0, s,0,0,c); }
+                mat4 rotateYW(float t) { float c=cos(t),s=sin(t); return mat4(1,0,0,0, 0,c,0,-s, 0,0,1,0, 0,s,0,c); }
+                mat4 rotateZW(float t) { float c=cos(t),s=sin(t); return mat4(1,0,0,0, 0,1,0,0, 0,0,c,-s, 0,0,s,c); }
+
+                vec3 project4Dto3D(vec4 p) {
+                    float w = 2.0 / (2.0 + p.w);
+                    return vec3(p.xyz) * w;
+                }
+
+                // Lattice functions
+                float hypercubeLattice(vec3 p, float gridSize) {
+                    vec3 grid = fract(p * gridSize);
+                    vec3 edges = min(grid, 1.0 - grid);
+                    float minEdge = min(min(edges.x, edges.y), edges.z);
+                    return 1.0 - smoothstep(0.0, 0.04, minEdge);
+                }
+
+                float sphereLattice(vec3 p, float gridSize) {
+                    vec3 cell = fract(p * gridSize) - 0.5;
+                    return 1.0 - smoothstep(0.15, 0.25, length(cell));
+                }
+
+                float torusLattice(vec3 p, float gridSize) {
+                    vec3 cell = fract(p * gridSize) - 0.5;
+                    float R = 0.3, r = 0.1;
+                    float d = length(vec2(length(cell.xy) - R, cell.z));
+                    return 1.0 - smoothstep(r - 0.02, r + 0.02, d);
+                }
+
+                float tetraLattice(vec3 p, float gridSize) {
+                    vec3 q = fract(p * gridSize) - 0.5;
+                    float d1 = length(q);
+                    float d2 = length(q - vec3(0.4, 0.0, 0.0));
+                    return 1.0 - smoothstep(0.0, 0.05, min(d1, d2));
+                }
+
+                float waveLattice(vec3 p, float gridSize) {
+                    float t = u_time * 0.001 * u_speed;
+                    float wave = sin(p.x * gridSize * 2.0 + t) * sin(p.y * gridSize * 1.8 + t * 0.7);
+                    return abs(wave);
+                }
+
+                float fractalLattice(vec3 p, float gridSize) {
+                    vec3 cell = abs(fract(p * gridSize) * 2.0 - 1.0);
+                    float dist = length(max(abs(cell) - 0.3, 0.0));
+                    for(int i = 0; i < 3; i++) {
+                        cell = abs(cell * 2.0 - 1.0);
+                        dist = min(dist, length(max(abs(cell) - 0.3, 0.0)) / pow(2.0, float(i+1)));
+                    }
+                    return 1.0 - smoothstep(0.0, 0.05, dist);
+                }
+
+                float crystalLattice(vec3 p, float gridSize) {
+                    vec3 cell = fract(p * gridSize) - 0.5;
+                    float crystal = max(max(abs(cell.x)+abs(cell.y), abs(cell.y)+abs(cell.z)), abs(cell.x)+abs(cell.z));
+                    return 1.0 - smoothstep(0.3, 0.4, crystal);
+                }
+
+                float kleinLattice(vec3 p, float gridSize) {
+                    vec3 cell = fract(p * gridSize) - 0.5;
+                    float u = atan(cell.y, cell.x) / 3.14159 + 1.0;
+                    float x = (2.0 + cos(u * 0.5)) * cos(u) * 0.1;
+                    float y = (2.0 + cos(u * 0.5)) * sin(u) * 0.1;
+                    return 1.0 - smoothstep(0.1, 0.15, length(cell.xy - vec2(x, y)));
+                }
+
+                float getGeometry(vec4 p) {
+                    vec3 p3 = project4Dto3D(p);
+                    float gridSize = u_gridDensity * 0.1;
+                    int geom = int(mod(u_geometry, 8.0));
+
+                    if (geom == 0) return tetraLattice(p3, gridSize);
+                    if (geom == 1) return hypercubeLattice(p3, gridSize);
+                    if (geom == 2) return sphereLattice(p3, gridSize);
+                    if (geom == 3) return torusLattice(p3, gridSize);
+                    if (geom == 4) return kleinLattice(p3, gridSize);
+                    if (geom == 5) return fractalLattice(p3, gridSize);
+                    if (geom == 6) return waveLattice(p3, gridSize);
+                    return crystalLattice(p3, gridSize);
+                }
+
+                void main() {
+                    vec2 uv = (gl_FragCoord.xy - u_resolution * 0.5) / min(u_resolution.x, u_resolution.y);
+                    float t = u_time * 0.0001 * u_speed;
+
+                    // Create 4D position
+                    vec4 pos = vec4(uv * 2.5, sin(t * 3.0), cos(t * 2.0));
+
+                    // Apply 6D rotations
+                    pos = rotateXY(u_rot4dXY) * pos;
+                    pos = rotateXZ(u_rot4dXZ) * pos;
+                    pos = rotateYZ(u_rot4dYZ) * pos;
+                    pos = rotateXW(u_rot4dXW) * pos;
+                    pos = rotateYW(u_rot4dYW) * pos;
+                    pos = rotateZW(u_rot4dZW) * pos;
+
+                    // Core warp for geometry types 8+ (hypersphere) and 16+ (hypertetra)
+                    float coreIndex = floor(u_geometry / 8.0);
+                    if (coreIndex >= 1.0) {
+                        float radius = length(pos.xyz);
+                        float w = sin(radius * 1.5 + t * 0.8) * u_morphFactor * 0.5;
+                        pos.w += w;
+                    }
+
+                    float value = getGeometry(pos) * u_morphFactor;
+
+                    // Color based on geometry value and position
+                    float hue = atan(uv.y, uv.x) / 6.28 + 0.5 + t * 0.1;
+                    vec3 color = 0.5 + 0.5 * cos(6.28 * (hue + vec3(0.0, 0.33, 0.67)));
+
+                    // Intensity based on geometry
+                    float intensity = pow(value, 1.5) * u_intensity;
+                    color *= intensity;
+
+                    // Add glow
+                    color += vec3(0.0, 0.3, 0.5) * value * 0.3;
+
+                    gl_FragColor = vec4(color, intensity);
+                }
+            `;
+
+            // Compile shaders
+            const vertShader = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vertShader, vs);
+            gl.compileShader(vertShader);
+            if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) {
+                throw new Error('Vertex shader: ' + gl.getShaderInfoLog(vertShader));
+            }
+
+            const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fragShader, fs);
+            gl.compileShader(fragShader);
+            if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
+                throw new Error('Fragment shader: ' + gl.getShaderInfoLog(fragShader));
+            }
+
+            program = gl.createProgram();
+            gl.attachShader(program, vertShader);
+            gl.attachShader(program, fragShader);
+            gl.linkProgram(program);
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                throw new Error('Program link: ' + gl.getProgramInfoLog(program));
+            }
+
+            // Get uniforms
+            uniforms = {
+                resolution: gl.getUniformLocation(program, 'u_resolution'),
+                time: gl.getUniformLocation(program, 'u_time'),
+                geometry: gl.getUniformLocation(program, 'u_geometry'),
+                gridDensity: gl.getUniformLocation(program, 'u_gridDensity'),
+                morphFactor: gl.getUniformLocation(program, 'u_morphFactor'),
+                speed: gl.getUniformLocation(program, 'u_speed'),
+                intensity: gl.getUniformLocation(program, 'u_intensity'),
+                rot4dXY: gl.getUniformLocation(program, 'u_rot4dXY'),
+                rot4dXZ: gl.getUniformLocation(program, 'u_rot4dXZ'),
+                rot4dYZ: gl.getUniformLocation(program, 'u_rot4dYZ'),
+                rot4dXW: gl.getUniformLocation(program, 'u_rot4dXW'),
+                rot4dYW: gl.getUniformLocation(program, 'u_rot4dYW'),
+                rot4dZW: gl.getUniformLocation(program, 'u_rot4dZW')
+            };
+
+            // Create buffer
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+
+            const pos = gl.getAttribLocation(program, 'a_position');
+            gl.enableVertexAttribArray(pos);
+            gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+        }
+
+        // Render loop
+        function render() {
+            const time = Date.now() - startTime;
+
+            gl.clearColor(0, 0, 0, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.useProgram(program);
+
+            gl.uniform2f(uniforms.resolution, canvas.width, canvas.height);
+            gl.uniform1f(uniforms.time, time);
+            gl.uniform1f(uniforms.geometry, params.geometry);
+            gl.uniform1f(uniforms.gridDensity, params.gridDensity);
+            gl.uniform1f(uniforms.morphFactor, params.morphFactor);
+            gl.uniform1f(uniforms.speed, params.speed);
+            gl.uniform1f(uniforms.intensity, params.intensity);
+            gl.uniform1f(uniforms.rot4dXY, params.rot4dXY);
+            gl.uniform1f(uniforms.rot4dXZ, params.rot4dXZ);
+            gl.uniform1f(uniforms.rot4dYZ, params.rot4dYZ);
+            gl.uniform1f(uniforms.rot4dXW, params.rot4dXW);
+            gl.uniform1f(uniforms.rot4dYW, params.rot4dYW);
+            gl.uniform1f(uniforms.rot4dZW, params.rot4dZW);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            requestAnimationFrame(render);
+        }
+
+        // Setup controls
+        function setupControls() {
+            const controls = ['geometry', 'rot4dXY', 'rot4dXW', 'rot4dZW', 'gridDensity', 'morphFactor', 'speed'];
+
+            controls.forEach(id => {
+                const el = document.getElementById(id);
+                const valEl = document.getElementById(id + 'Val');
+
+                el.addEventListener('input', () => {
+                    const val = parseFloat(el.value);
+                    params[id] = val;
+                    if (valEl) valEl.textContent = val.toFixed(2);
+                });
+            });
+        }
+
+        // Test SDK math
+        function testSDKMath() {
+            console.log('Testing VIB3+ SDK Math...');
+
+            // Test Rotor4D
+            const rotor = Rotor4D.fromPlaneAngle('XY', Math.PI / 4);
+            console.log('Rotor XY 45deg:', rotor.s.toFixed(4), rotor.xy.toFixed(4));
+
+            // Test vector rotation
+            const v = new Vec4(1, 0, 0, 0);
+            const rotated = rotor.rotate(v);
+            console.log('Rotated (1,0,0,0):', rotated.x.toFixed(4), rotated.y.toFixed(4));
+
+            return {
+                rotor: { s: rotor.s, xy: rotor.xy },
+                rotated: { x: rotated.x, y: rotated.y }
+            };
+        }
+
+        // Initialize
+        async function init() {
+            try {
+                // Test SDK math first
+                const mathTest = testSDKMath();
+                console.log('SDK Math Test:', mathTest);
+
+                // Initialize WebGL
+                initWebGL();
+                createProgram();
+                setupControls();
+
+                status.textContent = 'VIB3+ SDK Active - 4D Visualization Running';
+                status.classList.remove('error');
+
+                render();
+
+            } catch (err) {
+                console.error('Initialization failed:', err);
+                status.textContent = 'Error: ' + err.message;
+                status.classList.add('error');
+            }
+        }
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            if (gl) {
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = canvas.clientWidth * dpr;
+                canvas.height = canvas.clientHeight * dpr;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>

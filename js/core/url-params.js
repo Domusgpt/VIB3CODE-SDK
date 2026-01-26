@@ -113,7 +113,7 @@ export class URLParameterHandler {
 
     showCorrectSystemLayers(targetSystem) {
         const showCorrectSystemLayers = () => {
-            const systems = ['faceted', 'quantum', 'holographic', 'polychora'];
+            const systems = ['faceted', 'quantum', 'holographic']; // 3 active (polychora TBD)
             systems.forEach(sys => {
                 const layerId = sys === 'faceted' ? 'vib34dLayers' : `${sys}Layers`;
                 const layers = document.getElementById(layerId);

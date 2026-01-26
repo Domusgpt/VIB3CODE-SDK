@@ -576,7 +576,7 @@ export class QuantumEngine {
         if (window.universalReactivity) {
             window.universalReactivity.disconnectSystem('quantum');
         }
-        
+
         this.visualizers.forEach(visualizer => {
             if (visualizer.destroy) {
                 visualizer.destroy();
@@ -584,5 +584,58 @@ export class QuantumEngine {
         });
         this.visualizers = [];
         console.log('🧹 Quantum Engine destroyed');
+    }
+
+    // ============================================
+    // RendererContract Compliance Methods
+    // ============================================
+
+    /**
+     * Handle canvas resize (RendererContract.resize)
+     * @param {number} width - New width in pixels
+     * @param {number} height - New height in pixels
+     * @param {number} [pixelRatio=1] - Device pixel ratio
+     */
+    resize(width, height, pixelRatio = 1) {
+        this.visualizers.forEach(visualizer => {
+            if (visualizer.canvas && visualizer.gl) {
+                visualizer.canvas.width = width * pixelRatio;
+                visualizer.canvas.height = height * pixelRatio;
+                visualizer.canvas.style.width = `${width}px`;
+                visualizer.canvas.style.height = `${height}px`;
+                visualizer.gl.viewport(0, 0, visualizer.canvas.width, visualizer.canvas.height);
+            }
+        });
+        console.log(`🔮 Quantum resized to ${width}x${height} @${pixelRatio}x`);
+    }
+
+    /**
+     * Render a single frame (RendererContract.render)
+     * @param {Object} [frameState] - Frame state with time, params, audio
+     */
+    render(frameState = {}) {
+        // Apply frameState parameters if provided
+        if (frameState.params) {
+            this.updateParameters(frameState.params);
+        }
+
+        // Delegate to existing renderFrame
+        this.renderFrame();
+    }
+
+    /**
+     * Clean up all resources (RendererContract.dispose)
+     * Alias for destroy() for contract compliance
+     */
+    dispose() {
+        // Clean up audio
+        if (this.audioContext) {
+            this.audioContext.close();
+            this.audioContext = null;
+        }
+        this.audioEnabled = false;
+
+        // Call existing destroy
+        this.destroy();
     }
 }

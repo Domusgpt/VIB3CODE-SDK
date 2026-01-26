@@ -8,9 +8,9 @@ export class UnifiedReactivityManager {
     constructor() {
         this.currentSystem = 'faceted';
         this.reactivityState = {
-            mouse: { faceted: true, quantum: false, holographic: false, polychora: false, mixed: false },
-            click: { faceted: true, quantum: false, holographic: false, polychora: false, mixed: false },
-            scroll: { faceted: true, quantum: false, holographic: false, polychora: false, mixed: false },
+            mouse: { faceted: true, quantum: false, holographic: false, mixed: false },
+            click: { faceted: true, quantum: false, holographic: false, mixed: false },
+            scroll: { faceted: true, quantum: false, holographic: false, mixed: false },
             audio: false,
             interactivity: true,
             deviceTilt: false
@@ -91,8 +91,8 @@ export class UnifiedReactivityManager {
         const defaults = {
             faceted: { mouse: 'faceted', click: 'faceted', scroll: 'faceted' },
             quantum: { mouse: 'quantum', click: 'quantum', scroll: 'quantum' },
-            holographic: { mouse: 'holographic', click: 'holographic', scroll: 'holographic' },
-            polychora: { mouse: 'polychora', click: 'polychora', scroll: 'faceted' } // Polychora uses faceted scroll
+            holographic: { mouse: 'holographic', click: 'holographic', scroll: 'holographic' }
+            // polychora: TBD placeholder - not production ready
         };
         
         const systemDefaults = defaults[system] || defaults.faceted;
@@ -148,7 +148,8 @@ export class UnifiedReactivityManager {
     
     syncToUI() {
         // Sync checkboxes if they exist (for gallery/viewer contexts)
-        ['faceted', 'quantum', 'holographic', 'polychora', 'mixed'].forEach(system => {
+        // 3 active systems + mixed mode (polychora is TBD placeholder)
+        ['faceted', 'quantum', 'holographic', 'mixed'].forEach(system => {
             const mouseCheckbox = document.getElementById(`${system}Mouse`);
             const clickCheckbox = document.getElementById(`${system}Click`);
             const scrollCheckbox = document.getElementById(`${system}Scroll`);

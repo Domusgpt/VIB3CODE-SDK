@@ -46,3 +46,11 @@
 
 ## 13:19:14
 - Added scene graph scaffolding and documented GPU disposal patterns for Phase 2.
+
+## 2026-01-23 22:04 (Session 011)
+- Fixed rotation stability test precision tolerance (Float32Array drift over 2000 iterations).
+- Expanded LICENSING_TIERS.md with implementation details: key format, activation flow, token schema, offline validation, feature gating.
+- Expanded EXPORT_FORMATS.md with format specifications, golden snapshot test implementation, and CI integration.
+- Expanded XR_BENCHMARKS.md with metrics collection, benchmark runner, regression detection, and performance overlay.
+- Added CLI `validate` command for validating scene packs, manifests, and tool responses.
+- All 584 tests passing.

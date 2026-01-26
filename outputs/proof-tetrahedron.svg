@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" data-vib3-geometry="0" data-vib3-system="quantum" data-vib3-core-type="Base">
+  <defs>
+    <style>
+      :root {
+        --vib3-hue: 180;
+        --vib3-saturation: 0.8;
+        --vib3-intensity: 0.9;
+      }
+    </style>
+  </defs>
+  <g id="geometry-layer">
+    <line x1="207.702" y1="198.022" x2="188.090" y2="190.648" stroke="hsla(0, 64%, 60%, 0.26)" stroke-width="0.390" stroke-linecap="round"/>
+    <line x1="207.702" y1="198.022" x2="224.420" y2="205.969" stroke="hsla(0, 64%, 60%, 0.28)" stroke-width="0.415" stroke-linecap="round"/>
+    <line x1="207.702" y1="198.022" x2="178.132" y2="187.669" stroke="hsla(0, 64%, 60%, 0.19)" stroke-width="0.287" stroke-linecap="round"/>
+    <line x1="207.702" y1="198.022" x2="230.544" y2="209.749" stroke="hsla(0, 64%, 60%, 0.23)" stroke-width="0.343" stroke-linecap="round"/>
+    <line x1="188.090" y1="190.648" x2="224.420" y2="205.969" stroke="hsla(0, 64%, 60%, 0.14)" stroke-width="0.206" stroke-linecap="round"/>
+    <line x1="188.090" y1="190.648" x2="178.132" y2="187.669" stroke="hsla(0, 64%, 60%, 0.33)" stroke-width="0.496" stroke-linecap="round"/>
+    <line x1="188.090" y1="190.648" x2="230.544" y2="209.749" stroke="hsla(0, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="188.090" y1="190.648" x2="170.765" y2="198.930" stroke="hsla(0, 64%, 60%, 0.27)" stroke-width="0.408" stroke-linecap="round"/>
+    <line x1="224.420" y1="205.969" x2="178.132" y2="187.669" stroke="hsla(0, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="224.420" y1="205.969" x2="230.544" y2="209.749" stroke="hsla(0, 64%, 60%, 0.35)" stroke-width="0.528" stroke-linecap="round"/>
+    <line x1="224.420" y1="205.969" x2="225.099" y2="221.526" stroke="hsla(0, 64%, 60%, 0.30)" stroke-width="0.444" stroke-linecap="round"/>
+    <line x1="178.132" y1="187.669" x2="170.765" y2="198.930" stroke="hsla(0, 64%, 60%, 0.31)" stroke-width="0.465" stroke-linecap="round"/>
+    <line x1="178.132" y1="187.669" x2="179.171" y2="174.393" stroke="hsla(0, 64%, 60%, 0.31)" stroke-width="0.467" stroke-linecap="round"/>
+    <line x1="230.544" y1="209.749" x2="225.099" y2="221.526" stroke="hsla(0, 64%, 60%, 0.31)" stroke-width="0.470" stroke-linecap="round"/>
+    <line x1="230.544" y1="209.749" x2="237.787" y2="199.390" stroke="hsla(0, 64%, 60%, 0.32)" stroke-width="0.474" stroke-linecap="round"/>
+    <line x1="170.765" y1="198.930" x2="179.171" y2="174.393" stroke="hsla(0, 64%, 60%, 0.23)" stroke-width="0.341" stroke-linecap="round"/>
+    <line x1="170.765" y1="198.930" x2="166.194" y2="217.757" stroke="hsla(0, 64%, 60%, 0.27)" stroke-width="0.406" stroke-linecap="round"/>
+    <line x1="225.099" y1="221.526" x2="237.787" y2="199.390" stroke="hsla(0, 64%, 60%, 0.23)" stroke-width="0.345" stroke-linecap="round"/>
+    <line x1="225.099" y1="221.526" x2="209.708" y2="235.516" stroke="hsla(0, 64%, 60%, 0.26)" stroke-width="0.392" stroke-linecap="round"/>
+    <line x1="179.171" y1="174.393" x2="166.194" y2="217.757" stroke="hsla(0, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="237.787" y1="199.390" x2="209.708" y2="235.516" stroke="hsla(0, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="166.194" y1="217.757" x2="209.708" y2="235.516" stroke="hsla(0, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="166.194" y1="217.757" x2="173.139" y2="230.224" stroke="hsla(0, 64%, 60%, 0.30)" stroke-width="0.457" stroke-linecap="round"/>
+    <line x1="166.194" y1="217.757" x2="191.139" y2="237.505" stroke="hsla(0, 64%, 60%, 0.19)" stroke-width="0.282" stroke-linecap="round"/>
+    <line x1="209.708" y1="235.516" x2="173.139" y2="230.224" stroke="hsla(0, 64%, 60%, 0.15)" stroke-width="0.230" stroke-linecap="round"/>
+    <line x1="209.708" y1="235.516" x2="191.139" y2="237.505" stroke="hsla(0, 64%, 60%, 0.28)" stroke-width="0.413" stroke-linecap="round"/>
+    <line x1="209.708" y1="235.516" x2="181.345" y2="232.968" stroke="hsla(0, 64%, 60%, 0.21)" stroke-width="0.315" stroke-linecap="round"/>
+    <line x1="173.139" y1="230.224" x2="191.139" y2="237.505" stroke="hsla(0, 64%, 60%, 0.27)" stroke-width="0.406" stroke-linecap="round"/>
+    <line x1="173.139" y1="230.224" x2="181.345" y2="232.968" stroke="hsla(0, 64%, 60%, 0.34)" stroke-width="0.513" stroke-linecap="round"/>
+    <line x1="191.139" y1="237.505" x2="181.345" y2="232.968" stroke="hsla(0, 64%, 60%, 0.33)" stroke-width="0.492" stroke-linecap="round"/>
+    <line x1="191.139" y1="237.505" x2="182.730" y2="225.433" stroke="hsla(0, 64%, 60%, 0.30)" stroke-width="0.453" stroke-linecap="round"/>
+    <line x1="187.886" y1="155.684" x2="203.414" y2="153.160" stroke="hsla(0, 64%, 60%, 0.30)" stroke-width="0.443" stroke-linecap="round"/>
+    <line x1="181.345" y1="232.968" x2="182.730" y2="225.433" stroke="hsla(0, 64%, 60%, 0.35)" stroke-width="0.523" stroke-linecap="round"/>
+    <line x1="240.666" y1="178.640" x2="203.414" y2="153.160" stroke="hsla(0, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="240.666" y1="178.640" x2="226.428" y2="163.251" stroke="hsla(0, 64%, 60%, 0.26)" stroke-width="0.390" stroke-linecap="round"/>
+    <line x1="240.666" y1="178.640" x2="212.310" y2="160.767" stroke="hsla(0, 64%, 60%, 0.18)" stroke-width="0.265" stroke-linecap="round"/>
+    <line x1="182.730" y1="225.433" x2="190.865" y2="202.346" stroke="hsla(0, 64%, 60%, 0.24)" stroke-width="0.355" stroke-linecap="round"/>
+    <line x1="203.414" y1="153.160" x2="226.428" y2="163.251" stroke="hsla(0, 64%, 60%, 0.23)" stroke-width="0.349" stroke-linecap="round"/>
+    <line x1="203.414" y1="153.160" x2="212.310" y2="160.767" stroke="hsla(0, 64%, 60%, 0.32)" stroke-width="0.483" stroke-linecap="round"/>
+    <line x1="203.414" y1="153.160" x2="204.538" y2="173.745" stroke="hsla(0, 64%, 60%, 0.26)" stroke-width="0.394" stroke-linecap="round"/>
+    <line x1="226.428" y1="163.251" x2="212.310" y2="160.767" stroke="hsla(0, 64%, 60%, 0.30)" stroke-width="0.457" stroke-linecap="round"/>
+    <line x1="226.428" y1="163.251" x2="204.538" y2="173.745" stroke="hsla(0, 64%, 60%, 0.24)" stroke-width="0.357" stroke-linecap="round"/>
+    <line x1="212.310" y1="160.767" x2="190.865" y2="202.346" stroke="hsla(0, 64%, 60%, 0.10)" stroke-width="0.150" stroke-linecap="round"/>
+    <line x1="212.310" y1="160.767" x2="204.538" y2="173.745" stroke="hsla(0, 64%, 60%, 0.30)" stroke-width="0.449" stroke-linecap="round"/>
+    <line x1="190.865" y1="202.346" x2="204.538" y2="173.745" stroke="hsla(0, 64%, 60%, 0.19)" stroke-width="0.283" stroke-linecap="round"/>
+    <circle cx="207.702" cy="198.022" r="3.132" fill="hsla(203, 80%, 75%, 0.69)"/>
+    <circle cx="188.090" cy="190.648" r="3.188" fill="hsla(204, 80%, 75%, 0.70)"/>
+    <circle cx="224.420" cy="205.969" r="3.201" fill="hsla(204, 80%, 75%, 0.70)"/>
+    <circle cx="178.132" cy="187.669" r="3.271" fill="hsla(205, 80%, 75%, 0.71)"/>
+    <circle cx="230.544" cy="209.749" r="3.289" fill="hsla(206, 80%, 76%, 0.71)"/>
+    <circle cx="170.765" cy="198.930" r="3.303" fill="hsla(206, 80%, 76%, 0.72)"/>
+    <circle cx="225.099" cy="221.526" r="3.320" fill="hsla(206, 80%, 76%, 0.72)"/>
+    <circle cx="179.171" cy="174.393" r="3.367" fill="hsla(207, 80%, 76%, 0.73)"/>
+    <circle cx="237.787" cy="199.390" r="3.384" fill="hsla(208, 80%, 76%, 0.73)"/>
+    <circle cx="166.194" cy="217.757" r="3.406" fill="hsla(208, 80%, 76%, 0.73)"/>
+    <circle cx="209.708" cy="235.516" r="3.418" fill="hsla(208, 80%, 76%, 0.74)"/>
+    <circle cx="173.139" cy="230.224" r="3.539" fill="hsla(211, 80%, 77%, 0.76)"/>
+    <circle cx="191.139" cy="237.505" r="3.543" fill="hsla(211, 80%, 77%, 0.76)"/>
+    <circle cx="187.886" cy="155.684" r="3.603" fill="hsla(212, 80%, 78%, 0.77)"/>
+    <circle cx="181.345" cy="232.968" r="3.611" fill="hsla(212, 80%, 78%, 0.77)"/>
+    <circle cx="240.666" cy="178.640" r="3.613" fill="hsla(212, 80%, 78%, 0.77)"/>
+    <circle cx="182.730" cy="225.433" r="3.744" fill="hsla(215, 80%, 79%, 0.79)"/>
+    <circle cx="203.414" cy="153.160" r="3.834" fill="hsla(217, 80%, 79%, 0.81)"/>
+    <circle cx="226.428" cy="163.251" r="3.836" fill="hsla(217, 80%, 79%, 0.81)"/>
+    <circle cx="212.310" cy="160.767" r="3.911" fill="hsla(218, 80%, 80%, 0.82)"/>
+    <circle cx="190.865" cy="202.346" r="3.937" fill="hsla(219, 80%, 80%, 0.82)"/>
+    <circle cx="204.538" cy="173.745" r="3.978" fill="hsla(220, 80%, 80%, 0.83)"/>
+  </g>
+</svg>

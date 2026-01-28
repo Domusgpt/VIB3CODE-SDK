@@ -30,6 +30,7 @@ each folder. Use it as a navigation guide when onboarding or auditing the codeba
 
 ### `DOCS/`
 - `DOCS/` — documentation set (onboarding, setup, CI, lifecycle, etc.).
+- `DOCS/QUATERNION_ADJACENCY_GEOMETRIC_ENGINE.md` — proposal for quaternion-driven adjacency and plastic-ratio scaling engine.
 
 ### `cpp/`
 - `cpp/bindings/` — native bindings and interop layers.

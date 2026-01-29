@@ -81,6 +81,11 @@ export {
 } from './generators/Fractal.js';
 
 export {
+    default as generateProceduralGaussianSeeds,
+    generateProceduralGaussianSeeds as generateGaussianSeeds
+} from './generators/ProceduralGaussianSeeder.js';
+
+export {
     default as generateWave,
     generateStandingWave4D,
     generateInterferencePattern,

@@ -84,6 +84,9 @@ export {
     createWebGLBackend
 } from './backends/WebGLBackend.js';
 
+// Procedural streams
+export { ProceduralGaussianStream } from './ProceduralGaussianStream.js';
+
 /**
  * Create a complete rendering context
  * @param {HTMLCanvasElement} canvas

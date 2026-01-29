@@ -95,6 +95,12 @@ export {
     createWebGPUBackend
 } from './backends/WebGPUBackend.js';
 
+// Procedural streams
+export { ProceduralGaussianStream } from './ProceduralGaussianStream.js';
+export { createProceduralGaussianStreamFromPCG } from './ProceduralCompactGraphStream.js';
+export { encodeGaussianSeeds, GAUSSIAN_SEED_LAYOUT, GAUSSIAN_SEED_STRIDE } from './GaussianSeedBuffer.js';
+export { FoveatedTraversalPolicy } from './FoveatedTraversalPolicy.js';
+
 /**
  * Create a complete rendering context
  * @param {HTMLCanvasElement} canvas

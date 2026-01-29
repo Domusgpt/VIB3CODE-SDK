@@ -95,6 +95,10 @@ export {
     createWebGPUBackend
 } from './backends/WebGPUBackend.js';
 
+// Procedural streams
+export { ProceduralGaussianStream } from './ProceduralGaussianStream.js';
+export { createProceduralGaussianStreamFromPCG } from './ProceduralCompactGraphStream.js';
+
 /**
  * Create a complete rendering context
  * @param {HTMLCanvasElement} canvas

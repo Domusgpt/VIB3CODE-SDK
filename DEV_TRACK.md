@@ -232,3 +232,28 @@ Use the following format to stamp each session. Update the status, notes, and bl
   - 40 new tests for cross-platform command buffer
   - All 647 tests passing (1 pre-existing flaky timing test)
 - **Blockers:** None.
+
+### Session 014 — Procedural compact graph expansion + streaming
+**Stamp:** 2026-01-29 20:03 UTC
+- **Focus:** PCG validation + expansion + stream integration for procedural Gaussian traversal.
+- **Status:** COMPLETE
+- **Notes:**
+  - Added Procedural Compact Graph schema registration and validation helpers.
+  - Implemented `expandProceduralCompactGraph` to translate PCG rules into Gaussian seeds.
+  - Added PCG-backed stream factory to create `ProceduralGaussianStream` instances.
+  - Extended the Gaussian seeder to accept root orientations for seed-aware traversal.
+  - Added tests covering PCG expansion and stream generation.
+- **Blockers:** None.
+
+### Work remaining + plan
+- **PCG rule authoring tools**: build authoring utilities for adjacency rules and seed presets; target a lightweight JSON authoring CLI in `src/cli/`.
+- **Renderer integration**: wire PCG-backed streams into an existing renderer path (WebGL/WebGPU) with a seed buffer encoder.
+- **GPU data layout**: define a Gaussian seed buffer layout (position, orientation, scale, color) and upload pipeline for shader consumption.
+- **Foveated traversal**: add a traversal policy that adjusts `maxDepth`/batch size based on focus metrics.
+- **LLM editing hooks**: add a mutation layer that adjusts PCG rules from high-level prompts.
+- **Validation + docs**: update docs with the PCG schema usage examples and integration steps.
+
+### Planned next steps (immediate)
+1. Add seed buffer encoding utilities + minimal render command integration.
+2. Implement a `FoveatedTraversalPolicy` stub with adjustable depth budgets.
+3. Extend PCG schema tests with negative cases (invalid seeds, missing generators).

@@ -27,6 +27,8 @@
 export { Vec4 } from './Vec4.js';
 export { Rotor4D } from './Rotor4D.js';
 export { Mat4x4 } from './Mat4x4.js';
+export { QuaternionAdjacencyGraph } from './QuaternionAdjacencyGraph.js';
+export { PlasticRatioScaler } from './PlasticRatioScaler.js';
 
 // Projections
 export { Projection, SliceProjection, AnimatedProjection } from './Projection.js';
@@ -37,7 +39,7 @@ export {
     PI, TAU, HALF_PI, QUARTER_PI,
     DEG_TO_RAD, RAD_TO_DEG,
     EPSILON, EPSILON_NORMAL, EPSILON_EQUAL,
-    PHI, PHI_INV,
+    PHI, PHI_INV, PLASTIC_RATIO,
 
     // Plane indices
     PLANE_XY, PLANE_XZ, PLANE_YZ,
@@ -64,5 +66,7 @@ export default {
     Vec4: (await import('./Vec4.js')).Vec4,
     Rotor4D: (await import('./Rotor4D.js')).Rotor4D,
     Mat4x4: (await import('./Mat4x4.js')).Mat4x4,
-    Projection: (await import('./Projection.js')).Projection
+    Projection: (await import('./Projection.js')).Projection,
+    QuaternionAdjacencyGraph: (await import('./QuaternionAdjacencyGraph.js')).QuaternionAdjacencyGraph,
+    PlasticRatioScaler: (await import('./PlasticRatioScaler.js')).PlasticRatioScaler
 };

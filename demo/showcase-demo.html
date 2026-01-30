@@ -14,6 +14,8 @@
     <button class="mode-btn active" data-mode="text">Text</button>
     <button class="mode-btn" data-mode="image">Image</button>
     <button class="mode-btn" data-mode="shape">3D Shape</button>
+    <span class="mode-divider"></span>
+    <button class="mode-btn massive" data-mode="massive">Massive</button>
   </div>
 
   <!-- Sub-mode selector (presets within a mode) -->
@@ -24,6 +26,19 @@
     <span>Splats<strong id="splatCount">0</strong></span>
     <span>FPS<strong id="fps">0</strong></span>
     <span>Mode<strong id="modeLabel">text</strong></span>
+  </div>
+
+  <!-- Efficiency metrics (shown in massive mode) -->
+  <div class="overlay metrics-panel" id="metricsPanel">
+    <div class="metrics-title">Efficiency Metrics</div>
+    <div class="metrics-row"><span>Splats</span><strong id="metSplats">-</strong></div>
+    <div class="metrics-row"><span>Gen Time</span><strong id="metGenTime">-</strong></div>
+    <div class="metrics-row"><span>PCG Size</span><strong id="metPcgSize">-</strong></div>
+    <div class="metrics-row"><span>PLY Equiv</span><strong id="metPlySize">-</strong></div>
+    <div class="metrics-row highlight"><span>Compression</span><strong id="metCompression">-</strong></div>
+    <div class="metrics-row"><span>Frame Time</span><strong id="metFrameTime">-</strong></div>
+    <div class="metrics-row"><span>Anim CPU</span><strong id="metAnimCpu">0 ms</strong></div>
+    <div class="metrics-row"><span>GPU Buffer</span><strong id="metGpuBuf">-</strong></div>
   </div>
 
   <!-- Info -->

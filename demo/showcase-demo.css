@@ -60,6 +60,21 @@ body {
     box-shadow: 0 0 12px rgba(91, 156, 245, 0.18);
 }
 
+/* Massive button accent */
+.mode-btn.massive { color: #a87bff; }
+.mode-btn.massive:hover { color: #d4b8ff; background: rgba(168, 123, 255, 0.15); }
+.mode-btn.massive.active {
+    color: #fff;
+    background: rgba(168, 123, 255, 0.25);
+    box-shadow: 0 0 14px rgba(168, 123, 255, 0.25);
+}
+
+.mode-divider {
+    width: 1px;
+    margin: 4px 2px;
+    background: rgba(88, 128, 190, 0.25);
+}
+
 /* --- Sub-mode bar (preset selector) --- */
 .sub-bar {
     top: 72px; left: 50%; transform: translateX(-50%);
@@ -159,3 +174,45 @@ body {
     pointer-events: auto;
 }
 .ply-hint input { display: none; }
+
+/* --- Efficiency metrics panel (top-right, massive mode) --- */
+.metrics-panel {
+    top: 24px; right: 24px;
+    background: rgba(6, 12, 28, 0.78);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(168, 123, 255, 0.20);
+    border-radius: 12px;
+    padding: 14px 18px;
+    min-width: 210px;
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+}
+.metrics-panel.visible { opacity: 1; }
+
+.metrics-title {
+    font: 600 11px/1 inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #a87bff;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(168, 123, 255, 0.15);
+}
+
+.metrics-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #5e7494;
+    line-height: 2;
+}
+.metrics-row strong {
+    color: #b7c6dd;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.metrics-row.highlight strong {
+    color: #a87bff;
+    font-size: 12px;
+}

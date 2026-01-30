@@ -1,13 +1,17 @@
 /**
  * VIB3+ Gaussian Splat Showcase
  *
- * Three modes driven through the same SplatRenderPipeline:
- *   1. Text   — "HELLO WORLD" rendered as thousands of rainbow Gaussian splats
- *   2. Image  — preloaded procedural patterns (or drag-dropped photo) as splat fields
- *   3. Shape  — 3D parametric surfaces with normal-aligned, surface-coloured splats
+ * Four modes driven through the same SplatRenderPipeline:
+ *   1. Text    — rainbow text rendered as thousands of Gaussian splats
+ *   2. Image   — procedural patterns (or drag-dropped photos) as splat fields
+ *   3. Shape   — 3D parametric surfaces with normal-aligned splats
+ *   4. Massive — 200K–500K+ splats with GPU-driven animation,
+ *                demonstrating the efficiency vertical slice
  *
  * All modes use an orbit camera with perspective projection.
- * Each mode has selectable presets via a sub-bar.
+ * Massive mode enables GPU animation (u_time) and additive blending,
+ * and displays an efficiency metrics overlay comparing procedural
+ * generation to traditional PLY file sizes.
  */
 
 import { SplatRenderPipeline } from '../src/render/SplatRenderPipeline.js';
@@ -28,6 +32,12 @@ import {
     generateHelixSplats,
     generateMultiShapeSplats,
 } from '../src/splat/ShapeSplatGenerator.js';
+import {
+    generateGalaxySplats,
+    generateNebulaSplats,
+    generateParticleStormSplats,
+    generateStarFieldSplats,
+} from '../src/splat/GalaxySplatGenerator.js';
 import { parsePlySplats } from '../src/splat/PlySplatLoader.js';
 
 /* ------------------------------------------------------------------ */
@@ -51,21 +61,13 @@ const camera = new SplatCamera({
 });
 camera.attachControls(canvas);
 
-/**
- * Compute the correct point-scale factor so that a_scale maps to
- * world-space radius.  The perspective matrix gives:
- *   screenPx = worldSize * (canvasHeight / 2) * f / z
- * where f = 1/tan(fov/2).  Our shader does:
- *   gl_PointSize = a_scale * u_pointScale / clipPos.w
- * So u_pointScale = canvasHeight / (2 * tan(fov/2)).
- */
+/** Correct point-scale: maps a_scale to world-space radius on screen. */
 function computePointScale() {
     return canvas.height / (2 * Math.tan(camera.fov / 2));
 }
 
 const pipeline = new SplatRenderPipeline(gl, { pointScale: computePointScale() });
 
-// Handle resize
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth * devicePixelRatio;
     canvas.height = window.innerHeight * devicePixelRatio;
@@ -171,6 +173,39 @@ const PRESETS = {
             camera: { distance: 6, elevation: 0.3 },
         },
     ],
+
+    massive: [
+        {
+            label: 'Galaxy',
+            gen: () => generateGalaxySplats({ totalSplats: 250000, scale: 0.02 }),
+            camera: { distance: 8, elevation: 0.6 },
+            pcgBytes: 28, // 7 params × 4 bytes
+        },
+        {
+            label: 'Nebula',
+            gen: () => generateNebulaSplats({ totalSplats: 150000, scale: 0.04 }),
+            camera: { distance: 6, elevation: 0.2 },
+            pcgBytes: 16,
+        },
+        {
+            label: 'Vortex',
+            gen: () => generateParticleStormSplats({ totalSplats: 200000, scale: 0.015 }),
+            camera: { distance: 8, elevation: 0.15 },
+            pcgBytes: 24,
+        },
+        {
+            label: 'Star Field',
+            gen: () => generateStarFieldSplats({ totalSplats: 100000, scale: 0.012 }),
+            camera: { distance: 10, elevation: 0.1 },
+            pcgBytes: 12,
+        },
+        {
+            label: 'Galaxy 500K',
+            gen: () => generateGalaxySplats({ totalSplats: 500000, scale: 0.015 }),
+            camera: { distance: 9, elevation: 0.55 },
+            pcgBytes: 28,
+        },
+    ],
 };
 
 /* ------------------------------------------------------------------ */
@@ -184,6 +219,9 @@ let autoOrbit = true;
 let frameCount = 0;
 let lastFpsTime = performance.now();
 let displayFps = 0;
+let lastGenTime = 0;
+let lastPcgBytes = 0;
+let startTime = performance.now();
 
 /* ------------------------------------------------------------------ */
 /*  Sub-bar rendering                                                  */
@@ -206,6 +244,37 @@ function renderSubBar(mode) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Efficiency metrics                                                 */
+/* ------------------------------------------------------------------ */
+
+const metricsPanel = document.getElementById('metricsPanel');
+
+function updateMetrics() {
+    const count = seeds.length;
+    const plyBytes = count * 48; // 12 floats × 4 bytes
+    const pcg = lastPcgBytes || 32;
+    const compression = plyBytes > 0 ? Math.round(plyBytes / pcg) : 0;
+    const gpuBuf = count * 12 * 4; // Float32Array size
+
+    document.getElementById('metSplats').textContent = count.toLocaleString();
+    document.getElementById('metGenTime').textContent = lastGenTime.toFixed(1) + ' ms';
+    document.getElementById('metPcgSize').textContent = pcg + ' bytes';
+    document.getElementById('metPlySize').textContent = formatBytes(plyBytes);
+    document.getElementById('metCompression').textContent = compression.toLocaleString() + ':1';
+    document.getElementById('metGpuBuf').textContent = formatBytes(gpuBuf);
+}
+
+function updateFrameTime(ms) {
+    document.getElementById('metFrameTime').textContent = ms.toFixed(1) + ' ms';
+}
+
+function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    return (b / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+/* ------------------------------------------------------------------ */
 /*  Mode & preset switching                                            */
 /* ------------------------------------------------------------------ */
 
@@ -221,17 +290,26 @@ function selectPreset(index) {
         btn.classList.toggle('active', i === index);
     });
 
-    // Apply camera preset
+    // Camera preset
     if (preset.camera) {
         if (preset.camera.distance != null) camera.distance = preset.camera.distance;
         if (preset.camera.elevation != null) camera.elevation = preset.camera.elevation;
     }
 
-    // Generate and upload
+    // Generate with timing
+    const t0 = performance.now();
     seeds = preset.gen();
+    lastGenTime = performance.now() - t0;
+    lastPcgBytes = preset.pcgBytes || 32;
+
     uploadSeeds();
 
-    // Flash the preset label
+    // Update metrics if in massive mode
+    if (currentMode === 'massive') {
+        updateMetrics();
+    }
+
+    // Flash
     const flash = document.getElementById('titleFlash');
     flash.textContent = preset.label;
     flash.classList.add('show');
@@ -248,16 +326,27 @@ function switchMode(mode) {
     });
     document.getElementById('modeLabel').textContent = mode;
 
-    // Show/hide hints
+    // Show/hide contextual UI
     document.getElementById('dropHint').classList.toggle('visible', mode === 'image');
     document.getElementById('plyHint').classList.toggle('visible', mode === 'shape');
+    metricsPanel.classList.toggle('visible', mode === 'massive');
 
-    // Render sub-bar for this mode
+    // Renderer config for massive mode
+    const isMassive = mode === 'massive';
+    pipeline.renderer.animate = isMassive;
+    pipeline.renderer.blendMode = isMassive ? 'additive' : 'premultiplied';
+
+    // Render sub-bar
     renderSubBar(mode);
 
     // Flash title
     const flash = document.getElementById('titleFlash');
-    const titles = { text: 'Text Splats', image: 'Image Splats', shape: '3D Shape Splats' };
+    const titles = {
+        text: 'Text Splats',
+        image: 'Image Splats',
+        shape: '3D Shape Splats',
+        massive: 'Massive Scale',
+    };
     flash.textContent = titles[mode] || mode;
     flash.classList.add('show');
     setTimeout(() => flash.classList.remove('show'), 1200);
@@ -277,17 +366,18 @@ function uploadSeeds() {
 /* ------------------------------------------------------------------ */
 
 function tick() {
-    // Auto-orbit
+    const frameStart = performance.now();
+
     if (autoOrbit) {
-        camera.azimuth += 0.004;
+        camera.azimuth += currentMode === 'massive' ? 0.002 : 0.004;
     }
 
     const vp = camera.viewProjection;
+    const time = (performance.now() - startTime) * 0.001; // seconds
 
-    // Render with the current VP matrix
-    pipeline.renderer.render(vp);
+    pipeline.renderer.render(vp, time);
 
-    // FPS counter
+    // FPS + frame time
     frameCount++;
     const now = performance.now();
     if (now - lastFpsTime > 500) {
@@ -295,6 +385,10 @@ function tick() {
         document.getElementById('fps').textContent = displayFps;
         frameCount = 0;
         lastFpsTime = now;
+
+        if (currentMode === 'massive') {
+            updateFrameTime(now - frameStart);
+        }
     }
 
     requestAnimationFrame(tick);
@@ -304,18 +398,15 @@ function tick() {
 /*  UI Wiring                                                          */
 /* ------------------------------------------------------------------ */
 
-// Mode buttons
 document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => switchMode(btn.dataset.mode));
 });
 
-// Pause auto-orbit during drag
 canvas.addEventListener('pointerdown', () => { autoOrbit = false; });
 canvas.addEventListener('pointerup', () => {
-    setTimeout(() => { autoOrbit = true; }, 3000); // resume after 3s idle
+    setTimeout(() => { autoOrbit = true; }, 3000);
 });
 
-// Image drag-and-drop
 canvas.addEventListener('dragover', e => { e.preventDefault(); });
 canvas.addEventListener('drop', e => {
     e.preventDefault();
@@ -332,7 +423,6 @@ canvas.addEventListener('drop', e => {
     img.src = URL.createObjectURL(file);
 });
 
-// PLY file upload
 document.getElementById('plyFile').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;

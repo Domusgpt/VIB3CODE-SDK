@@ -44,6 +44,8 @@ export const CELL600_CELLS = 600;
 // Golden ratio (used in many 4D polytopes)
 export const PHI = (1 + Math.sqrt(5)) / 2;  // ≈ 1.618
 export const PHI_INV = 1 / PHI;              // ≈ 0.618
+// Plastic ratio (for recursive scaling)
+export const PLASTIC_RATIO = 1.3247179572447458; // ρ ≈ 1.324718
 
 // Rotation plane indices
 export const PLANE_XY = 0;
@@ -155,7 +157,7 @@ export default {
     PI, TAU, HALF_PI, QUARTER_PI,
     DEG_TO_RAD, RAD_TO_DEG,
     EPSILON, EPSILON_NORMAL, EPSILON_EQUAL,
-    PHI, PHI_INV,
+    PHI, PHI_INV, PLASTIC_RATIO,
     PLANE_XY, PLANE_XZ, PLANE_YZ, PLANE_XW, PLANE_YW, PLANE_ZW,
     PLANE_NAMES,
     encodeGeometry, decodeGeometry,

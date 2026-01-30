@@ -17,6 +17,7 @@ const require = createRequire(import.meta.url);
 const parametersSchema = require('./parameters.schema.json');
 const toolResponseSchema = require('./tool-response.schema.json');
 const errorSchema = require('./error.schema.json');
+const proceduralCompactGraphSchema = require('./procedural-compact-graph.schema.json');
 
 class SchemaRegistry {
     constructor() {
@@ -38,12 +39,14 @@ class SchemaRegistry {
         this.schemas = {
             parameters: parametersSchema,
             toolResponse: toolResponseSchema,
-            error: errorSchema
+            error: errorSchema,
+            proceduralCompactGraph: proceduralCompactGraphSchema
         };
 
         // Add all schemas to AJV first (required for $ref resolution)
         this.ajv.addSchema(errorSchema, 'error.schema.json');
         this.ajv.addSchema(parametersSchema, 'parameters.schema.json');
+        this.ajv.addSchema(proceduralCompactGraphSchema, 'procedural-compact-graph.schema.json');
 
         // Compile validators with error handling
         this.validators = {};
@@ -51,6 +54,7 @@ class SchemaRegistry {
             this.validators.error = this.ajv.compile(errorSchema);
             this.validators.parameters = this.ajv.compile(parametersSchema);
             this.validators.toolResponse = this.ajv.compile(toolResponseSchema);
+            this.validators.proceduralCompactGraph = this.ajv.compile(proceduralCompactGraphSchema);
         } catch (e) {
             console.error('Schema compilation error:', e.message);
             // Provide stub validators that always pass (graceful degradation)
@@ -200,5 +204,5 @@ class SchemaRegistry {
 export const schemaRegistry = new SchemaRegistry();
 
 // Named exports
-export { parametersSchema, toolResponseSchema, errorSchema };
+export { parametersSchema, toolResponseSchema, errorSchema, proceduralCompactGraphSchema };
 export default schemaRegistry;

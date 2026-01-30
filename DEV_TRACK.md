@@ -232,3 +232,85 @@ Use the following format to stamp each session. Update the status, notes, and bl
   - 40 new tests for cross-platform command buffer
   - All 647 tests passing (1 pre-existing flaky timing test)
 - **Blockers:** None.
+
+### Session 014 — Procedural compact graph expansion + streaming
+**Stamp:** 2026-01-29 20:03 UTC
+- **Focus:** PCG validation + expansion + stream integration for procedural Gaussian traversal.
+- **Status:** COMPLETE
+- **Notes:**
+  - Added Procedural Compact Graph schema registration and validation helpers.
+  - Implemented `expandProceduralCompactGraph` to translate PCG rules into Gaussian seeds.
+  - Added PCG-backed stream factory to create `ProceduralGaussianStream` instances.
+  - Extended the Gaussian seeder to accept root orientations for seed-aware traversal.
+  - Added tests covering PCG expansion and stream generation.
+- **Blockers:** None.
+
+### Work remaining + plan
+- **PCG rule authoring tools**: build authoring utilities for adjacency rules and seed presets; target a lightweight JSON authoring CLI in `src/cli/`.
+- **Renderer integration**: wire PCG-backed streams into an existing renderer path (WebGL/WebGPU) with a seed buffer encoder.
+- **GPU data layout**: define a Gaussian seed buffer layout (position, orientation, scale, color) and upload pipeline for shader consumption.
+- **Foveated traversal**: add a traversal policy that adjusts `maxDepth`/batch size based on focus metrics.
+- **LLM editing hooks**: add a mutation layer that adjusts PCG rules from high-level prompts.
+- **Validation + docs**: update docs with the PCG schema usage examples and integration steps.
+
+### Planned next steps (immediate)
+1. Add seed buffer encoding utilities + minimal render command integration.
+2. Implement a `FoveatedTraversalPolicy` stub with adjustable depth budgets.
+3. Extend PCG schema tests with negative cases (invalid seeds, missing generators).
+
+### Session 015 — Seed buffer encoding + foveated traversal policy
+**Stamp:** 2026-01-29 23:46 UTC
+- **Focus:** GPU-friendly seed encoding + traversal policy scaffolding for procedural streams.
+- **Status:** COMPLETE
+- **Notes:**
+  - Added Gaussian seed buffer encoder with explicit layout/stride for GPU upload.
+  - Introduced a foveated traversal policy to compute depth/batch sizes from focus + motion.
+  - Exported new render helpers and added unit tests for buffer encoding and policy behavior.
+- **Blockers:** None.
+
+### Updated work plan
+- **Renderer integration**: wire the Gaussian seed buffer into WebGL/WebGPU pipelines and add a minimal shader path for procedural splats.
+- **Traversal orchestration**: connect `FoveatedTraversalPolicy` to stream regeneration and renderer scheduling.
+- **PCG authoring tooling**: implement a CLI for generating/editing PCG payloads.
+- **Docs**: add usage samples for PCG expansion + streaming APIs in documentation.
+
+### Session 016 — Traversal scheduler integration
+**Stamp:** 2026-01-30 23:56 UTC
+- **Focus:** Bind foveated policy, stream batching, and seed encoding for renderer scheduling.
+- **Status:** COMPLETE
+- **Notes:**
+  - Added `ProceduralTraversalScheduler` to couple streams, foveated policy, and seed buffer encoding.
+  - Exported scheduler from render modules and added unit test coverage.
+- **Blockers:** None.
+
+### Updated work plan
+- **Renderer integration**: wire the scheduler output to a WebGL/WebGPU upload path + minimal shader for splats.
+- **Traversal orchestration**: integrate scheduler with any existing frame loops or render command buffers.
+- **PCG authoring tooling**: implement a CLI for generating/editing PCG payloads with validation.
+- **Docs**: add usage samples for scheduler + seed buffer encoding.
+
+### Session 017 — PCG CLI authoring helpers
+**Stamp:** 2026-01-31 00:05 UTC
+- **Focus:** Add CLI support for generating and validating PCG payloads.
+- **Status:** COMPLETE
+- **Notes:**
+  - Added `pcg template` and `pcg validate` CLI subcommands with JSON output.
+  - Template output includes default seeds, S_5 generator set, and plastic-ratio scaling.
+- **Blockers:** Existing CLI import error in `src/agent/index.js` (duplicate export) prevents running CLI until resolved.
+
+### Updated work plan
+- **CLI stability**: fix duplicate export in `src/agent/index.js` so CLI commands can run.
+- **Renderer integration**: wire scheduler output to a WebGL/WebGPU upload path + minimal shader for splats.
+- **Traversal orchestration**: integrate scheduler with any existing frame loops or render command buffers.
+- **PCG authoring tooling**: expand CLI to support editing and exporting PCG payloads.
+- **Docs**: add usage samples for scheduler + seed buffer encoding + CLI.
+
+### Session 018 — CLI stability fixes
+**Stamp:** 2026-01-30 00:03 UTC
+- **Focus:** Resolve CLI import errors by removing duplicate exports and fixing MCP default export wiring.
+- **Status:** COMPLETE
+- **Notes:**
+  - Removed duplicate telemetry/mcpServer exports in agent index modules.
+  - Fixed MCP default export syntax in both src and sdk.
+  - CLI `pcg template` now runs successfully.
+- **Blockers:** None.

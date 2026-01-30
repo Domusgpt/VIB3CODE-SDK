@@ -102,6 +102,7 @@ export { encodeGaussianSeeds, GAUSSIAN_SEED_LAYOUT, GAUSSIAN_SEED_STRIDE } from 
 export { FoveatedTraversalPolicy } from './FoveatedTraversalPolicy.js';
 export { ProceduralTraversalScheduler } from './ProceduralTraversalScheduler.js';
 export { GaussianSplatRenderer } from './GaussianSplatRenderer.js';
+export { SplatRenderPipeline } from './SplatRenderPipeline.js';
 
 /**
  * Create a complete rendering context

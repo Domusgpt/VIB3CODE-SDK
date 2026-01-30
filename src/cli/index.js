@@ -9,6 +9,8 @@ import { mcpServer, toolDefinitions } from '../agent/index.js';
 import { schemaRegistry } from '../schemas/index.js';
 import { QuaternionAdjacencyGraph } from '../math/QuaternionAdjacencyGraph.js';
 import { PLASTIC_RATIO } from '../math/constants.js';
+import { expandProceduralCompactGraph, validateProceduralCompactGraph } from '../geometry/ProceduralCompactGraph.js';
+import { encodeGaussianSeeds, GAUSSIAN_SEED_STRIDE } from '../render/GaussianSeedBuffer.js';
 
 /**
  * CLI Configuration
@@ -62,12 +64,22 @@ function parseArgs(args) {
         } else if (arg.startsWith('--')) {
             // Parse --key=value or --key value
             const [key, ...valueParts] = arg.slice(2).split('=');
+            let val;
             if (valueParts.length > 0) {
-                parsed.options[key] = valueParts.join('=');
+                val = valueParts.join('=');
             } else if (i + 1 < args.length && !args[i + 1].startsWith('-')) {
-                parsed.options[key] = args[++i];
+                val = args[++i];
             } else {
-                parsed.options[key] = true;
+                val = true;
+            }
+            // Accumulate repeated keys (e.g. --set a --set b) into arrays
+            if (parsed.options[key] !== undefined) {
+                if (!Array.isArray(parsed.options[key])) {
+                    parsed.options[key] = [parsed.options[key]];
+                }
+                parsed.options[key].push(val);
+            } else {
+                parsed.options[key] = val;
             }
         } else if (arg.startsWith('-')) {
             // Short options
@@ -183,7 +195,7 @@ function showHelp(isJson) {
             reset: 'Reset to default parameters',
             tools: 'List available MCP tools',
             validate: 'Validate manifests, packs, and configs',
-            pcg: 'Generate or validate Procedural Compact Graph payloads'
+            pcg: 'PCG authoring: template, edit, validate, render'
         },
         options: {
             '--json, -j': 'Output in JSON format (agent-friendly)',
@@ -202,7 +214,9 @@ function showHelp(isJson) {
             `${CLI_NAME} validate pack scene.vib3 --json`,
             `${CLI_NAME} validate manifest extension.json`,
             `${CLI_NAME} pcg template --json`,
-            `${CLI_NAME} pcg validate pcg.json --json`
+            `${CLI_NAME} pcg edit pcg.json --set seeds.0.color=1,0,0 --set scaling.maxDepth=3`,
+            `${CLI_NAME} pcg validate pcg.json --json`,
+            `${CLI_NAME} pcg render pcg.json --json`
         ]
     };
 
@@ -243,11 +257,13 @@ async function handlePcgCommand(parsed) {
     const start = performance.now();
     const subcommand = parsed.subcommand ?? 'template';
 
+    // ---------- template -------------------------------------------------
     if (subcommand === 'template') {
         const template = createPcgTemplate();
         return wrapResponse('pcg.template', { pcg: template }, true, performance.now() - start);
     }
 
+    // ---------- validate -------------------------------------------------
     if (subcommand === 'validate') {
         const target = parsed.positional[0];
         if (!target) {
@@ -271,14 +287,210 @@ async function handlePcgCommand(parsed) {
         }, validation.valid, performance.now() - start);
     }
 
+    // ---------- edit -----------------------------------------------------
+    // Apply dot-path overrides to a PCG file then write it back.
+    //   vib3 pcg edit pcg.json --set seeds.0.color=1,0,0 --set scaling.maxDepth=3
+    if (subcommand === 'edit') {
+        const target = parsed.positional[0];
+        if (!target) {
+            return wrapResponse('pcg.edit', {
+                error: {
+                    type: 'ValidationError',
+                    code: 'MISSING_INPUT',
+                    message: 'Missing PCG payload path.',
+                    suggestion: 'Provide a JSON file: vib3 pcg edit <file> --set key=value.'
+                }
+            }, false, performance.now() - start);
+        }
+
+        const fs = await import('node:fs/promises');
+        const raw = await fs.readFile(target, 'utf-8');
+        const payload = JSON.parse(raw);
+
+        // Collect --set flags (may appear multiple times via options)
+        const edits = collectSetFlags(parsed);
+        if (edits.length === 0) {
+            return wrapResponse('pcg.edit', {
+                error: {
+                    type: 'ValidationError',
+                    code: 'NO_EDITS',
+                    message: 'No --set flags provided.',
+                    suggestion: 'Use --set key=value, e.g. --set seeds.0.color=1,0,0'
+                }
+            }, false, performance.now() - start);
+        }
+
+        // Apply each edit
+        const applied = [];
+        for (const { path, value } of edits) {
+            applyDotPath(payload, path, parseCliValue(value));
+            applied.push(`${path} = ${value}`);
+        }
+
+        // Validate the edited payload
+        const validation = validateProceduralCompactGraph(payload);
+        if (!validation.valid) {
+            return wrapResponse('pcg.edit', {
+                error: {
+                    type: 'ValidationError',
+                    code: 'INVALID_AFTER_EDIT',
+                    message: 'Edited PCG failed validation.',
+                    validation_errors: validation.errors,
+                    suggestion: 'Check your --set values match the PCG schema.'
+                }
+            }, false, performance.now() - start);
+        }
+
+        // Write back
+        await fs.writeFile(target, JSON.stringify(payload, null, 2) + '\n', 'utf-8');
+        return wrapResponse('pcg.edit', {
+            file: target,
+            edits_applied: applied,
+            valid: true
+        }, true, performance.now() - start);
+    }
+
+    // ---------- render ---------------------------------------------------
+    // Expand a PCG into seeds, encode the buffer, report pipeline stats.
+    //   vib3 pcg render pcg.json --json
+    if (subcommand === 'render') {
+        const target = parsed.positional[0];
+        if (!target) {
+            return wrapResponse('pcg.render', {
+                error: {
+                    type: 'ValidationError',
+                    code: 'MISSING_INPUT',
+                    message: 'Missing PCG payload path.',
+                    suggestion: 'Provide a JSON file: vib3 pcg render <file> --json.'
+                }
+            }, false, performance.now() - start);
+        }
+
+        const fs = await import('node:fs/promises');
+        const raw = await fs.readFile(target, 'utf-8');
+        const payload = JSON.parse(raw);
+
+        // Validate
+        const validation = validateProceduralCompactGraph(payload);
+        if (!validation.valid) {
+            return wrapResponse('pcg.render', {
+                error: {
+                    type: 'ValidationError',
+                    code: 'INVALID_PCG',
+                    message: 'PCG payload is invalid.',
+                    validation_errors: validation.errors,
+                    suggestion: 'Run "vib3 pcg validate <file>" for details.'
+                }
+            }, false, performance.now() - start);
+        }
+
+        // Expand seeds
+        const expandStart = performance.now();
+        const seeds = expandProceduralCompactGraph(payload);
+        const expandMs = performance.now() - expandStart;
+
+        // Encode to GPU buffer
+        const encodeStart = performance.now();
+        const buffer = encodeGaussianSeeds(seeds);
+        const encodeMs = performance.now() - encodeStart;
+
+        const bufferBytes = buffer.byteLength;
+        const floatsPerSeed = GAUSSIAN_SEED_STRIDE;
+
+        return wrapResponse('pcg.render', {
+            file: target,
+            pipeline: {
+                seeds_expanded: seeds.length,
+                buffer_bytes: bufferBytes,
+                floats_per_seed: floatsPerSeed,
+                expand_ms: +expandMs.toFixed(3),
+                encode_ms: +encodeMs.toFixed(3),
+                total_ms: +(performance.now() - start).toFixed(3)
+            },
+            sample_seed: seeds.length > 0 ? {
+                position: seeds[0].position,
+                orientation: seeds[0].orientation,
+                scale: seeds[0].scale,
+                color: seeds[0].color,
+                depth: seeds[0].depth
+            } : null
+        }, true, performance.now() - start);
+    }
+
+    // ---------- unknown --------------------------------------------------
     return wrapResponse('pcg', {
         error: {
             type: 'ValidationError',
             code: 'UNKNOWN_SUBCOMMAND',
             message: `Unknown pcg subcommand: ${subcommand}`,
-            suggestion: 'Use "pcg template" or "pcg validate <file>".'
+            suggestion: 'Use "pcg template", "pcg edit <file>", "pcg validate <file>", or "pcg render <file>".'
         }
     }, false, performance.now() - start);
+}
+
+/* ------------------------------------------------------------------ */
+/*  PCG CLI helpers                                                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Collect all --set flags from parsed CLI args.
+ * Supports both `--set key=value` and `--set "key=value"` forms.
+ * Multiple --set flags are stored as an array in parsed.options.
+ */
+function collectSetFlags(parsed) {
+    const raw = parsed.options.set;
+    if (!raw) return [];
+    const items = Array.isArray(raw) ? raw : [raw];
+    return items.map(item => {
+        const eqIndex = String(item).indexOf('=');
+        if (eqIndex === -1) return null;
+        return {
+            path: item.slice(0, eqIndex),
+            value: item.slice(eqIndex + 1)
+        };
+    }).filter(Boolean);
+}
+
+/**
+ * Apply a dot-path value to an object.
+ * E.g. applyDotPath(obj, 'seeds.0.color', [1,0,0]) sets obj.seeds[0].color.
+ */
+function applyDotPath(obj, path, value) {
+    const parts = path.split('.');
+    let current = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+        const key = /^\d+$/.test(parts[i]) ? parseInt(parts[i]) : parts[i];
+        if (current[key] === undefined) {
+            current[key] = /^\d+$/.test(parts[i + 1]) ? [] : {};
+        }
+        current = current[key];
+    }
+    const lastKey = /^\d+$/.test(parts[parts.length - 1])
+        ? parseInt(parts[parts.length - 1])
+        : parts[parts.length - 1];
+    current[lastKey] = value;
+}
+
+/**
+ * Parse a CLI value string into a JS value.
+ * Handles: numbers, comma-separated arrays of numbers, booleans, strings.
+ */
+function parseCliValue(str) {
+    // Comma-separated numbers → array
+    if (str.includes(',')) {
+        const parts = str.split(',');
+        if (parts.every(p => !isNaN(Number(p)))) {
+            return parts.map(Number);
+        }
+        return parts;
+    }
+    // Boolean
+    if (str === 'true') return true;
+    if (str === 'false') return false;
+    // Number
+    if (!isNaN(Number(str))) return Number(str);
+    // String
+    return str;
 }
 
 /**

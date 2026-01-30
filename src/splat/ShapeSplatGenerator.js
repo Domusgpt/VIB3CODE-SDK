@@ -232,4 +232,109 @@ export function generateTorusKnotSplats({
     return seeds;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Double Helix (DNA-like)                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Generate splats along a double-helix structure with cross-rungs.
+ */
+export function generateHelixSplats({
+    radius = 0.5,
+    pitch = 0.8,
+    turns = 4,
+    steps = 500,
+    scale = 0.05,
+} = {}) {
+    const seeds = [];
+    const totalLength = turns * pitch;
+
+    for (let strand = 0; strand < 2; strand++) {
+        const angleOffset = strand * Math.PI;
+        for (let i = 0; i < steps; i++) {
+            const t = i / steps;
+            const angle = t * turns * Math.PI * 2 + angleOffset;
+
+            const px = radius * Math.cos(angle);
+            const py = t * totalLength - totalLength / 2;
+            const pz = radius * Math.sin(angle);
+
+            const [nx, , nz] = normalize3(Math.cos(angle), 0, Math.sin(angle));
+
+            const baseHue = strand === 0 ? 200 : 340;
+            const hue = baseHue + t * 60;
+
+            seeds.push({
+                position: [px, py, pz],
+                orientation: quatFromNormal(nx, 0, nz),
+                scale: scale * (0.8 + Math.random() * 0.4),
+                color: hsl(hue, 0.9, 0.55),
+                depth: 0,
+            });
+
+            // Cross-links (rungs) every 20 steps, only from strand 0
+            if (strand === 0 && i % 20 === 0) {
+                const otherAngle = angle + Math.PI;
+                const ox = radius * Math.cos(otherAngle);
+                const oz = radius * Math.sin(otherAngle);
+
+                const rungSteps = 6;
+                for (let ri = 0; ri < rungSteps; ri++) {
+                    const rt = ri / (rungSteps - 1);
+                    seeds.push({
+                        position: [
+                            px + (ox - px) * rt,
+                            py,
+                            pz + (oz - pz) * rt,
+                        ],
+                        orientation: [1, 0, 0, 0],
+                        scale: scale * 0.6,
+                        color: hsl(60 + rt * 60, 0.8, 0.65),
+                        depth: 0,
+                    });
+                }
+            }
+        }
+    }
+
+    return seeds;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Multi-shape scene                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Generate a combined scene with multiple shapes for a richer default.
+ */
+export function generateMultiShapeSplats() {
+    const seeds = [];
+
+    // Central torus knot
+    const knot = generateTorusKnotSplats({
+        R: 0.8, r: 0.22, steps: 200, tubeSteps: 10, scale: 0.04,
+    });
+    seeds.push(...knot);
+
+    // Orbiting spheres
+    for (let i = 0; i < 3; i++) {
+        const angle = (i / 3) * Math.PI * 2;
+        const ox = Math.cos(angle) * 2;
+        const oz = Math.sin(angle) * 2;
+        const sphere = generateSphereSplats({
+            radius: 0.3, uSteps: 24, vSteps: 12, scale: 0.035, jitter: 0.08,
+        });
+        for (const s of sphere) {
+            s.position[0] += ox;
+            s.position[2] += oz;
+            // Tint each sphere differently
+            const tintHue = i * 120;
+            s.color = hsl(tintHue, 0.85, 0.55);
+        }
+        seeds.push(...sphere);
+    }
+
+    return seeds;
+}
+
 export default generateTorusSplats;

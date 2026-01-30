@@ -73,9 +73,11 @@ export class SplatRenderPipeline {
      *
      * @param {Object[]} seeds  Array of seed objects (position, orientation,
      *                          scale, color, depth).
+     * @param {Float32Array} [viewProjection]  4×4 column-major VP matrix.
      * @returns {CommandBuffer}  The recorded (sorted) command buffer.
      */
-    submit(seeds) {
+    submit(seeds, viewProjection) {
+        this._viewProjection = viewProjection || null;
         // ---- encode & upload ------------------------------------
         const encoded = encodeGaussianSeeds(seeds);
         this.renderer.updateSeeds(encoded, seeds.length);
@@ -105,11 +107,15 @@ export class SplatRenderPipeline {
         // 4. Draw all splats via a CustomCommand that delegates to
         //    the GaussianSplatRenderer's own program/VAO.
         const renderer = this.renderer;
+        const vp = this._viewProjection;
         const drawCmd = new CustomCommand((/* backend */) => {
             const g = renderer.gl;
             g.useProgram(renderer.program);
             g.bindVertexArray(renderer.vao);
             g.uniform1f(renderer.uniforms.pointScale, renderer.pointScale);
+            if (vp) {
+                g.uniformMatrix4fv(renderer.uniforms.viewProjection, false, vp);
+            }
             g.drawArrays(g.POINTS, 0, renderer.count);
             g.bindVertexArray(null);
         });
@@ -161,11 +167,13 @@ export class SplatRenderPipeline {
      * Convenience: submit + execute in one call.
      *
      * @param {Object[]} seeds
-     * @param {object}   [backend]
+     * @param {object}   [opts]
+     * @param {object}   [opts.backend]
+     * @param {Float32Array} [opts.viewProjection]
      * @returns {object}  Execution stats.
      */
-    run(seeds, backend = null) {
-        this.submit(seeds);
+    run(seeds, { backend = null, viewProjection } = {}) {
+        this.submit(seeds, viewProjection);
         return this.execute(backend);
     }
 

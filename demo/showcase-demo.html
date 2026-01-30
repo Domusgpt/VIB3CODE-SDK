@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIB3+ Gaussian Splat Showcase</title>
+  <link rel="stylesheet" href="./showcase-demo.css" />
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <!-- Mode selector -->
+  <div class="overlay top-bar">
+    <button class="mode-btn active" data-mode="text">Text</button>
+    <button class="mode-btn" data-mode="image">Image</button>
+    <button class="mode-btn" data-mode="shape">3D Shape</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="overlay stats-panel">
+    <span>Splats<strong id="splatCount">0</strong></span>
+    <span>FPS<strong id="fps">0</strong></span>
+    <span>Mode<strong id="modeLabel">text</strong></span>
+  </div>
+
+  <!-- Info -->
+  <div class="overlay info-panel">
+    Drag to orbit &middot; Scroll to zoom<br>
+    VIB3+ Gaussian Splat Pipeline
+  </div>
+
+  <!-- Title flash on mode switch -->
+  <div class="overlay title-flash" id="titleFlash"></div>
+
+  <!-- Image drop hint -->
+  <div class="overlay drop-hint" id="dropHint">Drop an image to render as splats</div>
+
+  <!-- PLY upload hint -->
+  <div class="overlay ply-hint" id="plyHint">
+    <label>Upload .PLY file<input type="file" id="plyFile" accept=".ply"></label>
+  </div>
+
+  <script type="module" src="./showcase-demo.js"></script>
+</body>
+</html>

@@ -9,7 +9,8 @@ export default defineConfig({
         outDir: 'dist',
         rollupOptions: {
             input: {
-                'pcg-demo': resolve(import.meta.dirname, 'demo/pcg-demo.html')
+                'pcg-demo': resolve(import.meta.dirname, 'demo/pcg-demo.html'),
+                'showcase': resolve(import.meta.dirname, 'demo/showcase-demo.html')
             }
         }
     }

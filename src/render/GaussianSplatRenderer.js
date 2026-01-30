@@ -22,6 +22,13 @@
 
 import { GAUSSIAN_SEED_STRIDE } from './GaussianSeedBuffer.js';
 
+const IDENTITY_MATRIX = new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+]);
+
 /* ------------------------------------------------------------------ */
 /*  Shader sources                                                     */
 /* ------------------------------------------------------------------ */
@@ -37,6 +44,7 @@ in vec3  a_color;         // offset  8
 in float a_depth;         // offset 11
 
 uniform float u_pointScale;
+uniform mat4  u_viewProjection;  // identity when unused (clip-space mode)
 
 // Flat – constant across the point-sprite quad
 flat out vec3  v_color;
@@ -45,13 +53,15 @@ flat out vec2  v_axisU;   // major ellipse axis in point-coord space
 flat out vec2  v_axisV;   // minor ellipse axis
 
 void main() {
-    gl_Position = vec4(a_position, 1.0);
+    vec4 clipPos = u_viewProjection * vec4(a_position, 1.0);
+    gl_Position = clipPos;
 
     // ---- depth-aware point size --------------------------------
-    // Splats deeper in the traversal tree shrink via a smooth
-    // inverse falloff so the hierarchy is visually apparent.
+    // Scale by projected distance (w) so perspective works, and by
+    // traversal depth so deeper hierarchy levels shrink.
+    float projDist = max(0.5, clipPos.w);  // w ≈ 1 when identity
     float depthFade = 1.0 / (1.0 + a_depth * 0.15);
-    gl_PointSize = max(2.0, a_scale * u_pointScale * depthFade);
+    gl_PointSize = max(1.0, a_scale * u_pointScale * depthFade / projDist);
 
     // ---- quaternion → 2D screen-space rotation ------------------
     // Extract the Z-axis (yaw) component of the quaternion so
@@ -201,6 +211,7 @@ export class GaussianSplatRenderer {
 
         // ---- uniform locations ----------------------------------
         this.uniforms.pointScale = gl.getUniformLocation(program, 'u_pointScale');
+        this.uniforms.viewProjection = gl.getUniformLocation(program, 'u_viewProjection');
     }
 
     /**
@@ -243,8 +254,11 @@ export class GaussianSplatRenderer {
      *
      * Sets up depth-test (read-only) and premultiplied-alpha blending
      * so that back-to-front compositing works correctly.
+     *
+     * @param {Float32Array} [viewProjection] 4×4 column-major matrix.
+     *   When omitted the shader uses identity (clip-space positions).
      */
-    render() {
+    render(viewProjection) {
         const gl = this.gl;
         if (!this.count) return;
 
@@ -266,6 +280,11 @@ export class GaussianSplatRenderer {
         gl.useProgram(this.program);
         gl.bindVertexArray(this.vao);
         gl.uniform1f(this.uniforms.pointScale, this.pointScale);
+        gl.uniformMatrix4fv(
+            this.uniforms.viewProjection,
+            false,
+            viewProjection || IDENTITY_MATRIX
+        );
 
         gl.drawArrays(gl.POINTS, 0, this.count);
 

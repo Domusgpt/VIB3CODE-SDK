@@ -1,0 +1,129 @@
+/* ------------------------------------------------------------------ */
+/*  VIB3+ Showcase Demo                                                */
+/* ------------------------------------------------------------------ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    min-height: 100vh;
+    background: #030814;
+    color: #e6edf6;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+}
+
+/* --- Canvas --- */
+#canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    cursor: grab;
+}
+#canvas:active { cursor: grabbing; }
+
+/* --- Overlay chrome --- */
+.overlay {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* --- Top bar (mode selector) --- */
+.top-bar {
+    top: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px;
+    background: rgba(6, 12, 28, 0.72);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(88, 128, 190, 0.25);
+    border-radius: 14px;
+    padding: 5px;
+    pointer-events: auto;
+}
+
+.mode-btn {
+    font: 600 13px/1 inherit;
+    color: #8ba0bf;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: color .2s, background .2s;
+    letter-spacing: 0.02em;
+}
+.mode-btn:hover { color: #e6edf6; background: rgba(88, 128, 190, 0.15); }
+.mode-btn.active {
+    color: #fff;
+    background: rgba(91, 156, 245, 0.22);
+    box-shadow: 0 0 12px rgba(91, 156, 245, 0.18);
+}
+
+/* --- Stats panel (bottom-left) --- */
+.stats-panel {
+    bottom: 24px; left: 24px;
+    display: flex; gap: 18px;
+    font-size: 12px;
+    color: #5e7494;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.stats-panel strong {
+    color: #b7c6dd;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* --- Info panel (bottom-right) --- */
+.info-panel {
+    bottom: 24px; right: 24px;
+    font-size: 11px;
+    color: #3e526e;
+    text-align: right;
+    line-height: 1.6;
+}
+
+/* --- Title flash --- */
+.title-flash {
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 28px; font-weight: 700;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 0 40px rgba(91, 156, 245, 0.5);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+.title-flash.show { opacity: 1; }
+.title-flash.hide { opacity: 0; }
+
+/* --- Drop zone (image mode) --- */
+.drop-hint {
+    top: 80px; left: 50%; transform: translateX(-50%);
+    font-size: 12px;
+    color: #5e7494;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+.drop-hint.visible { opacity: 1; pointer-events: auto; }
+
+/* --- PLY file upload --- */
+.ply-hint {
+    top: 80px; left: 50%; transform: translateX(-50%);
+    font-size: 12px;
+    color: #5e7494;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+.ply-hint.visible { opacity: 1; pointer-events: auto; }
+.ply-hint label {
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    pointer-events: auto;
+}
+.ply-hint input { display: none; }

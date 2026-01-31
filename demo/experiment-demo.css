@@ -76,11 +76,37 @@ body {
     box-shadow: 0 0 10px rgba(91, 156, 245, 0.15);
 }
 
+/* --- Controls toggle button (mobile) --- */
+.controls-toggle {
+    top: 100px; left: 16px;
+    font: 600 12px/1 inherit;
+    color: #5b9cf5;
+    background: rgba(6, 12, 28, 0.82);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(91, 156, 245, 0.25);
+    border-radius: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    pointer-events: auto;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: background .2s, border-color .2s;
+    z-index: 11;
+}
+.controls-toggle:hover {
+    background: rgba(91, 156, 245, 0.12);
+    border-color: #5b9cf5;
+}
+.controls-toggle.active {
+    background: rgba(91, 156, 245, 0.2);
+    border-color: #5b9cf5;
+}
+
 /* --- Controls panel (left sidebar) --- */
 .controls-panel {
-    top: 100px; left: 16px;
+    top: 136px; left: 16px;
     width: 280px;
-    max-height: calc(100vh - 160px);
+    max-height: calc(100vh - 200px);
     overflow-y: auto;
     background: rgba(6, 12, 28, 0.82);
     backdrop-filter: blur(16px);
@@ -88,6 +114,12 @@ body {
     border-radius: 14px;
     padding: 16px;
     pointer-events: auto;
+    transition: opacity .25s, transform .25s;
+}
+.controls-panel.collapsed {
+    opacity: 0;
+    transform: translateX(-20px);
+    pointer-events: none;
 }
 
 .controls-title {
@@ -239,4 +271,46 @@ body {
 .controls-panel::-webkit-scrollbar-thumb {
     background: rgba(88, 128, 190, 0.2);
     border-radius: 2px;
+}
+
+/* --- Mobile responsive --- */
+@media (max-width: 600px) {
+    .scene-bar {
+        top: 48px;
+        gap: 2px;
+        padding: 3px;
+    }
+    .scene-btn {
+        font-size: 10px;
+        padding: 6px 8px;
+    }
+    .header-bar { top: 10px; }
+    .header-title { font-size: 14px; }
+    .header-sub { font-size: 10px; }
+
+    .controls-toggle {
+        top: 88px;
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+    .controls-panel {
+        top: 122px;
+        left: 8px;
+        width: calc(100vw - 16px);
+        max-height: 50vh;
+    }
+
+    .stats-panel {
+        bottom: 44px;
+        right: 8px;
+        min-width: 160px;
+        padding: 10px 12px;
+    }
+    .stat-row { font-size: 10px; line-height: 1.8; }
+
+    .info-panel {
+        bottom: 8px;
+        right: 8px;
+        font-size: 10px;
+    }
 }

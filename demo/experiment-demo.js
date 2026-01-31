@@ -44,13 +44,6 @@ const gl = canvas.getContext('webgl2', {
 });
 if (!gl) throw new Error('WebGL2 required');
 
-// Check for float texture support (needed for FBOs)
-const extColorFloat = gl.getExtension('EXT_color_buffer_half_float');
-const extFloat = gl.getExtension('OES_texture_half_float');
-if (!extColorFloat) {
-    console.warn('EXT_color_buffer_half_float not available — some tricks may not work');
-}
-
 const camera = new SplatCamera({
     distance: 9,
     azimuth: 0.3,
@@ -216,6 +209,14 @@ sliderBloomIntensity.addEventListener('input', () => {
 const toggleAddTrail = document.getElementById('toggleAddTrail');
 toggleAddTrail.addEventListener('change', () => {
     renderer.trailBufferEnabled = toggleAddTrail.checked;
+});
+
+// Controls toggle (collapsible panel)
+const controlsToggle = document.getElementById('controlsToggle');
+const controlsPanel = document.getElementById('controls');
+controlsToggle.addEventListener('click', () => {
+    const isCollapsed = controlsPanel.classList.toggle('collapsed');
+    controlsToggle.classList.toggle('active', !isCollapsed);
 });
 
 // Scene buttons

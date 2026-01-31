@@ -296,10 +296,40 @@ void main() {
 /*  FBO helper                                                         */
 /* ------------------------------------------------------------------ */
 
+/** Detect whether we can render to RGBA16F. Falls back to RGBA8. */
+let _fboFormat = null;
+function detectFBOFormat(gl) {
+    if (_fboFormat) return _fboFormat;
+
+    // Try RGBA16F first (better precision for trails/bloom)
+    const hasHalf = gl.getExtension('EXT_color_buffer_half_float');
+    if (hasHalf) {
+        const testTex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, testTex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, 4, 4, 0, gl.RGBA, gl.HALF_FLOAT, null);
+        const testFb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, testFb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, testTex, 0);
+        const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.deleteFramebuffer(testFb);
+        gl.deleteTexture(testTex);
+        if (status === gl.FRAMEBUFFER_COMPLETE) {
+            _fboFormat = { internalFormat: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT };
+            return _fboFormat;
+        }
+    }
+
+    // Fallback: RGBA8 (universally supported)
+    _fboFormat = { internalFormat: gl.RGBA8, format: gl.RGBA, type: gl.UNSIGNED_BYTE };
+    return _fboFormat;
+}
+
 function createFBO(gl, w, h, linear = true) {
+    const fmt = detectFBOFormat(gl);
     const tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.HALF_FLOAT, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, fmt.internalFormat, w, h, 0, fmt.format, fmt.type, null);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, linear ? gl.LINEAR : gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, linear ? gl.LINEAR : gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -318,15 +348,6 @@ function createFBO(gl, w, h, linear = true) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     return { framebuffer: fb, texture: tex, depthRb, width: w, height: h };
-}
-
-function resizeFBO(gl, fbo, w, h) {
-    gl.bindTexture(gl.TEXTURE_2D, fbo.texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.HALF_FLOAT, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, fbo.depthRb);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, w, h);
-    fbo.width = w;
-    fbo.height = h;
 }
 
 function destroyFBO(gl, fbo) {
@@ -442,20 +463,26 @@ export class ExperimentalSplatRenderer {
         // --- Fullscreen quad VAO (vertexless — gl_VertexID) ---
         this._quadVao = gl.createVertexArray();
 
-        // --- Post-process programs ---
-        this._blitProgram = this._createProgram(FULLSCREEN_VERT, BLIT_FRAGMENT);
-        this._bloomExtractProgram = this._createProgram(FULLSCREEN_VERT, BLOOM_EXTRACT_FRAGMENT);
-        this._kawaseProgram = this._createProgram(FULLSCREEN_VERT, KAWASE_BLUR_FRAGMENT);
-        this._trailDecayProgram = this._createProgram(FULLSCREEN_VERT, TRAIL_DECAY_FRAGMENT);
+        // --- Post-process programs (compiled lazily on first FBO use) ---
+        this._blitProgram = null;
+        this._bloomExtractProgram = null;
+        this._kawaseProgram = null;
+        this._trailDecayProgram = null;
 
-        // --- FBOs (initial size, resized in render) ---
-        const w = gl.canvas.width || 1;
-        const h = gl.canvas.height || 1;
-        this._ensureFBOs(w, h);
+        // FBOs created lazily when a trick that needs them is activated.
     }
 
     _ensureFBOs(w, h) {
         const gl = this.gl;
+
+        // Lazy-compile post-process programs on first FBO use
+        if (!this._blitProgram) {
+            this._blitProgram = this._createProgram(FULLSCREEN_VERT, BLIT_FRAGMENT);
+            this._bloomExtractProgram = this._createProgram(FULLSCREEN_VERT, BLOOM_EXTRACT_FRAGMENT);
+            this._kawaseProgram = this._createProgram(FULLSCREEN_VERT, KAWASE_BLUR_FRAGMENT);
+            this._trailDecayProgram = this._createProgram(FULLSCREEN_VERT, TRAIL_DECAY_FRAGMENT);
+        }
+
         const sw = Math.max(1, Math.floor(w * this.resolutionScale));
         const sh = Math.max(1, Math.floor(h * this.resolutionScale));
 
@@ -516,16 +543,41 @@ export class ExperimentalSplatRenderer {
     /*  Main render                                                    */
     /* -------------------------------------------------------------- */
 
+    /** Check whether any trick that requires FBOs is active. */
+    _needsFBOs() {
+        return this.trailDecay > 0.01
+            || this.resolutionScale < 0.99
+            || this.bloomEnabled
+            || this.trailBufferEnabled;
+    }
+
     render(viewProjection, time = 0) {
         const gl = this.gl;
         if (!this.count) return;
 
         const w = gl.canvas.width;
         const h = gl.canvas.height;
-        this._ensureFBOs(w, h);
         this.frameNumber++;
 
         const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+
+        // --- FAST PATH: no FBO tricks active → render directly to canvas ---
+        if (!this._needsFBOs()) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.viewport(0, 0, w, h);
+            gl.clearColor(0.012, 0.02, 0.05, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            this._drawSplats(viewProjection || IDENTITY, time);
+            gl.disable(gl.BLEND);
+            return {
+                drawnSplats: this._lastDrawnSplats,
+                totalSplats: this.count,
+                frameNumber: this.frameNumber,
+            };
+        }
+
+        // --- FBO PATH: at least one FBO trick is active ---
+        this._ensureFBOs(w, h);
 
         // --- Step 1: Temporal accumulation (fade previous frame) ---
         const useTrail = this.trailDecay > 0.01;

@@ -1,10 +1,13 @@
+/**
+ * PCG Demo – uses the full SplatRenderPipeline to validate the
+ * procedural traversal → buffer → command-buffer → GPU draw flow.
+ */
 import { ProceduralGaussianStream } from '../src/render/ProceduralGaussianStream.js';
 import { ProceduralTraversalScheduler } from '../src/render/ProceduralTraversalScheduler.js';
-import { encodeGaussianSeeds } from '../src/render/GaussianSeedBuffer.js';
-import { GaussianSplatRenderer } from '../src/render/GaussianSplatRenderer.js';
+import { SplatRenderPipeline } from '../src/render/SplatRenderPipeline.js';
 
 const canvas = document.getElementById('pcgCanvas');
-const gl = canvas.getContext('webgl2');
+const gl = canvas.getContext('webgl2', { depth: true });
 if (!gl) {
   throw new Error('WebGL2 is required for this demo.');
 }
@@ -16,12 +19,13 @@ const seedValue = document.getElementById('seedValue');
 const stream = new ProceduralGaussianStream({ maxDepth: 2, stepDistance: 0.9 });
 const scheduler = new ProceduralTraversalScheduler({ stream });
 
+// Full pipeline: encodes seeds, records CommandBuffer, sorts, executes GL
+const pipeline = new SplatRenderPipeline(gl, { pointScale: 18 });
+
 let pointer = { x: canvas.width / 2, y: canvas.height / 2 };
 let lastPointer = { ...pointer };
 
 const center = () => ({ x: canvas.width / 2, y: canvas.height / 2 });
-
-const renderer = new GaussianSplatRenderer(gl, { pointScale: 18 });
 
 const tick = () => {
   const { x: cx, y: cy } = center();
@@ -32,10 +36,10 @@ const tick = () => {
   const motion = Math.min(Math.hypot(pointer.x - lastPointer.x, pointer.y - lastPointer.y) / 20, 4);
 
   const result = scheduler.nextFrame({ focus, motion });
-  const encoded = encodeGaussianSeeds(result.seeds);
   const seedCount = result.seeds.length;
-  renderer.updateSeeds(encoded, seedCount);
-  renderer.render();
+
+  // Run the full command-buffer pipeline (submit + execute)
+  pipeline.run(result.seeds);
 
   depthValue.textContent = result.maxDepth.toString();
   batchValue.textContent = result.batchSize.toString();

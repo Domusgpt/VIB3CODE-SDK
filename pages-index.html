@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VIB3+ SDK</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      min-height:100vh;
+      background:radial-gradient(ellipse at 30% 20%,#0d1b2a,#030814 60%);
+      color:#e6edf6;
+      font-family:"Inter","Segoe UI",system-ui,sans-serif;
+      display:grid;place-items:center;
+      padding:40px 20px;
+    }
+    .landing{max-width:640px;text-align:center;display:flex;flex-direction:column;gap:28px}
+    h1{font-size:40px;letter-spacing:-0.02em}
+    h1 span{color:#5b9cf5}
+    p.sub{color:#8ba0bf;line-height:1.6;font-size:15px}
+    .links{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:8px}
+    a.card{
+      display:flex;flex-direction:column;gap:6px;
+      padding:20px 28px;
+      border:1px solid rgba(88,128,190,.3);
+      border-radius:14px;
+      background:rgba(13,26,45,.5);
+      color:#e6edf6;text-decoration:none;
+      transition:border-color .2s,background .2s;
+      min-width:200px;
+    }
+    a.card:hover{border-color:#5b9cf5;background:rgba(30,55,95,.4)}
+    a.card strong{font-size:17px}
+    a.card span{font-size:12px;color:#7f92af;text-transform:uppercase;letter-spacing:.06em}
+    .tag{
+      display:inline-block;font-size:11px;
+      padding:3px 10px;border-radius:20px;
+      background:rgba(91,156,245,.15);color:#5b9cf5;
+      letter-spacing:.04em;text-transform:uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="landing">
+    <div><span class="tag">Proof of Concept</span></div>
+    <h1><span>VIB3+</span> SDK</h1>
+    <p class="sub">
+      4D visualization engine with Gaussian splat rendering,
+      procedural content generation, and a 6-plane rotation system.
+    </p>
+    <div class="links">
+      <a class="card" href="./demo/showcase-demo.html">
+        <strong>Splat Showcase</strong>
+        <span>Text &middot; Image &middot; 3D shapes</span>
+      </a>
+      <a class="card" href="./demo/experiment-demo.html">
+        <strong>Render Experiments</strong>
+        <span>A/B interleave &middot; trails &middot; bloom</span>
+      </a>
+      <a class="card" href="./demo/audio-demo.html">
+        <strong>Audio Reactive</strong>
+        <span>Mic input &middot; decodable 3D spectrogram</span>
+      </a>
+      <a class="card" href="./demo/fluid-demo.html">
+        <strong>Fluid Tank</strong>
+        <span>Accelerometer &middot; SPH water &middot; GL_LINES</span>
+      </a>
+      <a class="card" href="./demo/pcg-demo.html">
+        <strong>PCG Pipeline Demo</strong>
+        <span>Procedural traversal &middot; WebGL2</span>
+      </a>
+      <a class="card" href="./sdk/">
+        <strong>Full SDK App</strong>
+        <span>Quantum &middot; Faceted &middot; Holographic</span>
+      </a>
+      <a class="card" href="./docs/">
+        <strong>Algo Art Gallery</strong>
+        <span>Trading card collection</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

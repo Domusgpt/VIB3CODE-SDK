@@ -1,0 +1,246 @@
+/* ------------------------------------------------------------------ */
+/*  VIB3+ Showcase Demo                                                */
+/* ------------------------------------------------------------------ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    min-height: 100vh;
+    background: #030814;
+    color: #e6edf6;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+}
+
+/* --- Canvas --- */
+#canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    cursor: grab;
+}
+#canvas:active { cursor: grabbing; }
+
+/* --- Overlay chrome --- */
+.overlay {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* --- Top bar (mode selector) --- */
+.top-bar {
+    top: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px;
+    background: rgba(6, 12, 28, 0.72);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(88, 128, 190, 0.25);
+    border-radius: 14px;
+    padding: 5px;
+    pointer-events: auto;
+}
+
+.mode-btn {
+    font: 600 13px/1 inherit;
+    color: #8ba0bf;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: color .2s, background .2s;
+    letter-spacing: 0.02em;
+}
+.mode-btn:hover { color: #e6edf6; background: rgba(88, 128, 190, 0.15); }
+.mode-btn.active {
+    color: #fff;
+    background: rgba(91, 156, 245, 0.22);
+    box-shadow: 0 0 12px rgba(91, 156, 245, 0.18);
+}
+
+/* Massive button accent */
+.mode-btn.massive { color: #a87bff; }
+.mode-btn.massive:hover { color: #d4b8ff; background: rgba(168, 123, 255, 0.15); }
+.mode-btn.massive.active {
+    color: #fff;
+    background: rgba(168, 123, 255, 0.25);
+    box-shadow: 0 0 14px rgba(168, 123, 255, 0.25);
+}
+
+/* Ultra button accent */
+.mode-btn.ultra { color: #ff7b5a; }
+.mode-btn.ultra:hover { color: #ffb09a; background: rgba(255, 123, 90, 0.15); }
+.mode-btn.ultra.active {
+    color: #fff;
+    background: rgba(255, 123, 90, 0.28);
+    box-shadow: 0 0 16px rgba(255, 123, 90, 0.3);
+}
+
+/* WOAH button accent — gold with glow */
+.mode-btn.woah {
+    color: #ffd700;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 6px rgba(255, 215, 0, 0.3);
+}
+.mode-btn.woah:hover {
+    color: #ffe766;
+    background: rgba(255, 215, 0, 0.15);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+.mode-btn.woah.active {
+    color: #fff;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 100, 50, 0.25));
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.35), 0 0 40px rgba(255, 100, 50, 0.15);
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+.mode-divider {
+    width: 1px;
+    margin: 4px 2px;
+    background: rgba(88, 128, 190, 0.25);
+}
+
+/* --- Sub-mode bar (preset selector) --- */
+.sub-bar {
+    top: 72px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 4px;
+    background: rgba(6, 12, 28, 0.60);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(88, 128, 190, 0.18);
+    border-radius: 10px;
+    padding: 4px;
+    pointer-events: auto;
+    transition: opacity 0.3s;
+}
+.sub-bar:empty { display: none; }
+
+.sub-btn {
+    font: 500 11px/1 inherit;
+    color: #6b84a3;
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: color .2s, background .2s;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.sub-btn:hover { color: #c8d6e5; background: rgba(88, 128, 190, 0.12); }
+.sub-btn.active {
+    color: #e6edf6;
+    background: rgba(91, 156, 245, 0.18);
+}
+
+/* --- Stats panel (bottom-left) --- */
+.stats-panel {
+    bottom: 24px; left: 24px;
+    display: flex; gap: 18px;
+    font-size: 12px;
+    color: #5e7494;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.stats-panel strong {
+    color: #b7c6dd;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* --- Info panel (bottom-right) --- */
+.info-panel {
+    bottom: 24px; right: 24px;
+    font-size: 11px;
+    color: #3e526e;
+    text-align: right;
+    line-height: 1.6;
+}
+
+/* --- Title flash --- */
+.title-flash {
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 28px; font-weight: 700;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 0 40px rgba(91, 156, 245, 0.5);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+.title-flash.show { opacity: 1; }
+.title-flash.hide { opacity: 0; }
+
+/* --- Drop zone (image mode) --- */
+.drop-hint {
+    top: 80px; left: 50%; transform: translateX(-50%);
+    font-size: 12px;
+    color: #5e7494;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+.drop-hint.visible { opacity: 1; pointer-events: auto; }
+
+/* --- PLY file upload --- */
+.ply-hint {
+    top: 80px; left: 50%; transform: translateX(-50%);
+    font-size: 12px;
+    color: #5e7494;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+.ply-hint.visible { opacity: 1; pointer-events: auto; }
+.ply-hint label {
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    pointer-events: auto;
+}
+.ply-hint input { display: none; }
+
+/* --- Efficiency metrics panel (top-right, massive mode) --- */
+.metrics-panel {
+    top: 24px; right: 24px;
+    background: rgba(6, 12, 28, 0.78);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(168, 123, 255, 0.20);
+    border-radius: 12px;
+    padding: 14px 18px;
+    min-width: 210px;
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+}
+.metrics-panel.visible { opacity: 1; }
+
+.metrics-title {
+    font: 600 11px/1 inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #a87bff;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(168, 123, 255, 0.15);
+}
+
+.metrics-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #5e7494;
+    line-height: 2;
+}
+.metrics-row strong {
+    color: #b7c6dd;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.metrics-row.highlight strong {
+    color: #a87bff;
+    font-size: 12px;
+}

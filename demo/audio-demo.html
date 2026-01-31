@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIB3+ Audio Reactive Splats</title>
+  <link rel="stylesheet" href="./audio-demo.css" />
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div class="overlay header-bar">
+    <span class="header-title">Audio Reactive Splats</span>
+    <span class="header-sub">Mic input encoded as decodable 3D spectrogram</span>
+  </div>
+
+  <div class="overlay mode-bar">
+    <button class="mic-btn" id="micBtn">Start Mic</button>
+    <span class="mode-divider"></span>
+    <button class="vis-btn active" data-vis="spectrogram">Spectrogram</button>
+    <button class="vis-btn" data-vis="rings">Rings</button>
+    <button class="vis-btn" data-vis="waveform">Waveform</button>
+  </div>
+
+  <div class="overlay legend" id="legend">
+    <div class="legend-title">Decode Map</div>
+    <div class="legend-row"><span class="dot dot-bass"></span> X = Frequency (L=bass R=treble)</div>
+    <div class="legend-row"><span class="dot dot-amp"></span> Y = Amplitude (up=loud)</div>
+    <div class="legend-row"><span class="dot dot-time"></span> Z = Time (front=now)</div>
+    <div class="legend-row"><span class="dot dot-hue"></span> Hue = Frequency band</div>
+    <div class="legend-row"><span class="dot dot-size"></span> Size = Energy</div>
+  </div>
+
+  <div class="overlay stats-panel">
+    <div class="stat-row"><span>FPS</span><strong id="fps">0</strong></div>
+    <div class="stat-row"><span>Splats</span><strong id="splatCount">0</strong></div>
+    <div class="stat-row"><span>Peak Hz</span><strong id="peakHz">-</strong></div>
+    <div class="stat-row"><span>RMS</span><strong id="rms">-</strong></div>
+  </div>
+
+  <div class="overlay info-panel">
+    Drag to orbit &middot; Scroll to zoom<br>
+    VIB3+ Audio Spectrogram
+  </div>
+
+  <script type="module" src="./audio-demo.js"></script>
+</body>
+</html>

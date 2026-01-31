@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIB3+ Gaussian Splat Showcase</title>
+  <link rel="stylesheet" href="./showcase-demo.css" />
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <!-- Mode selector -->
+  <div class="overlay top-bar">
+    <button class="mode-btn active" data-mode="text">Text</button>
+    <button class="mode-btn" data-mode="image">Image</button>
+    <button class="mode-btn" data-mode="shape">3D Shape</button>
+    <span class="mode-divider"></span>
+    <button class="mode-btn massive" data-mode="massive">Massive</button>
+    <button class="mode-btn ultra" data-mode="ultra">Ultra</button>
+    <span class="mode-divider"></span>
+    <button class="mode-btn woah" data-mode="woah">WOAH</button>
+  </div>
+
+  <!-- Sub-mode selector (presets within a mode) -->
+  <div class="overlay sub-bar" id="subBar"></div>
+
+  <!-- Stats -->
+  <div class="overlay stats-panel">
+    <span>Splats<strong id="splatCount">0</strong></span>
+    <span>FPS<strong id="fps">0</strong></span>
+    <span>Mode<strong id="modeLabel">text</strong></span>
+  </div>
+
+  <!-- Efficiency metrics (shown in massive mode) -->
+  <div class="overlay metrics-panel" id="metricsPanel">
+    <div class="metrics-title">Efficiency Metrics</div>
+    <div class="metrics-row"><span>Splats</span><strong id="metSplats">-</strong></div>
+    <div class="metrics-row"><span>Gen Time</span><strong id="metGenTime">-</strong></div>
+    <div class="metrics-row"><span>PCG Size</span><strong id="metPcgSize">-</strong></div>
+    <div class="metrics-row"><span>PLY Equiv</span><strong id="metPlySize">-</strong></div>
+    <div class="metrics-row highlight"><span>Compression</span><strong id="metCompression">-</strong></div>
+    <div class="metrics-row"><span>Frame Time</span><strong id="metFrameTime">-</strong></div>
+    <div class="metrics-row"><span>Anim CPU</span><strong id="metAnimCpu">0 ms</strong></div>
+    <div class="metrics-row"><span>GPU Buffer</span><strong id="metGpuBuf">-</strong></div>
+  </div>
+
+  <!-- Info -->
+  <div class="overlay info-panel">
+    Drag to orbit &middot; Scroll to zoom<br>
+    VIB3+ Gaussian Splat Pipeline
+  </div>
+
+  <!-- Title flash on mode switch -->
+  <div class="overlay title-flash" id="titleFlash"></div>
+
+  <!-- Image drop hint -->
+  <div class="overlay drop-hint" id="dropHint">Drop an image to render as splats</div>
+
+  <!-- PLY upload hint -->
+  <div class="overlay ply-hint" id="plyHint">
+    <label>Upload .PLY file<input type="file" id="plyFile" accept=".ply"></label>
+  </div>
+
+  <script type="module" src="./showcase-demo.js"></script>
+</body>
+</html>

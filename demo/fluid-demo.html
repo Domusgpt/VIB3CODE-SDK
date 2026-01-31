@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIB3+ Fluid Tank</title>
+  <link rel="stylesheet" href="./fluid-demo.css" />
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div class="overlay header-bar">
+    <span class="header-title">Fluid Tank</span>
+    <span class="header-sub">Gaussian splats as SPH density kernels</span>
+  </div>
+
+  <div class="overlay action-bar">
+    <button class="action-btn tilt-btn" id="tiltBtn">Enable Tilt</button>
+    <span class="bar-divider"></span>
+    <button class="action-btn" id="shakeBtn">Shake</button>
+    <button class="action-btn" id="resetBtn">Reset</button>
+  </div>
+
+  <div class="overlay legend" id="legend">
+    <div class="legend-title">Decode Map</div>
+    <div class="legend-row"><span class="dot dot-depth"></span> Depth = pressure (larger, darker)</div>
+    <div class="legend-row"><span class="dot dot-speed"></span> Speed = foam (brighter, lighter)</div>
+    <div class="legend-row"><span class="dot dot-surface"></span> Surface = lower density (visible splats)</div>
+    <div class="legend-row"><span class="dot dot-bulk"></span> Bulk = high density (blended continuous)</div>
+  </div>
+
+  <div class="overlay gravity-indicator" id="gravBox">
+    <div class="grav-arrow" id="gravDir"></div>
+    <span class="grav-label">Gravity</span>
+  </div>
+
+  <div class="overlay stats-panel">
+    <div class="stat-row"><span>FPS</span><strong id="fps">0</strong></div>
+    <div class="stat-row"><span>Particles</span><strong id="particles">0</strong></div>
+    <div class="stat-row"><span>Spilled</span><strong id="spilled">0</strong></div>
+  </div>
+
+  <div class="overlay info-panel">
+    Tilt device or move mouse to control gravity<br>
+    Drag to orbit &middot; Scroll to zoom<br>
+    VIB3+ Fluid Tank
+  </div>
+
+  <script type="module" src="./fluid-demo.js"></script>
+</body>
+</html>

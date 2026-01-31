@@ -21,14 +21,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build demo (vite)
+        run: npx vite build
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Create pages directory
+      - name: Assemble site
         run: |
-          # Deploy the VIB3+ SDK
           mkdir -p _site
-          cp -r sdk/* _site/
+
+          # Landing page
+          cp pages-index.html _site/index.html
+
+          # Bundled PCG / Gaussian splat demo
+          cp -r dist/demo   _site/demo/
+          cp -r dist/assets _site/assets/
+
+          # Full SDK app (inline JS, no build needed)
+          cp -r sdk _site/sdk
+
+          # Docs / gallery
+          cp -r docs _site/docs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

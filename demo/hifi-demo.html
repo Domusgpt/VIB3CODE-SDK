@@ -50,6 +50,20 @@
     }
     .feature-badge h3 { font-size: 13px; color: #4af; margin-bottom: 6px; }
     .feature-badge .check { color: #4f8; }
+
+    .pp-controls {
+      top: 100px; right: 16px;
+      background: rgba(10,14,26,0.9); border: 1px solid #222;
+      border-radius: 8px; padding: 12px 16px; font-size: 11px;
+      max-width: 220px;
+    }
+    .pp-controls h3 { font-size: 12px; color: #4af; margin-bottom: 8px; }
+    .pp-controls label { display: block; margin-bottom: 6px; cursor: pointer; color: #ccc; }
+    .pp-controls input[type="checkbox"] { margin-right: 6px; accent-color: #4af; }
+    .slider-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; color: #888; }
+    .slider-row span:first-child { flex: 1; }
+    .slider-row span:last-child { width: 28px; text-align: right; color: #4af; font-weight: 600; }
+    .slider-row input[type="range"] { width: 70px; accent-color: #4af; }
   </style>
 </head>
 <body>
@@ -85,6 +99,35 @@
     <div><span class="check">&#10003;</span> 16-bit radix depth sort (back-to-front)</div>
     <div><span class="check">&#10003;</span> 6-plane frustum culling</div>
     <div><span class="check">&#10003;</span> Separate opacity channel</div>
+    <div><span class="check">&#10003;</span> Sobel edge detection + inscription</div>
+    <div><span class="check">&#10003;</span> HDR tonemap (Reinhard + gamma)</div>
+  </div>
+
+  <div class="overlay pp-controls">
+    <h3>Post-Processing</h3>
+    <label><input type="checkbox" id="ppEdges" checked> Edge Detection</label>
+    <label><input type="checkbox" id="ppInscription" checked> VIB3 Inscription</label>
+    <label><input type="checkbox" id="ppTonemap" checked> Tonemap</label>
+    <div class="slider-row">
+      <span>Sensitivity</span>
+      <input type="range" id="ppSensitivity" min="1" max="20" step="0.5" value="6">
+      <span id="ppSensitivityVal">6.0</span>
+    </div>
+    <div class="slider-row">
+      <span>Edge Glow</span>
+      <input type="range" id="ppEdgeIntensity" min="0" max="4" step="0.1" value="1.5">
+      <span id="ppEdgeIntensityVal">1.5</span>
+    </div>
+    <div class="slider-row">
+      <span>Pattern</span>
+      <input type="range" id="ppInscPattern" min="0" max="23" step="1" value="3">
+      <span id="ppInscPatternVal">3</span>
+    </div>
+    <div class="slider-row">
+      <span>Exposure</span>
+      <input type="range" id="ppExposure" min="0.5" max="3" step="0.1" value="1.2">
+      <span id="ppExposureVal">1.2</span>
+    </div>
   </div>
 
   <script type="module" src="./hifi-demo.js"></script>

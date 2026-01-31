@@ -7,11 +7,13 @@
  *  - CPU depth sorting (16-bit radix, back-to-front)
  *  - Frustum culling (6-plane extraction from VP matrix)
  *  - 3-axis anisotropic scale + separate opacity
+ *  - Post-processing: Sobel edge detection, VIB3 inscription, tonemap
  */
 
 import { encodeHiFiSeeds } from '../src/render/GaussianSeedBuffer.js';
 import { SplatCamera } from '../src/splat/SplatCamera.js';
 import { HiFiSplatRenderer } from '../src/render/HiFiSplatRenderer.js';
+import { SplatPostProcess } from '../src/render/SplatPostProcess.js';
 import {
     generateTorusSplats,
     generateSphereSplats,
@@ -51,6 +53,20 @@ const renderer = new HiFiSplatRenderer(gl, {
     intensity: 1.0,
     frustumCull: true,
     depthSort: true,
+});
+
+const postProcess = new SplatPostProcess(gl, {
+    enableEdges: true,
+    edgeColor: [0.3, 0.7, 1.0],
+    edgeIntensity: 1.5,
+    edgeSensitivity: 6.0,
+    enableInscription: true,
+    inscGeometry: 3,
+    inscScale: 3.0,
+    inscSpeed: 0.3,
+    enableTonemap: true,
+    exposure: 1.2,
+    gamma: 2.2,
 });
 
 window.addEventListener('resize', () => {
@@ -168,6 +184,32 @@ function updateStats(frameStart, stats) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Post-process controls                                              */
+/* ------------------------------------------------------------------ */
+
+function wireCheckbox(id, cb) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', e => cb(e.target.checked));
+}
+function wireRange(id, vid, cb) {
+    const el = document.getElementById(id), vl = document.getElementById(vid);
+    if (el) el.addEventListener('input', () => {
+        const v = parseFloat(el.value);
+        if (vl) vl.textContent = v.toFixed(el.step < 1 ? 1 : 0);
+        cb(v);
+    });
+}
+
+wireCheckbox('ppEdges', v => postProcess.enableEdges = v);
+wireCheckbox('ppInscription', v => postProcess.enableInscription = v);
+wireCheckbox('ppTonemap', v => postProcess.enableTonemap = v);
+
+wireRange('ppSensitivity', 'ppSensitivityVal', v => postProcess.edgeSensitivity = v);
+wireRange('ppEdgeIntensity', 'ppEdgeIntensityVal', v => postProcess.edgeIntensity = v);
+wireRange('ppInscPattern', 'ppInscPatternVal', v => postProcess.inscGeometry = v);
+wireRange('ppExposure', 'ppExposureVal', v => postProcess.exposure = v);
+
+/* ------------------------------------------------------------------ */
 /*  Render loop                                                        */
 /* ------------------------------------------------------------------ */
 
@@ -183,7 +225,16 @@ function tick() {
     const vp = camera.viewProjection;
     const time = (performance.now() - startTime) * 0.001;
 
+    // Animate 4D inscription rotation
+    postProcess.rot4dXW = time * 0.15;
+    postProcess.rot4dYW = time * 0.1;
+    postProcess.rot4dZW = time * 0.08;
+
+    // Render splats to offscreen FBO, then composite with post-processing
+    postProcess.beginCapture();
     const stats = renderer.render(viewMatrix, projMatrix, vp, time);
+    postProcess.endCaptureAndComposite(time);
+
     updateStats(frameStart, stats);
 
     requestAnimationFrame(tick);

@@ -11,7 +11,9 @@ export default defineConfig({
             input: {
                 'pcg-demo': resolve(import.meta.dirname, 'demo/pcg-demo.html'),
                 'showcase': resolve(import.meta.dirname, 'demo/showcase-demo.html'),
-                'experiment': resolve(import.meta.dirname, 'demo/experiment-demo.html')
+                'experiment': resolve(import.meta.dirname, 'demo/experiment-demo.html'),
+                'audio': resolve(import.meta.dirname, 'demo/audio-demo.html'),
+                'fluid': resolve(import.meta.dirname, 'demo/fluid-demo.html')
             }
         }
     }

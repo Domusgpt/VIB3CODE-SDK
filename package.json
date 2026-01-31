@@ -294,6 +294,7 @@
     "test:all": "vitest run && playwright test",
     "bench": "vitest bench",
     "analyze:bundle": "vite build --mode analyze",
+    "build:pages": "vite build && node scripts/assemble-pages.js",
     "check:bundle": "pnpm exec vite build --outDir dist-ci --emptyOutDir && node tools/ci/bundleSizeCheck.mjs dist-ci --cleanup",
     "codegen:localization": "tsx tools/codegen/localization-quaternions.ts",
     "cli:telemetry": "node tools/cli/agent-cli.js telemetry:export",

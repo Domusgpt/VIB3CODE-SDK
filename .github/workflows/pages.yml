@@ -43,15 +43,21 @@ jobs:
           # Landing page
           cp pages-index.html _site/index.html
 
-          # Bundled PCG / Gaussian splat demo
+          # Vite-built demos (PCG, Showcase, Experiment, Hi-Fi)
           cp -r dist/demo   _site/demo/
           cp -r dist/assets _site/assets/
 
           # Full SDK app (inline JS, no build needed)
           cp -r sdk _site/sdk
 
-          # Docs / gallery
+          # Art gallery / docs
           cp -r docs _site/docs
+
+          # Technical documentation
+          [ -d DOCS ] && cp -r DOCS _site/DOCS || true
+
+          # Prevent Jekyll processing
+          touch _site/.nojekyll
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

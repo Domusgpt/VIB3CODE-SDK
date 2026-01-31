@@ -48,7 +48,6 @@ in vec3  a_scale3;      // offset 3  (anisotropic sx, sy, sz)
 in vec4  a_orientation; // offset 6  (quaternion w, x, y, z)
 in vec3  a_color;       // offset 10
 in float a_opacity;     // offset 13
-in float a_depth;       // offset 14
 
 uniform mat4  u_viewMatrix;
 uniform mat4  u_projMatrix;
@@ -57,10 +56,10 @@ uniform float u_time;
 uniform float u_animate;       // 0.0 = static, 1.0 = animated
 
 // Outputs to fragment shader
-out vec2  v_uv;        // quad UV in splat-local space
+out vec2  v_uv;        // pixel offset from splat centre within quad
 out vec3  v_color;
 out float v_opacity;
-out float v_conic_a;   // 2D inverse covariance (symmetric 2×2)
+out float v_conic_a;   // 2D inverse covariance (symmetric 2×2, 1/pixel² units)
 out float v_conic_b;   // packed as (a, b, c) where M = [[a,b],[b,c]]
 out float v_conic_c;
 
@@ -87,72 +86,61 @@ void main() {
         0.0,        0.0,        a_scale3.z
     );
     mat3 RS = R * S;
-    // Σ_3D = RS * RS^T (symmetric positive semi-definite)
 
     // ---- Transform splat centre to view space ----------------------
     vec4 viewPos = u_viewMatrix * vec4(a_position, 1.0);
     float tz = -viewPos.z;  // camera looks down -Z, so tz > 0 is in front
 
     if (tz < 0.1) {
-        // Behind camera — degenerate
         gl_Position = vec4(0.0, 0.0, 2.0, 1.0);
         return;
     }
 
-    // ---- Jacobian of perspective projection J ----------------------
-    // For perspective: u = fx * X/Z, v = fy * Y/Z
-    // J = [[fx/Z, 0, -fx*X/Z²],
-    //      [0, fy/Z, -fy*Y/Z²]]
-    //
-    // We compute J in terms of the projection matrix entries.
-    float fx = u_projMatrix[0][0]; // proj[0][0] = 2n/(r-l) ≈ focal_x
-    float fy = u_projMatrix[1][1]; // proj[1][1] = 2n/(t-b) ≈ focal_y
+    // ---- Focal lengths in PIXEL space ------------------------------
+    // proj[0][0] = 1/tan(fovX/2) in NDC; multiply by viewport/2 → pixels
+    float fx = u_projMatrix[0][0] * u_viewport.x * 0.5;
+    float fy = u_projMatrix[1][1] * u_viewport.y * 0.5;
     float tz2 = tz * tz;
 
-    // J is 2×3 — we multiply J * RS to get a 2×3 matrix M
-    // Then Σ_2D = M * M^T (2×2 symmetric)
-    //
-    // But it's cheaper to first compute J * Σ_3D_view * J^T
-    // where Σ_3D_view = V_rot * Σ_3D * V_rot^T (V_rot = upper-left 3×3 of view)
+    // Clamp view-space position to prevent extreme Jacobian at edges
+    float tx = clamp(viewPos.x, -1.3 * tz, 1.3 * tz);
+    float ty = clamp(viewPos.y, -1.3 * tz, 1.3 * tz);
 
+    // ---- Jacobian of perspective projection (pixel space) ----------
+    // J = [[fx/tz, 0,     fx*tx/tz²],
+    //      [0,     fy/tz, fy*ty/tz²]]
+    //
+    // Applied to columns of RS_view = ViewRot * R * S
     mat3 viewRot = mat3(u_viewMatrix);
     mat3 RS_view = viewRot * RS;
 
-    // J · RS_view  →  2×3 matrix, but we only need the 2×2 result Σ_2D
-    // col j of RS_view: RS_view[j]
-    // J * col = (fx * col.x / tz - fx * viewPos.x * col.z / tz2,
-    //            fy * col.y / tz - fy * viewPos.y * col.z / tz2)
+    // M = J * RS_view → 2×3 matrix, columns j0, j1, j2
     vec2 j0 = vec2(
-        fx * (RS_view[0].x / tz - viewPos.x * RS_view[0].z / tz2),
-        fy * (RS_view[0].y / tz - viewPos.y * RS_view[0].z / tz2)
+        fx * (RS_view[0].x / tz + tx * RS_view[0].z / tz2),
+        fy * (RS_view[0].y / tz + ty * RS_view[0].z / tz2)
     );
     vec2 j1 = vec2(
-        fx * (RS_view[1].x / tz - viewPos.x * RS_view[1].z / tz2),
-        fy * (RS_view[1].y / tz - viewPos.y * RS_view[1].z / tz2)
+        fx * (RS_view[1].x / tz + tx * RS_view[1].z / tz2),
+        fy * (RS_view[1].y / tz + ty * RS_view[1].z / tz2)
     );
     vec2 j2 = vec2(
-        fx * (RS_view[2].x / tz - viewPos.x * RS_view[2].z / tz2),
-        fy * (RS_view[2].y / tz - viewPos.y * RS_view[2].z / tz2)
+        fx * (RS_view[2].x / tz + tx * RS_view[2].z / tz2),
+        fy * (RS_view[2].y / tz + ty * RS_view[2].z / tz2)
     );
 
-    // Σ_2D = Σ(j_i * j_i^T) for i=0..2  (since M*M^T = sum of outer products of columns)
-    // Σ_2D = [[a, b], [b, c]]  in NDC space
-    float cov_a = dot(j0, j0) + dot(j1, j1) + dot(j2, j2); // wrong — this is trace
-    // Correct: Σ_2D[0][0] = j0.x² + j1.x² + j2.x²
-    //          Σ_2D[0][1] = j0.x*j0.y + j1.x*j1.y + j2.x*j2.y
-    //          Σ_2D[1][1] = j0.y² + j1.y² + j2.y²
+    // Σ_2D = M * M^T = Σ(j_i · j_i^T) — pixel² space, symmetric 2×2
     float sig_a = j0.x*j0.x + j1.x*j1.x + j2.x*j2.x;
     float sig_b = j0.x*j0.y + j1.x*j1.y + j2.x*j2.y;
     float sig_c = j0.y*j0.y + j1.y*j1.y + j2.y*j2.y;
 
-    // Low-pass filter: add small isotropic component to prevent
-    // singularities when a splat is viewed edge-on
+    // Low-pass filter: 0.3 pixel² prevents singularities when
+    // a splat is viewed edge-on (matches reference 3DGS implementation)
     sig_a += 0.3;
     sig_c += 0.3;
 
-    // ---- Invert Σ_2D for the fragment shader conic -----------------
+    // ---- Invert Σ_2D for fragment shader conic (1/pixel² units) ---
     float det = sig_a * sig_c - sig_b * sig_b;
-    if (det < 1e-8) {
+    if (det < 1e-6) {
         gl_Position = vec4(0.0, 0.0, 2.0, 1.0);
         return;
     }
@@ -161,31 +149,24 @@ void main() {
     v_conic_b = -sig_b * inv_det;
     v_conic_c =  sig_a * inv_det;
 
-    // ---- Compute quad extent from eigenvalues of Σ_2D --------------
-    // We need to size the quad to cover the 3-sigma ellipse.
-    // Eigenvalues: λ = 0.5 * ((a+c) ± sqrt((a-c)² + 4b²))
+    // ---- Compute quad extent from eigenvalues of Σ_2D (pixels²) ---
     float mid = 0.5 * (sig_a + sig_c);
     float disc = sqrt(max(0.0, (sig_a - sig_c) * (sig_a - sig_c) + 4.0 * sig_b * sig_b));
     float lambda_max = mid + 0.5 * disc;
 
-    // 3-sigma radius in NDC
-    float radius_ndc = 3.0 * sqrt(lambda_max);
-
-    // Convert NDC radius to pixels, then back to clip-space extent
-    vec2 radius_px = radius_ndc * u_viewport * 0.5;
-    // Clamp to prevent degenerate quads
-    radius_px = clamp(radius_px, vec2(1.0), vec2(2048.0));
+    // 3-sigma radius in pixels
+    float radius = 3.0 * sqrt(max(0.1, lambda_max));
+    radius = clamp(radius, 2.0, 1024.0);
 
     // ---- Project centre to clip space ------------------------------
     vec4 clipPos = u_projMatrix * viewPos;
 
-    // Offset quad corners in clip space
-    vec2 offset_clip = a_quadCorner * radius_px * 2.0 / u_viewport * clipPos.w;
+    // Offset quad corners: convert pixel radius to clip-space offset
+    vec2 offset_clip = a_quadCorner * radius * 2.0 / u_viewport * clipPos.w;
     gl_Position = clipPos + vec4(offset_clip, 0.0, 0.0);
 
-    // UV for fragment: map quad corner to the conic evaluation space
-    // The fragment will evaluate at (u,v) in NDC-offset space
-    v_uv = a_quadCorner * radius_ndc;
+    // UV for fragment: pixel offset from splat centre
+    v_uv = a_quadCorner * radius;
 
     // ---- Pass colour and opacity -----------------------------------
     v_color = a_color;
@@ -372,11 +353,13 @@ export class HiFiSplatRenderer {
         gl.vertexAttribPointer(opaLoc, 1, gl.FLOAT, false, stride, 13 * 4);
         gl.vertexAttribDivisor(opaLoc, 1);
 
-        // a_depth: float at offset 14*4=56
+        // a_depth not used by shader (sort is CPU-side), but skip gracefully
         const depLoc = gl.getAttribLocation(program, 'a_depth');
-        gl.enableVertexAttribArray(depLoc);
-        gl.vertexAttribPointer(depLoc, 1, gl.FLOAT, false, stride, 14 * 4);
-        gl.vertexAttribDivisor(depLoc, 1);
+        if (depLoc >= 0) {
+            gl.enableVertexAttribArray(depLoc);
+            gl.vertexAttribPointer(depLoc, 1, gl.FLOAT, false, stride, 14 * 4);
+            gl.vertexAttribDivisor(depLoc, 1);
+        }
 
         gl.bindVertexArray(null);
 
@@ -474,8 +457,8 @@ export class HiFiSplatRenderer {
         gl.clearColor(0.012, 0.02, 0.05, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
+        // No depth test — back-to-front alpha blending handles ordering
+        gl.disable(gl.DEPTH_TEST);
         gl.depthMask(false);
 
         gl.enable(gl.BLEND);

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIB3+ Cyberpunk Pyramids</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #020408; color: #e0e0e0; font-family: 'SF Mono', 'Fira Code', monospace; overflow: hidden; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+
+    .overlay { position: fixed; z-index: 10; pointer-events: none; }
+    .overlay > * { pointer-events: auto; }
+
+    .header-bar {
+      top: 10px; left: 50%; transform: translateX(-50%);
+      text-align: center;
+    }
+    .header-title {
+      font-size: 15px; font-weight: 700; color: #fff;
+      text-shadow: 0 0 12px rgba(0,255,255,0.4);
+      letter-spacing: 2px; text-transform: uppercase;
+    }
+    .header-sub { display: block; font-size: 10px; color: #556; margin-top: 2px; letter-spacing: 1px; }
+
+    .stats-panel {
+      bottom: 12px; left: 12px;
+      background: rgba(2,4,8,0.85); border: 1px solid #1a1e2a;
+      border-radius: 6px; padding: 10px 14px; font-size: 11px;
+      line-height: 1.7;
+    }
+    .stats-panel .label { color: #445; }
+    .stats-panel .value { color: #0ff; font-weight: 600; }
+    .stats-panel .good { color: #0f8; }
+    .stats-panel .warn { color: #f80; }
+
+    .layer-info {
+      bottom: 12px; right: 12px;
+      background: rgba(2,4,8,0.85); border: 1px solid #1a1e2a;
+      border-radius: 6px; padding: 10px 14px; font-size: 10px;
+      line-height: 1.7; max-width: 200px;
+    }
+    .layer-info h3 {
+      font-size: 11px; color: #f0a; margin-bottom: 4px;
+      text-shadow: 0 0 6px rgba(255,0,170,0.3);
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .layer-info .ly { color: #556; }
+    .layer-info .ly span { color: #0ff; }
+
+    .pp-controls {
+      top: 50px; right: 12px;
+      background: rgba(2,4,8,0.9); border: 1px solid #1a1e2a;
+      border-radius: 6px; padding: 10px 14px; font-size: 10px;
+      max-width: 200px;
+    }
+    .pp-controls h3 {
+      font-size: 11px; color: #0ff; margin-bottom: 6px;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .pp-controls label { display: block; margin-bottom: 4px; cursor: pointer; color: #889; }
+    .pp-controls input[type="checkbox"] { margin-right: 4px; accent-color: #0ff; }
+    .slider-row { display: flex; align-items: center; gap: 4px; margin: 3px 0; color: #556; }
+    .slider-row span:first-child { flex: 1; }
+    .slider-row span:last-child { width: 24px; text-align: right; color: #0ff; font-weight: 600; font-size: 10px; }
+    .slider-row input[type="range"] { width: 60px; accent-color: #0ff; }
+
+    /* Scanline overlay for cyberpunk effect (CSS only) */
+    .scanlines {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 5; pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="scanlines"></div>
+
+  <div class="overlay header-bar">
+    <span class="header-title">Cyberpunk Pyramids</span>
+    <span class="header-sub">5-layer parallax &middot; translucent colour mixing &middot; Gaussian splats</span>
+  </div>
+
+  <div class="overlay stats-panel">
+    <div><span class="label">FPS: </span><span class="value" id="fps">--</span></div>
+    <div><span class="label">Splats: </span><span class="value" id="totalSplats">--</span></div>
+    <div><span class="label">Visible: </span><span class="value good" id="visibleSplats">--</span></div>
+    <div><span class="label">Culled: </span><span class="value warn" id="culledSplats">--</span></div>
+    <div><span class="label">Sort: </span><span class="value" id="sortTime">--</span></div>
+  </div>
+
+  <div class="overlay layer-info">
+    <h3>Parallax Layers</h3>
+    <div class="ly"><span>1</span> Stars + Nebula</div>
+    <div class="ly"><span>2</span> Moon + Planets</div>
+    <div class="ly"><span>3</span> Distant Pyramids</div>
+    <div class="ly"><span>4</span> Foreground + Sand</div>
+    <div class="ly"><span>5</span> Atmosphere + Grid</div>
+  </div>
+
+  <div class="overlay pp-controls">
+    <h3>Post-Process</h3>
+    <label><input type="checkbox" id="ppEdges" checked> Edge Glow</label>
+    <label><input type="checkbox" id="ppInscription" checked> Inscription</label>
+    <label><input type="checkbox" id="ppTonemap" checked> Tonemap</label>
+    <div class="slider-row">
+      <span>Sensitivity</span>
+      <input type="range" id="ppSensitivity" min="1" max="20" step="0.5" value="8">
+      <span id="ppSensitivityVal">8.0</span>
+    </div>
+    <div class="slider-row">
+      <span>Edge Glow</span>
+      <input type="range" id="ppEdgeIntensity" min="0" max="4" step="0.1" value="2.0">
+      <span id="ppEdgeIntensityVal">2.0</span>
+    </div>
+    <div class="slider-row">
+      <span>Pattern</span>
+      <input type="range" id="ppInscPattern" min="0" max="23" step="1" value="1">
+      <span id="ppInscPatternVal">1</span>
+    </div>
+    <div class="slider-row">
+      <span>Exposure</span>
+      <input type="range" id="ppExposure" min="0.5" max="3" step="0.1" value="1.4">
+      <span id="ppExposureVal">1.4</span>
+    </div>
+  </div>
+
+  <script type="module" src="./pyramid-demo.js"></script>
+</body>
+</html>

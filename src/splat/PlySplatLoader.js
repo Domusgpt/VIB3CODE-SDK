@@ -10,6 +10,12 @@
  *   rot_0 … rot_3           → quaternion (w, x, y, z)
  *   f_dc_0, f_dc_1, f_dc_2  → SH DC → base RGB
  *   opacity                  → logit-space opacity → alpha
+ *
+ * Two output modes:
+ *   - Standard (default): single scalar scale, color premultiplied by alpha,
+ *     depth=0. Compatible with GaussianSplatRenderer.
+ *   - HiFi (hifi=true): 3-axis anisotropic scale3[], separate opacity,
+ *     depth=0. Compatible with HiFiSplatRenderer.
  */
 
 const SH_C0 = 0.28209479177387814; // 1 / (2 * sqrt(π))
@@ -19,11 +25,12 @@ const SH_C0 = 0.28209479177387814; // 1 / (2 * sqrt(π))
  *
  * @param {ArrayBuffer} buffer  Raw PLY file bytes
  * @param {object} [opts]
- * @param {number} [opts.maxSplats]  Cap the number of returned splats
- * @param {number} [opts.scaleMultiplier]  Global scale multiplier
+ * @param {number}  [opts.maxSplats]        Cap the number of returned splats
+ * @param {number}  [opts.scaleMultiplier]  Global scale multiplier
+ * @param {boolean} [opts.hifi=false]       Emit hi-fi seeds (3-axis scale, separate opacity)
  * @returns {Object[]}  GaussianSeed[]
  */
-export function parsePlySplats(buffer, { maxSplats = Infinity, scaleMultiplier = 1 } = {}) {
+export function parsePlySplats(buffer, { maxSplats = Infinity, scaleMultiplier = 1, hifi = false } = {}) {
     const bytes = new Uint8Array(buffer);
     const headerEnd = findHeaderEnd(bytes);
     const headerStr = new TextDecoder().decode(bytes.subarray(0, headerEnd));
@@ -32,10 +39,10 @@ export function parsePlySplats(buffer, { maxSplats = Infinity, scaleMultiplier =
     const count = Math.min(vertexCount, maxSplats);
 
     if (format === 'ascii') {
-        return parseAscii(headerStr, bytes, headerEnd, properties, count, scaleMultiplier);
+        return parseAscii(headerStr, bytes, headerEnd, properties, count, scaleMultiplier, hifi);
     }
 
-    return parseBinary(buffer, headerEnd, properties, count, scaleMultiplier);
+    return parseBinary(buffer, headerEnd, properties, count, scaleMultiplier, hifi);
 }
 
 /* ------------------------------------------------------------------ */
@@ -89,7 +96,7 @@ const TYPE_SIZE = {
     uint: 4, int: 4,
 };
 
-function parseBinary(buffer, offset, properties, count, scaleMul) {
+function parseBinary(buffer, offset, properties, count, scaleMul, hifi = false) {
     const stride = properties.reduce((s, p) => s + (TYPE_SIZE[p.type] || 4), 0);
     const view = new DataView(buffer, offset);
 
@@ -119,7 +126,6 @@ function parseBinary(buffer, offset, properties, count, scaleMul) {
         const s0 = Math.exp(readF(base, 'scale_0'));
         const s1 = Math.exp(readF(base, 'scale_1'));
         const s2 = Math.exp(readF(base, 'scale_2'));
-        const avgScale = ((s0 + s1 + s2) / 3) * scaleMul;
 
         // Quaternion
         const rw = readF(base, 'rot_0');
@@ -142,13 +148,27 @@ function parseBinary(buffer, offset, properties, count, scaleMul) {
 
         if (alpha < 0.05) continue; // skip very transparent splats
 
-        seeds.push({
-            position: [x, y, z],
-            orientation: [rw / qlen, rx / qlen, ry / qlen, rz / qlen],
-            scale: avgScale,
-            color: [cr * alpha, cg * alpha, cb * alpha],
-            depth: 0,
-        });
+        if (hifi) {
+            // Hi-fi mode: preserve full anisotropic scale and separate opacity
+            seeds.push({
+                position: [x, y, z],
+                orientation: [rw / qlen, rx / qlen, ry / qlen, rz / qlen],
+                scale3: [s0 * scaleMul, s1 * scaleMul, s2 * scaleMul],
+                color: [cr, cg, cb],
+                opacity: alpha,
+                depth: 0,
+            });
+        } else {
+            // Standard mode: averaged scalar scale, premultiplied alpha
+            const avgScale = ((s0 + s1 + s2) / 3) * scaleMul;
+            seeds.push({
+                position: [x, y, z],
+                orientation: [rw / qlen, rx / qlen, ry / qlen, rz / qlen],
+                scale: avgScale,
+                color: [cr * alpha, cg * alpha, cb * alpha],
+                depth: 0,
+            });
+        }
     }
 
     return seeds;
@@ -158,7 +178,7 @@ function parseBinary(buffer, offset, properties, count, scaleMul) {
 /*  ASCII parsing                                                      */
 /* ------------------------------------------------------------------ */
 
-function parseAscii(headerStr, bytes, headerEnd, properties, count, scaleMul) {
+function parseAscii(headerStr, bytes, headerEnd, properties, count, scaleMul, hifi = false) {
     const body = new TextDecoder().decode(bytes.subarray(headerEnd));
     const lines = body.split('\n').filter(l => l.trim().length > 0);
 
@@ -179,7 +199,6 @@ function parseAscii(headerStr, bytes, headerEnd, properties, count, scaleMul) {
         const s0 = Math.exp(col(vals, 'scale_0'));
         const s1 = Math.exp(col(vals, 'scale_1'));
         const s2 = Math.exp(col(vals, 'scale_2'));
-        const avgScale = ((s0 + s1 + s2) / 3) * scaleMul;
 
         const rw = col(vals, 'rot_0');
         const rx = col(vals, 'rot_1');
@@ -195,13 +214,25 @@ function parseAscii(headerStr, bytes, headerEnd, properties, count, scaleMul) {
         const alpha = 1 / (1 + Math.exp(-rawOpacity));
         if (alpha < 0.05) continue;
 
-        seeds.push({
-            position: [x, y, z],
-            orientation: [rw / qlen, rx / qlen, ry / qlen, rz / qlen],
-            scale: avgScale,
-            color: [cr * alpha, cg * alpha, cb * alpha],
-            depth: 0,
-        });
+        if (hifi) {
+            seeds.push({
+                position: [x, y, z],
+                orientation: [rw / qlen, rx / qlen, ry / qlen, rz / qlen],
+                scale3: [s0 * scaleMul, s1 * scaleMul, s2 * scaleMul],
+                color: [cr, cg, cb],
+                opacity: alpha,
+                depth: 0,
+            });
+        } else {
+            const avgScale = ((s0 + s1 + s2) / 3) * scaleMul;
+            seeds.push({
+                position: [x, y, z],
+                orientation: [rw / qlen, rx / qlen, ry / qlen, rz / qlen],
+                scale: avgScale,
+                color: [cr * alpha, cg * alpha, cb * alpha],
+                depth: 0,
+            });
+        }
     }
 
     return seeds;

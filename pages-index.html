@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>VIB3+ SDK</title>
+  <title>VIB3+ Hybrid Render Pipeline</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{
@@ -14,24 +14,41 @@
       display:grid;place-items:center;
       padding:40px 20px;
     }
-    .landing{max-width:640px;text-align:center;display:flex;flex-direction:column;gap:28px}
-    h1{font-size:40px;letter-spacing:-0.02em}
+    .landing{max-width:720px;text-align:center;display:flex;flex-direction:column;gap:24px}
+    h1{font-size:38px;letter-spacing:-0.02em}
     h1 span{color:#5b9cf5}
-    p.sub{color:#8ba0bf;line-height:1.6;font-size:15px}
-    .links{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:8px}
+    p.sub{color:#8ba0bf;line-height:1.7;font-size:15px;max-width:600px;margin:0 auto}
+    .primary-link{
+      display:inline-block;
+      padding:16px 44px;
+      background:linear-gradient(135deg,#c040ff,#7000cc);
+      color:#fff;text-decoration:none;
+      font-weight:700;font-size:14px;
+      letter-spacing:.08em;text-transform:uppercase;
+      border-radius:10px;border:1px solid rgba(200,100,255,.4);
+      transition:transform .2s,box-shadow .2s;
+    }
+    .primary-link:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(180,60,255,.35)}
+    .divider{
+      width:60px;height:1px;
+      background:rgba(91,156,245,.3);
+      margin:8px auto;
+    }
+    .section-label{font-size:11px;color:#5b9cf5;text-transform:uppercase;letter-spacing:.1em}
+    .links{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:4px}
     a.card{
       display:flex;flex-direction:column;gap:6px;
-      padding:20px 28px;
+      padding:18px 24px;
       border:1px solid rgba(88,128,190,.3);
-      border-radius:14px;
+      border-radius:12px;
       background:rgba(13,26,45,.5);
       color:#e6edf6;text-decoration:none;
       transition:border-color .2s,background .2s;
-      min-width:200px;
+      min-width:190px;
     }
     a.card:hover{border-color:#5b9cf5;background:rgba(30,55,95,.4)}
-    a.card strong{font-size:17px}
-    a.card span{font-size:12px;color:#7f92af;text-transform:uppercase;letter-spacing:.06em}
+    a.card strong{font-size:15px}
+    a.card span{font-size:11px;color:#7f92af;text-transform:uppercase;letter-spacing:.06em}
     .tag{
       display:inline-block;font-size:11px;
       padding:3px 10px;border-radius:20px;
@@ -42,12 +59,31 @@
 </head>
 <body>
   <div class="landing">
-    <div><span class="tag">Proof of Concept</span></div>
-    <h1><span>VIB3+</span> SDK</h1>
+    <div><span class="tag">v2.0 &mdash; Hybrid Pipeline</span></div>
+    <h1><span>VIB3+</span> Render Pipeline</h1>
     <p class="sub">
-      4D visualization engine with Gaussian splat rendering,
-      procedural content generation, and a 6-plane rotation system.
+      A compositing engine unifying traditional mesh rendering, Gaussian splat fields,
+      procedural 4D shaders, and holographic edge inscription into a single depth-coherent output.
     </p>
+    <div>
+      <a class="primary-link" href="./docs/hybrid-demo.html">Launch Pipeline Demo</a>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">Pipeline Documentation</div>
+    <div class="links">
+      <a class="card" href="./docs/">
+        <strong>Pipeline Overview</strong>
+        <span>Architecture &middot; API &middot; Roadmap</span>
+      </a>
+      <a class="card" href="./sdk/">
+        <strong>Full SDK App</strong>
+        <span>Quantum &middot; Faceted &middot; Holographic</span>
+      </a>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">Additional Demos</div>
     <div class="links">
       <a class="card" href="./demo/showcase-demo.html">
         <strong>Splat Showcase</strong>
@@ -58,20 +94,8 @@
         <span>A/B interleave &middot; trails &middot; bloom</span>
       </a>
       <a class="card" href="./demo/pcg-demo.html">
-        <strong>PCG Pipeline Demo</strong>
+        <strong>PCG Pipeline</strong>
         <span>Procedural traversal &middot; WebGL2</span>
-      </a>
-      <a class="card" href="./sdk/">
-        <strong>Full SDK App</strong>
-        <span>Quantum &middot; Faceted &middot; Holographic</span>
-      </a>
-      <a class="card" href="./docs/hybrid-demo.html">
-        <strong>Hybrid Render Pipeline</strong>
-        <span>Mesh &middot; Splat &middot; Inscription &middot; 4D</span>
-      </a>
-      <a class="card" href="./docs/">
-        <strong>Algo Art Gallery</strong>
-        <span>Trading card collection</span>
       </a>
     </div>
   </div>

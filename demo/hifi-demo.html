@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIB3+ Hi-Fi Splat Renderer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0e1a; color: #e0e0e0; font-family: 'SF Mono', 'Fira Code', monospace; overflow: hidden; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+
+    .overlay { position: fixed; z-index: 10; pointer-events: none; }
+    .overlay > * { pointer-events: auto; }
+
+    .header-bar {
+      top: 12px; left: 50%; transform: translateX(-50%);
+      text-align: center;
+    }
+    .header-title { font-size: 16px; font-weight: 700; color: #fff; }
+    .header-sub { display: block; font-size: 11px; color: #8a8f9d; margin-top: 2px; }
+
+    .scene-bar {
+      top: 60px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 8px;
+    }
+    .scene-btn {
+      padding: 6px 14px; border: 1px solid #333; border-radius: 16px;
+      background: rgba(255,255,255,0.05); color: #aaa; font-size: 12px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .scene-btn:hover { border-color: #666; color: #fff; }
+    .scene-btn.active { border-color: #4af; color: #4af; background: rgba(68,170,255,0.1); }
+
+    .stats-panel {
+      bottom: 16px; left: 16px;
+      background: rgba(10,14,26,0.85); border: 1px solid #222;
+      border-radius: 8px; padding: 12px 16px; font-size: 12px;
+      line-height: 1.8;
+    }
+    .stats-panel .label { color: #666; }
+    .stats-panel .value { color: #4af; font-weight: 600; }
+    .stats-panel .good { color: #4f8; }
+    .stats-panel .warn { color: #fa4; }
+
+    .feature-badge {
+      bottom: 16px; right: 16px;
+      background: rgba(10,14,26,0.85); border: 1px solid #222;
+      border-radius: 8px; padding: 12px 16px; font-size: 11px;
+      line-height: 1.6; max-width: 240px;
+    }
+    .feature-badge h3 { font-size: 13px; color: #4af; margin-bottom: 6px; }
+    .feature-badge .check { color: #4f8; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div class="overlay header-bar">
+    <span class="header-title">Hi-Fi Gaussian Splat Renderer</span>
+    <span class="header-sub">Instanced quads &middot; Anisotropic covariance &middot; Depth-sorted</span>
+  </div>
+
+  <div class="overlay scene-bar">
+    <button class="scene-btn active" data-scene="multi">Multi-Shape</button>
+    <button class="scene-btn" data-scene="torus">Torus 3K</button>
+    <button class="scene-btn" data-scene="sphere">Sphere 2K</button>
+    <button class="scene-btn" data-scene="knot">Knot 4K</button>
+    <button class="scene-btn" data-scene="helix">Helix 1K</button>
+  </div>
+
+  <div class="overlay stats-panel">
+    <div><span class="label">FPS: </span><span class="value" id="fps">--</span></div>
+    <div><span class="label">Total: </span><span class="value" id="totalSplats">--</span></div>
+    <div><span class="label">Visible: </span><span class="value good" id="visibleSplats">--</span></div>
+    <div><span class="label">Culled: </span><span class="value warn" id="culledSplats">--</span></div>
+    <div><span class="label">Sort: </span><span class="value" id="sortTime">--</span></div>
+    <div><span class="label">Frame: </span><span class="value" id="frameTime">--</span></div>
+  </div>
+
+  <div class="overlay feature-badge">
+    <h3>Production Upgrades</h3>
+    <div><span class="check">&#10003;</span> Instanced screen-aligned quads</div>
+    <div><span class="check">&#10003;</span> 3-axis anisotropic covariance</div>
+    <div><span class="check">&#10003;</span> J(perspective) &middot; &Sigma; &middot; J<sup>T</sup> projection</div>
+    <div><span class="check">&#10003;</span> 16-bit radix depth sort (back-to-front)</div>
+    <div><span class="check">&#10003;</span> 6-plane frustum culling</div>
+    <div><span class="check">&#10003;</span> Separate opacity channel</div>
+  </div>
+
+  <script type="module" src="./hifi-demo.js"></script>
+</body>
+</html>

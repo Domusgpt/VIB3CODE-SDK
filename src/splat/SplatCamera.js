@@ -120,11 +120,19 @@ export class SplatCamera {
         ];
     }
 
+    /** View matrix (world → camera space). */
+    get viewMatrix() {
+        return mat4LookAt(this.eye, this.target, [0, 1, 0]);
+    }
+
+    /** Projection matrix (camera → clip space). */
+    get projMatrix() {
+        return mat4Perspective(this.fov, this.aspect, this.near, this.far);
+    }
+
     /** Combined view × projection matrix. */
     get viewProjection() {
-        const proj = mat4Perspective(this.fov, this.aspect, this.near, this.far);
-        const view = mat4LookAt(this.eye, this.target, [0, 1, 0]);
-        return mat4Multiply(proj, view);
+        return mat4Multiply(this.projMatrix, this.viewMatrix);
     }
 
     /** Convenience: identity matrix (for legacy clip-space rendering). */

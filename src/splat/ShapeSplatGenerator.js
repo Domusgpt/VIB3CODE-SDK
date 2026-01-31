@@ -5,6 +5,11 @@
  * Each splat gets a position on the surface, a quaternion orientation
  * aligned with the surface normal, colour derived from parametric
  * coordinates, and a uniform scale.
+ *
+ * All generators accept an optional `hifi` flag. When true, seeds
+ * use the hi-fi layout: scale3 (3-axis anisotropic), separate opacity.
+ * Surface splats are flattened along the normal (small Z scale) and
+ * stretched along the surface tangent plane.
  */
 
 /* ------------------------------------------------------------------ */
@@ -46,6 +51,41 @@ function normalize3(x, y, z) {
     return [x / len, y / len, z / len];
 }
 
+/**
+ * Build a seed object in either standard or hi-fi format.
+ *
+ * In hi-fi mode, the scale is anisotropic: the splat is wider along the
+ * surface tangent plane (sx, sy) and thin along the normal (sz).
+ * This produces much better surface coverage.
+ *
+ * @param {number[]} position
+ * @param {number[]} orientation  quaternion [w,x,y,z]
+ * @param {number}   scale        base scale
+ * @param {number[]} color        [r,g,b]
+ * @param {boolean}  hifi         hi-fi mode
+ * @param {number}   [aniso=3.0]  tangent/normal scale ratio
+ * @returns {Object}
+ */
+function makeSeed(position, orientation, scale, color, hifi, aniso = 3.0) {
+    if (hifi) {
+        return {
+            position,
+            orientation,
+            scale3: [scale * aniso, scale * aniso, scale * 0.3],
+            color,
+            opacity: 0.85 + Math.random() * 0.15,
+            depth: 0,
+        };
+    }
+    return {
+        position,
+        orientation,
+        scale,
+        color,
+        depth: 0,
+    };
+}
+
 /* ------------------------------------------------------------------ */
 /*  Torus                                                              */
 /* ------------------------------------------------------------------ */
@@ -69,6 +109,7 @@ export function generateTorusSplats({
     vSteps = 40,
     scale = 0.05,
     jitter = 0.15,
+    hifi = false,
 } = {}) {
     const seeds = [];
     for (let ui = 0; ui < uSteps; ui++) {
@@ -93,14 +134,15 @@ export function generateTorusSplats({
 
             const hue = (u / (Math.PI * 2)) * 360;
             const lightness = 0.45 + sv * 0.15;
+            const s = scale * (0.7 + Math.random() * 0.6);
 
-            seeds.push({
-                position: [px + jx * cu, py + jy, pz + jx * su],
-                orientation: quatFromNormal(nx, ny, nz),
-                scale: scale * (0.7 + Math.random() * 0.6),
-                color: hsl(hue, 0.9, lightness),
-                depth: 0,
-            });
+            seeds.push(makeSeed(
+                [px + jx * cu, py + jy, pz + jx * su],
+                quatFromNormal(nx, ny, nz),
+                s,
+                hsl(hue, 0.9, lightness),
+                hifi,
+            ));
         }
     }
     return seeds;
@@ -119,6 +161,7 @@ export function generateSphereSplats({
     vSteps = 30,
     scale = 0.06,
     jitter = 0.1,
+    hifi = false,
 } = {}) {
     const seeds = [];
     for (let vi = 1; vi < vSteps; vi++) {          // skip poles
@@ -139,14 +182,15 @@ export function generateSphereSplats({
 
             const hue = (u / (Math.PI * 2)) * 360;
             const lightness = 0.4 + cv * 0.2;
+            const s = scale * (0.7 + Math.random() * 0.6);
 
-            seeds.push({
-                position: [px + jx, py + jy, pz + jz],
-                orientation: quatFromNormal(nx, ny, nz),
-                scale: scale * (0.7 + Math.random() * 0.6),
-                color: hsl(hue, 0.85, lightness),
-                depth: 0,
-            });
+            seeds.push(makeSeed(
+                [px + jx, py + jy, pz + jz],
+                quatFromNormal(nx, ny, nz),
+                s,
+                hsl(hue, 0.85, lightness),
+                hifi,
+            ));
         }
     }
     return seeds;
@@ -167,6 +211,7 @@ export function generateTorusKnotSplats({
     steps = 300,
     tubeSteps = 12,
     scale = 0.04,
+    hifi = false,
 } = {}) {
     const seeds = [];
 
@@ -219,13 +264,14 @@ export function generateTorusKnotSplats({
             const hue = (t / (Math.PI * 2)) * 360;
             const lightness = 0.45 + sT * 0.15;
 
-            seeds.push({
-                position: [px, py, pz],
-                orientation: quatFromNormal(snx, sny, snz),
-                scale: scale * (0.8 + Math.random() * 0.4),
-                color: hsl(hue, 0.9, lightness),
-                depth: 0,
-            });
+            const s = scale * (0.8 + Math.random() * 0.4);
+            seeds.push(makeSeed(
+                [px, py, pz],
+                quatFromNormal(snx, sny, snz),
+                s,
+                hsl(hue, 0.9, lightness),
+                hifi,
+            ));
         }
     }
 
@@ -245,6 +291,7 @@ export function generateHelixSplats({
     turns = 4,
     steps = 500,
     scale = 0.05,
+    hifi = false,
 } = {}) {
     const seeds = [];
     const totalLength = turns * pitch;
@@ -264,13 +311,14 @@ export function generateHelixSplats({
             const baseHue = strand === 0 ? 200 : 340;
             const hue = baseHue + t * 60;
 
-            seeds.push({
-                position: [px, py, pz],
-                orientation: quatFromNormal(nx, 0, nz),
-                scale: scale * (0.8 + Math.random() * 0.4),
-                color: hsl(hue, 0.9, 0.55),
-                depth: 0,
-            });
+            const s = scale * (0.8 + Math.random() * 0.4);
+            seeds.push(makeSeed(
+                [px, py, pz],
+                quatFromNormal(nx, 0, nz),
+                s,
+                hsl(hue, 0.9, 0.55),
+                hifi,
+            ));
 
             // Cross-links (rungs) every 20 steps, only from strand 0
             if (strand === 0 && i % 20 === 0) {
@@ -281,17 +329,18 @@ export function generateHelixSplats({
                 const rungSteps = 6;
                 for (let ri = 0; ri < rungSteps; ri++) {
                     const rt = ri / (rungSteps - 1);
-                    seeds.push({
-                        position: [
+                    seeds.push(makeSeed(
+                        [
                             px + (ox - px) * rt,
                             py,
                             pz + (oz - pz) * rt,
                         ],
-                        orientation: [1, 0, 0, 0],
-                        scale: scale * 0.6,
-                        color: hsl(60 + rt * 60, 0.8, 0.65),
-                        depth: 0,
-                    });
+                        [1, 0, 0, 0],
+                        scale * 0.6,
+                        hsl(60 + rt * 60, 0.8, 0.65),
+                        hifi,
+                        1.5,  // rungs are less anisotropic
+                    ));
                 }
             }
         }
@@ -307,12 +356,12 @@ export function generateHelixSplats({
 /**
  * Generate a combined scene with multiple shapes for a richer default.
  */
-export function generateMultiShapeSplats() {
+export function generateMultiShapeSplats({ hifi = false } = {}) {
     const seeds = [];
 
     // Central torus knot
     const knot = generateTorusKnotSplats({
-        R: 0.8, r: 0.22, steps: 200, tubeSteps: 10, scale: 0.04,
+        R: 0.8, r: 0.22, steps: 200, tubeSteps: 10, scale: 0.04, hifi,
     });
     seeds.push(...knot);
 
@@ -322,7 +371,7 @@ export function generateMultiShapeSplats() {
         const ox = Math.cos(angle) * 2;
         const oz = Math.sin(angle) * 2;
         const sphere = generateSphereSplats({
-            radius: 0.3, uSteps: 24, vSteps: 12, scale: 0.035, jitter: 0.08,
+            radius: 0.3, uSteps: 24, vSteps: 12, scale: 0.035, jitter: 0.08, hifi,
         });
         for (const s of sphere) {
             s.position[0] += ox;

@@ -69,6 +69,15 @@ body {
     box-shadow: 0 0 14px rgba(168, 123, 255, 0.25);
 }
 
+/* Ultra button accent */
+.mode-btn.ultra { color: #ff7b5a; }
+.mode-btn.ultra:hover { color: #ffb09a; background: rgba(255, 123, 90, 0.15); }
+.mode-btn.ultra.active {
+    color: #fff;
+    background: rgba(255, 123, 90, 0.28);
+    box-shadow: 0 0 16px rgba(255, 123, 90, 0.3);
+}
+
 .mode-divider {
     width: 1px;
     margin: 4px 2px;

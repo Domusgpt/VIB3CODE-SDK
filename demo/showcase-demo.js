@@ -1,17 +1,17 @@
 /**
  * VIB3+ Gaussian Splat Showcase
  *
- * Four modes driven through the same SplatRenderPipeline:
+ * Five modes driven through the same SplatRenderPipeline:
  *   1. Text    — rainbow text rendered as thousands of Gaussian splats
  *   2. Image   — procedural patterns (or drag-dropped photos) as splat fields
  *   3. Shape   — 3D parametric surfaces with normal-aligned splats
- *   4. Massive — 200K–500K+ splats with GPU-driven animation,
- *                demonstrating the efficiency vertical slice
+ *   4. Massive — 250K–500K+ splats with GPU-driven animation
+ *   5. Ultra   — 750K–1M+ splats: Supernova, Black Hole, Aurora,
+ *                Fireworks, Quantum Field — the efficiency vertical slice
  *
  * All modes use an orbit camera with perspective projection.
- * Massive mode enables GPU animation (u_time) and additive blending,
- * and displays an efficiency metrics overlay comparing procedural
- * generation to traditional PLY file sizes.
+ * Massive + Ultra modes enable GPU animation (u_time), additive blending,
+ * HDR bloom, and chromatic aberration, with efficiency metrics overlay.
  */
 
 import { SplatRenderPipeline } from '../src/render/SplatRenderPipeline.js';
@@ -38,6 +38,13 @@ import {
     generateParticleStormSplats,
     generateStarFieldSplats,
 } from '../src/splat/GalaxySplatGenerator.js';
+import {
+    generateSupernovaSplats,
+    generateBlackHoleSplats,
+    generateAuroraSplats,
+    generateFireworksSplats,
+    generateQuantumFieldSplats,
+} from '../src/splat/MegaSplatGenerator.js';
 import { parsePlySplats } from '../src/splat/PlySplatLoader.js';
 
 /* ------------------------------------------------------------------ */
@@ -176,34 +183,72 @@ const PRESETS = {
 
     massive: [
         {
-            label: 'Galaxy',
-            gen: () => generateGalaxySplats({ totalSplats: 250000, scale: 0.02 }),
-            camera: { distance: 8, elevation: 0.6 },
-            pcgBytes: 28, // 7 params × 4 bytes
+            label: 'Galaxy 500K',
+            gen: () => generateGalaxySplats({ totalSplats: 500000, scale: 0.015 }),
+            camera: { distance: 9, elevation: 0.55 },
+            pcgBytes: 28,
         },
         {
-            label: 'Nebula',
-            gen: () => generateNebulaSplats({ totalSplats: 150000, scale: 0.04 }),
+            label: 'Nebula 400K',
+            gen: () => generateNebulaSplats({ totalSplats: 400000, scale: 0.03 }),
             camera: { distance: 6, elevation: 0.2 },
             pcgBytes: 16,
         },
         {
-            label: 'Vortex',
-            gen: () => generateParticleStormSplats({ totalSplats: 200000, scale: 0.015 }),
+            label: 'Vortex 500K',
+            gen: () => generateParticleStormSplats({ totalSplats: 500000, scale: 0.012 }),
             camera: { distance: 8, elevation: 0.15 },
             pcgBytes: 24,
         },
         {
             label: 'Star Field',
-            gen: () => generateStarFieldSplats({ totalSplats: 100000, scale: 0.012 }),
+            gen: () => generateStarFieldSplats({ totalSplats: 300000, scale: 0.01 }),
             camera: { distance: 10, elevation: 0.1 },
             pcgBytes: 12,
         },
         {
-            label: 'Galaxy 500K',
-            gen: () => generateGalaxySplats({ totalSplats: 500000, scale: 0.015 }),
-            camera: { distance: 9, elevation: 0.55 },
+            label: 'Galaxy 1M',
+            gen: () => generateGalaxySplats({ totalSplats: 1000000, scale: 0.01 }),
+            camera: { distance: 10, elevation: 0.5 },
             pcgBytes: 28,
+        },
+    ],
+
+    ultra: [
+        {
+            label: 'Supernova',
+            gen: () => generateSupernovaSplats({ totalSplats: 750000, scale: 0.018 }),
+            camera: { distance: 8, elevation: 0.35 },
+            pcgBytes: 24,
+            chromatic: 0.6,
+        },
+        {
+            label: 'Black Hole',
+            gen: () => generateBlackHoleSplats({ totalSplats: 1000000, scale: 0.012 }),
+            camera: { distance: 10, elevation: 0.4 },
+            pcgBytes: 24,
+            chromatic: 0.8,
+        },
+        {
+            label: 'Aurora',
+            gen: () => generateAuroraSplats({ totalSplats: 800000, scale: 0.02 }),
+            camera: { distance: 8, elevation: 0.3 },
+            pcgBytes: 20,
+            chromatic: 0.4,
+        },
+        {
+            label: 'Fireworks',
+            gen: () => generateFireworksSplats({ totalSplats: 750000, scale: 0.018 }),
+            camera: { distance: 10, elevation: 0.4 },
+            pcgBytes: 12,
+            chromatic: 0.5,
+        },
+        {
+            label: 'Quantum Field',
+            gen: () => generateQuantumFieldSplats({ totalSplats: 1000000, scale: 0.015 }),
+            camera: { distance: 8, elevation: 0.3 },
+            pcgBytes: 16,
+            chromatic: 0.7,
         },
     ],
 };
@@ -296,6 +341,9 @@ function selectPreset(index) {
         if (preset.camera.elevation != null) camera.elevation = preset.camera.elevation;
     }
 
+    // Chromatic aberration per preset
+    pipeline.renderer.chromatic = preset.chromatic || 0;
+
     // Generate with timing
     const t0 = performance.now();
     seeds = preset.gen();
@@ -304,8 +352,8 @@ function selectPreset(index) {
 
     uploadSeeds();
 
-    // Update metrics if in massive mode
-    if (currentMode === 'massive') {
+    // Update metrics if in massive/ultra mode
+    if (currentMode === 'massive' || currentMode === 'ultra') {
         updateMetrics();
     }
 
@@ -329,12 +377,13 @@ function switchMode(mode) {
     // Show/hide contextual UI
     document.getElementById('dropHint').classList.toggle('visible', mode === 'image');
     document.getElementById('plyHint').classList.toggle('visible', mode === 'shape');
-    metricsPanel.classList.toggle('visible', mode === 'massive');
+    metricsPanel.classList.toggle('visible', mode === 'massive' || mode === 'ultra');
 
-    // Renderer config for massive mode
-    const isMassive = mode === 'massive';
-    pipeline.renderer.animate = isMassive;
-    pipeline.renderer.blendMode = isMassive ? 'additive' : 'premultiplied';
+    // Renderer config for animated modes
+    const isAnimated = mode === 'massive' || mode === 'ultra';
+    pipeline.renderer.animate = isAnimated;
+    pipeline.renderer.blendMode = isAnimated ? 'additive' : 'premultiplied';
+    pipeline.renderer.intensity = mode === 'ultra' ? 1.2 : 1.0;
 
     // Render sub-bar
     renderSubBar(mode);
@@ -346,6 +395,7 @@ function switchMode(mode) {
         image: 'Image Splats',
         shape: '3D Shape Splats',
         massive: 'Massive Scale',
+        ultra: 'Ultra Scale',
     };
     flash.textContent = titles[mode] || mode;
     flash.classList.add('show');
@@ -369,7 +419,8 @@ function tick() {
     const frameStart = performance.now();
 
     if (autoOrbit) {
-        camera.azimuth += currentMode === 'massive' ? 0.002 : 0.004;
+        const speed = (currentMode === 'massive' || currentMode === 'ultra') ? 0.0015 : 0.004;
+        camera.azimuth += speed;
     }
 
     const vp = camera.viewProjection;
@@ -386,7 +437,7 @@ function tick() {
         frameCount = 0;
         lastFpsTime = now;
 
-        if (currentMode === 'massive') {
+        if (currentMode === 'massive' || currentMode === 'ultra') {
             updateFrameTime(now - frameStart);
         }
     }

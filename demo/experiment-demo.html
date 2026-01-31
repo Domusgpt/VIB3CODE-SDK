@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIB3+ Rendering Experiments</title>
+  <link rel="stylesheet" href="./experiment-demo.css" />
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <!-- Header -->
+  <div class="overlay header-bar">
+    <span class="header-title">Rendering Experiments</span>
+    <span class="header-sub">Toggle tricks &middot; Measure impact</span>
+  </div>
+
+  <!-- Scene selector -->
+  <div class="overlay scene-bar">
+    <button class="scene-btn active" data-scene="galaxy">Galaxy 500K</button>
+    <button class="scene-btn" data-scene="nebula">Nebula 400K</button>
+    <button class="scene-btn" data-scene="supernova">Supernova 750K</button>
+    <button class="scene-btn" data-scene="blackhole">Black Hole 1M</button>
+  </div>
+
+  <!-- Technique controls panel -->
+  <div class="overlay controls-panel" id="controls">
+    <div class="controls-title">Optimization Tricks</div>
+
+    <!-- 1. A/B Frame Interleaving -->
+    <div class="control-group">
+      <label class="toggle-row">
+        <span class="label-text">A/B Frame Interleave</span>
+        <input type="checkbox" id="toggleAB">
+        <span class="toggle-switch"></span>
+      </label>
+      <p class="control-desc">Draw half the splats per frame (odds/evens alternate). 2x effective density for half the draw cost.</p>
+    </div>
+
+    <!-- 2. Temporal Accumulation -->
+    <div class="control-group">
+      <label class="toggle-row">
+        <span class="label-text">Temporal Persistence</span>
+        <input type="checkbox" id="toggleTrail">
+        <span class="toggle-switch"></span>
+      </label>
+      <label class="slider-row">
+        <span>Decay</span>
+        <input type="range" id="sliderTrailDecay" min="0" max="99" value="92">
+        <span class="slider-val" id="valTrailDecay">0.92</span>
+      </label>
+      <p class="control-desc">Previous frame persists at decay factor. Splats leave ghostly trails — fills in density for free.</p>
+    </div>
+
+    <!-- 3. Stochastic Thinning -->
+    <div class="control-group">
+      <label class="toggle-row">
+        <span class="label-text">Stochastic Thinning</span>
+        <input type="checkbox" id="toggleStoch">
+        <span class="toggle-switch"></span>
+      </label>
+      <label class="slider-row">
+        <span>Density</span>
+        <input type="range" id="sliderStochDensity" min="10" max="100" value="50">
+        <span class="slider-val" id="valStochDensity">50%</span>
+      </label>
+      <p class="control-desc">Random subset each frame (size-boosted to compensate). Eye integrates full set over 2-3 frames.</p>
+    </div>
+
+    <!-- 4. Resolution Scaling -->
+    <div class="control-group">
+      <label class="toggle-row">
+        <span class="label-text">Resolution Scaling</span>
+        <input type="checkbox" id="toggleResScale">
+        <span class="toggle-switch"></span>
+      </label>
+      <label class="slider-row">
+        <span>Scale</span>
+        <input type="range" id="sliderResScale" min="25" max="100" value="50">
+        <span class="slider-val" id="valResScale">50%</span>
+      </label>
+      <p class="control-desc">Render at lower resolution, upscale to native. Halves fragment cost at 50%.</p>
+    </div>
+
+    <!-- 5. Post-Process Bloom -->
+    <div class="control-group">
+      <label class="toggle-row">
+        <span class="label-text">Screen-Space Bloom</span>
+        <input type="checkbox" id="toggleBloom">
+        <span class="toggle-switch"></span>
+      </label>
+      <label class="slider-row">
+        <span>Threshold</span>
+        <input type="range" id="sliderBloomThreshold" min="10" max="90" value="40">
+        <span class="slider-val" id="valBloomThreshold">0.40</span>
+      </label>
+      <label class="slider-row">
+        <span>Intensity</span>
+        <input type="range" id="sliderBloomIntensity" min="10" max="100" value="60">
+        <span class="slider-val" id="valBloomIntensity">0.60</span>
+      </label>
+      <p class="control-desc">Kawase blur on bright pixels. Makes sparse scenes feel denser and more cinematic.</p>
+    </div>
+
+    <!-- 6. Additive Trail Buffer -->
+    <div class="control-group">
+      <label class="toggle-row">
+        <span class="label-text">Additive Trail Buffer</span>
+        <input type="checkbox" id="toggleAddTrail">
+        <span class="toggle-switch"></span>
+      </label>
+      <p class="control-desc">Accumulates bright pixel positions over time as a glow layer composited on top.</p>
+    </div>
+  </div>
+
+  <!-- Stats panel -->
+  <div class="overlay stats-panel">
+    <div class="stat-row"><span>FPS</span><strong id="fps">0</strong></div>
+    <div class="stat-row"><span>Frame Time</span><strong id="frameTime">0 ms</strong></div>
+    <div class="stat-row"><span>Total Splats</span><strong id="totalSplats">0</strong></div>
+    <div class="stat-row"><span>Drawn/Frame</span><strong id="drawnSplats">0</strong></div>
+    <div class="stat-row"><span>Draw Savings</span><strong id="savings">0%</strong></div>
+    <div class="stat-row"><span>Render Res</span><strong id="renderRes">-</strong></div>
+    <div class="stat-row separator"></div>
+    <div class="stat-row"><span>Active Tricks</span><strong id="activeTricks">0</strong></div>
+  </div>
+
+  <!-- Info -->
+  <div class="overlay info-panel">
+    Drag to orbit &middot; Scroll to zoom<br>
+    VIB3+ Rendering Experiment Lab
+  </div>
+
+  <script type="module" src="./experiment-demo.js"></script>
+</body>
+</html>

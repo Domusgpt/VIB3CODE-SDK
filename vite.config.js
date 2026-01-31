@@ -10,7 +10,8 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 'pcg-demo': resolve(import.meta.dirname, 'demo/pcg-demo.html'),
-                'showcase': resolve(import.meta.dirname, 'demo/showcase-demo.html')
+                'showcase': resolve(import.meta.dirname, 'demo/showcase-demo.html'),
+                'experiment': resolve(import.meta.dirname, 'demo/experiment-demo.html')
             }
         }
     }

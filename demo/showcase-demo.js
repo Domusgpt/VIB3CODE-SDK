@@ -1,17 +1,19 @@
 /**
  * VIB3+ Gaussian Splat Showcase
  *
- * Five modes driven through the same SplatRenderPipeline:
+ * Six modes driven through two renderers:
  *   1. Text    — rainbow text rendered as thousands of Gaussian splats
  *   2. Image   — procedural patterns (or drag-dropped photos) as splat fields
  *   3. Shape   — 3D parametric surfaces with normal-aligned splats
  *   4. Massive — 250K–500K+ splats with GPU-driven animation
  *   5. Ultra   — 750K–1M+ splats: Supernova, Black Hole, Aurora,
  *                Fireworks, Quantum Field — the efficiency vertical slice
+ *   6. WOAH    — 20M splats via instanced rendering (2M base × 10 instances)
+ *                with 4D hyperspace rotation, ACES tone mapping,
+ *                anamorphic streaks, and aurora shimmer
  *
- * All modes use an orbit camera with perspective projection.
- * Massive + Ultra modes enable GPU animation (u_time), additive blending,
- * HDR bloom, and chromatic aberration, with efficiency metrics overlay.
+ * Modes 1-5 use SplatRenderPipeline (GaussianSplatRenderer).
+ * Mode 6 uses HyperSplatRenderer with drawArraysInstanced.
  */
 
 import { SplatRenderPipeline } from '../src/render/SplatRenderPipeline.js';
@@ -46,6 +48,8 @@ import {
     generateQuantumFieldSplats,
 } from '../src/splat/MegaSplatGenerator.js';
 import { parsePlySplats } from '../src/splat/PlySplatLoader.js';
+import { HyperSplatRenderer } from '../src/render/HyperSplatRenderer.js';
+import { generateHyperSceneSplats } from '../src/splat/HyperSceneGenerator.js';
 
 /* ------------------------------------------------------------------ */
 /*  Setup                                                              */
@@ -75,11 +79,24 @@ function computePointScale() {
 
 const pipeline = new SplatRenderPipeline(gl, { pointScale: computePointScale() });
 
+/** HyperSplatRenderer — created lazily on first WOAH mode activation. */
+let hyperRenderer = null;
+function getHyperRenderer() {
+    if (!hyperRenderer) {
+        hyperRenderer = new HyperSplatRenderer(gl, {
+            pointScale: computePointScale(),
+            dimension: 4.0,
+        });
+    }
+    return hyperRenderer;
+}
+
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth * devicePixelRatio;
     canvas.height = window.innerHeight * devicePixelRatio;
     camera.aspect = canvas.width / canvas.height;
     pipeline.renderer.pointScale = computePointScale();
+    if (hyperRenderer) hyperRenderer.pointScale = computePointScale();
 });
 
 /* ------------------------------------------------------------------ */
@@ -214,6 +231,16 @@ const PRESETS = {
         },
     ],
 
+    woah: [
+        {
+            label: '20M Universe',
+            gen: () => generateHyperSceneSplats({ totalSplats: 2000000 }),
+            camera: { distance: 15, elevation: 0.35 },
+            pcgBytes: 12,
+            isHyper: true,
+        },
+    ],
+
     ultra: [
         {
             label: 'Supernova',
@@ -295,13 +322,16 @@ function renderSubBar(mode) {
 const metricsPanel = document.getElementById('metricsPanel');
 
 function updateMetrics() {
-    const count = seeds.length;
-    const plyBytes = count * 48; // 12 floats × 4 bytes
+    const isWoah = currentMode === 'woah';
+    const baseCount = seeds.length;
+    const visualCount = isWoah ? baseCount * 10 : baseCount;
+    const plyBytes = visualCount * 48; // 12 floats × 4 bytes
     const pcg = lastPcgBytes || 32;
     const compression = plyBytes > 0 ? Math.round(plyBytes / pcg) : 0;
-    const gpuBuf = count * 12 * 4; // Float32Array size
+    const gpuBuf = baseCount * 12 * 4 + (isWoah ? 320 : 0); // + instance buffer
 
-    document.getElementById('metSplats').textContent = count.toLocaleString();
+    document.getElementById('metSplats').textContent =
+        isWoah ? visualCount.toLocaleString() + ' (10×inst)' : visualCount.toLocaleString();
     document.getElementById('metGenTime').textContent = lastGenTime.toFixed(1) + ' ms';
     document.getElementById('metPcgSize').textContent = pcg + ' bytes';
     document.getElementById('metPlySize').textContent = formatBytes(plyBytes);
@@ -350,10 +380,22 @@ function selectPreset(index) {
     lastGenTime = performance.now() - t0;
     lastPcgBytes = preset.pcgBytes || 32;
 
-    uploadSeeds();
+    // Upload to the appropriate renderer
+    if (preset.isHyper) {
+        const hr = getHyperRenderer();
+        const encoded = encodeGaussianSeeds(seeds);
+        hr.updateSeeds(encoded, seeds.length);
+    } else {
+        uploadSeeds();
+    }
 
-    // Update metrics if in massive/ultra mode
-    if (currentMode === 'massive' || currentMode === 'ultra') {
+    document.getElementById('splatCount').textContent =
+        preset.isHyper
+            ? (seeds.length * 10).toLocaleString() + ' (instanced)'
+            : seeds.length.toLocaleString();
+
+    // Update metrics if in massive/ultra/woah mode
+    if (currentMode === 'massive' || currentMode === 'ultra' || currentMode === 'woah') {
         updateMetrics();
     }
 
@@ -377,7 +419,7 @@ function switchMode(mode) {
     // Show/hide contextual UI
     document.getElementById('dropHint').classList.toggle('visible', mode === 'image');
     document.getElementById('plyHint').classList.toggle('visible', mode === 'shape');
-    metricsPanel.classList.toggle('visible', mode === 'massive' || mode === 'ultra');
+    metricsPanel.classList.toggle('visible', mode === 'massive' || mode === 'ultra' || mode === 'woah');
 
     // Renderer config for animated modes
     const isAnimated = mode === 'massive' || mode === 'ultra';
@@ -396,6 +438,7 @@ function switchMode(mode) {
         shape: '3D Shape Splats',
         massive: 'Massive Scale',
         ultra: 'Ultra Scale',
+        woah: '20M HYPERSPACE',
     };
     flash.textContent = titles[mode] || mode;
     flash.classList.add('show');
@@ -419,14 +462,21 @@ function tick() {
     const frameStart = performance.now();
 
     if (autoOrbit) {
-        const speed = (currentMode === 'massive' || currentMode === 'ultra') ? 0.0015 : 0.004;
+        const speed = currentMode === 'woah' ? 0.001
+            : (currentMode === 'massive' || currentMode === 'ultra') ? 0.0015
+            : 0.004;
         camera.azimuth += speed;
     }
 
     const vp = camera.viewProjection;
     const time = (performance.now() - startTime) * 0.001; // seconds
 
-    pipeline.renderer.render(vp, time);
+    // WOAH mode uses HyperSplatRenderer, others use pipeline
+    if (currentMode === 'woah' && hyperRenderer) {
+        hyperRenderer.render(vp, time);
+    } else {
+        pipeline.renderer.render(vp, time);
+    }
 
     // FPS + frame time
     frameCount++;
@@ -437,7 +487,7 @@ function tick() {
         frameCount = 0;
         lastFpsTime = now;
 
-        if (currentMode === 'massive' || currentMode === 'ultra') {
+        if (currentMode === 'massive' || currentMode === 'ultra' || currentMode === 'woah') {
             updateFrameTime(now - frameStart);
         }
     }

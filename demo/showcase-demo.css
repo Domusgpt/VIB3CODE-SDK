@@ -78,6 +78,25 @@ body {
     box-shadow: 0 0 16px rgba(255, 123, 90, 0.3);
 }
 
+/* WOAH button accent — gold with glow */
+.mode-btn.woah {
+    color: #ffd700;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 6px rgba(255, 215, 0, 0.3);
+}
+.mode-btn.woah:hover {
+    color: #ffe766;
+    background: rgba(255, 215, 0, 0.15);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+.mode-btn.woah.active {
+    color: #fff;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 100, 50, 0.25));
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.35), 0 0 40px rgba(255, 100, 50, 0.15);
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
 .mode-divider {
     width: 1px;
     margin: 4px 2px;

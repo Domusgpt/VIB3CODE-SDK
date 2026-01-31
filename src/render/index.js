@@ -104,6 +104,12 @@ export { ProceduralTraversalScheduler } from './ProceduralTraversalScheduler.js'
 export { GaussianSplatRenderer } from './GaussianSplatRenderer.js';
 export { SplatRenderPipeline } from './SplatRenderPipeline.js';
 
+// Hybrid rendering pipeline (mesh + splat + procedural + inscription)
+export { HybridRenderPipeline, BlendModes } from './HybridRenderPipeline.js';
+export { MeshRenderer } from './MeshRenderer.js';
+export { EdgeInscriptionLayer } from './EdgeInscriptionLayer.js';
+export { TextureToSplatConverter } from './TextureToSplatConverter.js';
+
 /**
  * Create a complete rendering context
  * @param {HTMLCanvasElement} canvas

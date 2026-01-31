@@ -2,7 +2,7 @@
  * HyperSceneGenerator
  *
  * Generates a 2M-splat "observable universe" base scene designed for
- * 10× instanced rendering → 20 million visual splats.
+ * 10× instanced rendering → 10 million visual splats.
  *
  * Structure (fractal hierarchy):
  *   - Cosmic web filaments (large-scale structure)
@@ -51,13 +51,13 @@ function clamp01(v) { return Math.max(0, Math.min(1, v)); }
 
 /**
  * @param {object} [opts]
- * @param {number} [opts.totalSplats=2000000]  Base splat count (instanced 10×)
+ * @param {number} [opts.totalSplats=1000000]  Base splat count (instanced 10×)
  * @param {number} [opts.extent=6]             Radius of the scene volume
  * @param {number} [opts.scale=0.012]          Base splat size
  * @returns {Object[]} GaussianSeed[]
  */
 export function generateHyperSceneSplats({
-    totalSplats = 2000000,
+    totalSplats = 1000000,
     extent = 6,
     scale = 0.012,
 } = {}) {
@@ -65,13 +65,13 @@ export function generateHyperSceneSplats({
     let idx = 0;
 
     /* --- Budget allocation --- */
-    const filamentBudget   = Math.floor(totalSplats * 0.15);  // 300K
-    const clusterBudget    = Math.floor(totalSplats * 0.20);  // 400K
-    const galaxyBudget     = Math.floor(totalSplats * 0.25);  // 500K
-    const nebulaBudget     = Math.floor(totalSplats * 0.15);  // 300K
-    const starFieldBudget  = Math.floor(totalSplats * 0.15);  // 300K
+    const filamentBudget   = Math.floor(totalSplats * 0.15);  // 150K
+    const clusterBudget    = Math.floor(totalSplats * 0.20);  // 200K
+    const galaxyBudget     = Math.floor(totalSplats * 0.25);  // 250K
+    const nebulaBudget     = Math.floor(totalSplats * 0.15);  // 150K
+    const starFieldBudget  = Math.floor(totalSplats * 0.15);  // 150K
     const brightStarBudget = totalSplats - filamentBudget - clusterBudget
-                             - galaxyBudget - nebulaBudget - starFieldBudget; // 200K
+                             - galaxyBudget - nebulaBudget - starFieldBudget; // 100K
 
     /* --- Cosmic web filaments (large-scale structure) --- */
     // 20 filaments connecting random cluster centers

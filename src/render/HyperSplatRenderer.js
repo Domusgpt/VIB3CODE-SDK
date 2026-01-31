@@ -1,12 +1,12 @@
 /**
  * HyperSplatRenderer
  *
- * 20-million-splat instanced renderer with 4D hyperspace rotation.
+ * 10-million-splat instanced renderer with 4D hyperspace rotation.
  *
  * Architecture:
- *   Base buffer: 2M splats (96 MB GPU)
+ *   Base buffer: 1M splats (48 MB GPU)
  *   Instance buffer: 10 instances × (vec3 offset + float rotY + vec3 tint + float scale)
- *   drawArraysInstanced(POINTS, 0, 2M, 10) → 20M visual splats
+ *   drawArraysInstanced(POINTS, 0, 1M, 10) → 10M visual splats
  *
  * Shader features beyond GaussianSplatRenderer:
  *   - 6D rotation (XY, XZ, YZ, XW, YW, ZW) from VIB3+ geometric algebra
@@ -390,7 +390,7 @@ export class HyperSplatRenderer {
         this.count = count;
     }
 
-    /** Render 20M splats (2M base × 10 instances). */
+    /** Render 10M splats (1M base × 10 instances). */
     render(viewProjection, time = 0) {
         const gl = this.gl;
         if (!this.count) return;
@@ -427,7 +427,7 @@ export class HyperSplatRenderer {
 
         gl.uniformMatrix4fv(this.uniforms.viewProjection, false, viewProjection || IDENTITY);
 
-        // THE DRAW CALL: 2M points × 10 instances = 20M splats
+        // THE DRAW CALL: 1M points × 10 instances = 10M splats
         gl.drawArraysInstanced(gl.POINTS, 0, this.count, INSTANCE_COUNT);
 
         gl.bindVertexArray(null);

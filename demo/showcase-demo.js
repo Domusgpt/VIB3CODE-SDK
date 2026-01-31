@@ -8,7 +8,7 @@
  *   4. Massive — 250K–500K+ splats with GPU-driven animation
  *   5. Ultra   — 750K–1M+ splats: Supernova, Black Hole, Aurora,
  *                Fireworks, Quantum Field — the efficiency vertical slice
- *   6. WOAH    — 20M splats via instanced rendering (2M base × 10 instances)
+ *   6. WOAH    — 10M splats via instanced rendering (1M base × 10 instances)
  *                with 4D hyperspace rotation, ACES tone mapping,
  *                anamorphic streaks, and aurora shimmer
  *
@@ -233,8 +233,8 @@ const PRESETS = {
 
     woah: [
         {
-            label: '20M Universe',
-            gen: () => generateHyperSceneSplats({ totalSplats: 2000000 }),
+            label: '10M Universe',
+            gen: () => generateHyperSceneSplats({ totalSplats: 1000000 }),
             camera: { distance: 15, elevation: 0.35 },
             pcgBytes: 12,
             isHyper: true,
@@ -438,7 +438,7 @@ function switchMode(mode) {
         shape: '3D Shape Splats',
         massive: 'Massive Scale',
         ultra: 'Ultra Scale',
-        woah: '20M HYPERSPACE',
+        woah: '10M HYPERSPACE',
     };
     flash.textContent = titles[mode] || mode;
     flash.classList.add('show');

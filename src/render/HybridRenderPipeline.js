@@ -37,11 +37,18 @@
  * The pipeline does NOT require all layers to be active.  You can render
  * just mesh + inscription, or just splats + procedural, etc.
  *
+ * v2 Integrations:
+ *   - **SceneRenderer**: Multi-object scenes with shared GBuffer
+ *   - **InscriptionChannel**: Semantic state drives inscription per object
+ *   - **Audio-reactive**: Pass audio to inscription for 4D modulation
+ *   - **Object ID routing**: Cross-object edge inscription boundaries
+ *   - **DPR-aware**: Resolution scaling for inscription detail
+ *
  * Usage:
  *   const pipeline = new HybridRenderPipeline(gl);
- *   pipeline.setMeshRenderer(meshRenderer);
- *   pipeline.setSplatRenderer(splatRenderer);
+ *   pipeline.setSceneRenderer(sceneRenderer);  // OR setMeshRenderer()
  *   pipeline.setEdgeInscription(edgeInscription);
+ *   pipeline.setInscriptionChannel(channel);   // optional semantic states
  *   pipeline.render(time, viewProjection, projection);
  */
 
@@ -256,9 +263,12 @@ export class HybridRenderPipeline {
 
         // External renderers (set via setters)
         this._meshRenderer = null;
+        this._sceneRenderer = null;        // SceneRenderer (multi-object alternative)
         this._splatRenderer = null;
         this._proceduralRenderer = null;   // function(fbo, time) — custom callback
         this._edgeInscription = null;
+        this._inscriptionChannel = null;   // InscriptionChannel (semantic state)
+        this._dpr = 1.0;                   // Device pixel ratio for inscription
 
         // Layer configs
         this.meshLayer = defaultLayerConfig();
@@ -318,6 +328,9 @@ export class HybridRenderPipeline {
     /** @param {MeshRenderer} renderer */
     setMeshRenderer(renderer) { this._meshRenderer = renderer; }
 
+    /** @param {SceneRenderer} renderer  Multi-object scene (overrides MeshRenderer) */
+    setSceneRenderer(renderer) { this._sceneRenderer = renderer; }
+
     /**
      * @param {GaussianSplatRenderer|ExperimentalSplatRenderer} renderer
      */
@@ -334,6 +347,12 @@ export class HybridRenderPipeline {
 
     /** @param {EdgeInscriptionLayer} layer */
     setEdgeInscription(layer) { this._edgeInscription = layer; }
+
+    /** @param {InscriptionChannel} channel  Semantic state -> inscription mapping */
+    setInscriptionChannel(channel) { this._inscriptionChannel = channel; }
+
+    /** Set device pixel ratio for resolution-aware inscription. */
+    setDPR(dpr) { this._dpr = dpr; }
 
     /* -------------------------------------------------------------- */
     /*  Main render                                                    */
@@ -376,14 +395,31 @@ export class HybridRenderPipeline {
         let proceduralTex = this._blackTexture;
         let inscriptionTex = this._blackTexture;
         let normalDepthTex = null;
+        let objectIDTex = null;
+        let gbufferRef = null;
 
-        // --- Layer 0: Mesh ---
-        if (this._meshRenderer && this.meshLayer.enabled) {
+        // --- Layer 0: Mesh (SceneRenderer or single MeshRenderer) ---
+        if (this._sceneRenderer && this.meshLayer.enabled) {
+            // Multi-object scene rendering into shared GBuffer
+            const result = this._sceneRenderer.render(modelView, projection, {
+                rotation4D, projDistance, width: w, height: h,
+            });
+            gbufferRef = result.gbuffer;
+            if (gbufferRef) {
+                meshColorTex = gbufferRef.colorTexture;
+                normalDepthTex = gbufferRef.normalTexture;
+                objectIDTex = gbufferRef.objectIDTexture || null;
+                stats.meshRendered = true;
+                stats.objectCount = result.objectCount;
+            }
+        } else if (this._meshRenderer && this.meshLayer.enabled) {
             const gbuffer = this._meshRenderer.render(modelView, projection, {
                 rotation4D, projDistance, width: w, height: h,
             });
+            gbufferRef = gbuffer;
             meshColorTex = gbuffer.colorTexture;
             normalDepthTex = gbuffer.normalTexture;
+            objectIDTex = gbuffer.objectIDTexture || null;
             stats.meshRendered = true;
         }
 
@@ -396,8 +432,8 @@ export class HybridRenderPipeline {
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             // Copy mesh depth buffer to splat FBO for correct occlusion
-            if (stats.meshRendered && this._meshRenderer.gbuffer) {
-                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._meshRenderer.gbuffer.framebuffer);
+            if (stats.meshRendered && gbufferRef) {
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, gbufferRef.framebuffer);
                 gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._splatFBO.framebuffer);
                 gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h,
                     gl.DEPTH_BUFFER_BIT, gl.NEAREST);
@@ -458,8 +494,18 @@ export class HybridRenderPipeline {
 
         // --- Layer 3: Edge Inscription ---
         if (this._edgeInscription && this.inscriptionLayer.enabled && normalDepthTex) {
+            // Apply InscriptionChannel semantic state if available
+            if (this._inscriptionChannel) {
+                // Use first registered object or ID 0 as default
+                const objects = this._inscriptionChannel.registeredObjects;
+                const primaryID = objects.length > 0 ? objects[0] : 0;
+                this._inscriptionChannel.applyToLayer(this._edgeInscription, primaryID);
+            }
+
             const inscResult = this._edgeInscription.render(normalDepthTex, time, {
                 width: w, height: h,
+                objectIDTexture: objectIDTex,
+                dpr: this._dpr,
             });
             inscriptionTex = inscResult.texture;
             stats.inscriptionRendered = true;

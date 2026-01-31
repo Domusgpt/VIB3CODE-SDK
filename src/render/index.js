@@ -110,6 +110,18 @@ export { MeshRenderer } from './MeshRenderer.js';
 export { EdgeInscriptionLayer } from './EdgeInscriptionLayer.js';
 export { TextureToSplatConverter } from './TextureToSplatConverter.js';
 
+// v2: Multi-object scene management
+export { SceneRenderer, SceneObject } from './SceneRenderer.js';
+
+// v2: PBR material decomposition to Gaussian splats
+export { PBRSplatConverter } from './PBRSplatConverter.js';
+
+// v2: Semantic state → inscription mapping (per-object identity, audio-reactive)
+export { InscriptionChannel } from './InscriptionChannel.js';
+
+// v2: WebGPU compute shader inscription path (optional, falls back to WebGL)
+export { WebGPUInscription, createWebGPUInscription } from './WebGPUInscription.js';
+
 /**
  * Create a complete rendering context
  * @param {HTMLCanvasElement} canvas

@@ -21,6 +21,8 @@ import { EdgeInscriptionLayer } from '../src/render/EdgeInscriptionLayer.js';
 import { HybridRenderPipeline, BlendModes } from '../src/render/HybridRenderPipeline.js';
 import { TextureToSplatConverter } from '../src/render/TextureToSplatConverter.js';
 import { encodeGaussianSeeds } from '../src/render/GaussianSeedBuffer.js';
+import { SceneRenderer } from '../src/render/SceneRenderer.js';
+import { InscriptionChannel } from '../src/render/InscriptionChannel.js';
 
 /* ================================================================== */
 /*  PROCEDURAL MESH GENERATORS                                         */
@@ -519,6 +521,30 @@ const pipeline = new HybridRenderPipeline(gl, {
 pipeline.setMeshRenderer(meshRenderer);
 pipeline.setSplatRenderer(splatRenderer);
 pipeline.setEdgeInscription(edgeInscription);
+pipeline.setDPR(devicePixelRatio);
+
+/* ================================================================== */
+/*  v2: SCENE RENDERER + INSCRIPTION CHANNEL                          */
+/* ================================================================== */
+
+const sceneRenderer = new SceneRenderer(gl, {
+    lightDir: [0.5, 0.8, 0.3],
+    lightColor: [1.0, 0.98, 0.95],
+    ambientColor: [0.15, 0.15, 0.22],
+});
+
+const inscriptionChannel = new InscriptionChannel({
+    layerCount: 4,
+    transitionDuration: 0.5,
+});
+
+// Register default object
+inscriptionChannel.registerObject(1, 'active');
+pipeline.setInscriptionChannel(inscriptionChannel);
+
+let useMultiScene = false;
+let audioSimLevel = 0;
+let morphWeight = 0;
 
 // Procedural shader program (for Layer 2)
 let procProgram = null;
@@ -596,6 +622,28 @@ function loadMesh(key) {
     currentMesh = gen();
     meshRenderer.uploadGeometry(currentMesh);
 
+    // Generate morph target (scaled/deformed version for animation demo)
+    const morphPositions = new Float32Array(currentMesh.positions.length);
+    const morphNormals = new Float32Array(currentMesh.normals.length);
+    for (let i = 0; i < currentMesh.positions.length; i += 3) {
+        const x = currentMesh.positions[i];
+        const y = currentMesh.positions[i+1];
+        const z = currentMesh.positions[i+2];
+        const r = Math.sqrt(x*x + y*y + z*z) || 1;
+        // Spiky deformation: push vertices outward by a sin-based pattern
+        const spike = 1.0 + 0.3 * Math.sin(x * 8) * Math.sin(y * 8) * Math.sin(z * 8);
+        morphPositions[i]   = x * spike;
+        morphPositions[i+1] = y * spike;
+        morphPositions[i+2] = z * spike;
+        // Recalculate normals (approximate)
+        morphNormals[i]   = currentMesh.normals[i] * spike;
+        morphNormals[i+1] = currentMesh.normals[i+1] * spike;
+        morphNormals[i+2] = currentMesh.normals[i+2] * spike;
+    }
+    if (meshRenderer.uploadMorphTarget) {
+        meshRenderer.uploadMorphTarget(morphPositions, morphNormals);
+    }
+
     // Upload procedural texture
     meshRenderer.uploadTexture(textureData);
 
@@ -622,6 +670,41 @@ function loadMesh(key) {
 }
 
 /* ================================================================== */
+/*  MULTI-OBJECT SCENE SETUP                                           */
+/* ================================================================== */
+
+function setupMultiScene() {
+    // Clear previous scene objects
+    sceneRenderer.dispose();
+
+    // Add 3 objects at different positions
+    const torusGeo = generateTorus(0.7, 0.25, 48, 24);
+    const sphereGeo = generateSphere(0.6, 32, 24);
+    const cubeGeo = generateCube(0.9);
+
+    const obj1 = sceneRenderer.addObject('torus', torusGeo);
+    const obj2 = sceneRenderer.addObject('sphere', sphereGeo);
+    const obj3 = sceneRenderer.addObject('cube', cubeGeo);
+
+    // Position objects in a triangle arrangement
+    obj1.setTransform(new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, -1.8,0,0,1]));
+    obj2.setTransform(new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 1.8,0,0,1]));
+    obj3.setTransform(new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,1.5,0,1]));
+
+    // Register each object with inscription channel at different states
+    inscriptionChannel.registerObject(obj1.id, 'active');
+    inscriptionChannel.registerObject(obj2.id, 'powered');
+    inscriptionChannel.registerObject(obj3.id, 'selected');
+
+    document.getElementById('sceneObjects').textContent = '3';
+}
+
+function teardownMultiScene() {
+    sceneRenderer.dispose();
+    document.getElementById('sceneObjects').textContent = '1';
+}
+
+/* ================================================================== */
 /*  TAB MANAGEMENT                                                     */
 /* ================================================================== */
 
@@ -630,23 +713,27 @@ let currentTab = 'hybrid';
 const TAB_CONFIGS = {
     'hybrid': {
         mesh: true, splat: true, procedural: true, inscription: true,
-        label: 'Hybrid',
+        label: 'Hybrid', multiScene: false,
     },
     'mesh-inscribe': {
         mesh: true, splat: false, procedural: false, inscription: true,
-        label: 'Mesh+Insc',
+        label: 'Mesh+Insc', multiScene: false,
     },
     'mesh-splat': {
         mesh: true, splat: true, procedural: false, inscription: false,
-        label: 'Mesh+Splat',
+        label: 'Mesh+Splat', multiScene: false,
     },
     'splat-proc': {
         mesh: false, splat: true, procedural: true, inscription: false,
-        label: 'Splat+Proc',
+        label: 'Splat+Proc', multiScene: false,
+    },
+    'multi-scene': {
+        mesh: true, splat: false, procedural: false, inscription: true,
+        label: 'MultiObj', multiScene: true,
     },
     'benchmark': {
         mesh: true, splat: true, procedural: true, inscription: true,
-        label: 'Benchmark',
+        label: 'Benchmark', multiScene: false,
     },
 };
 
@@ -659,6 +746,19 @@ function switchTab(tab) {
     pipeline.splatLayer.enabled = cfg.splat;
     pipeline.proceduralLayer.enabled = cfg.procedural;
     pipeline.inscriptionLayer.enabled = cfg.inscription;
+
+    // Handle multi-object scene mode
+    if (cfg.multiScene && !useMultiScene) {
+        useMultiScene = true;
+        setupMultiScene();
+        pipeline.setSceneRenderer(sceneRenderer);
+        pipeline.setMeshRenderer(null);
+    } else if (!cfg.multiScene && useMultiScene) {
+        useMultiScene = false;
+        teardownMultiScene();
+        pipeline.setSceneRenderer(null);
+        pipeline.setMeshRenderer(meshRenderer);
+    }
 
     // Update toggle checkboxes to match
     document.getElementById('toggleMesh').checked = cfg.mesh;
@@ -793,6 +893,24 @@ function wire4D(sliderId, valId, prop) {
 wire4D('slider4DXW', 'val4DXW', 'rot4dXW');
 wire4D('slider4DYW', 'val4DYW', 'rot4dYW');
 wire4D('slider4DZW', 'val4DZW', 'rot4dZW');
+
+// v2: Semantic state selector
+document.getElementById('selectState').addEventListener('change', (e) => {
+    const state = e.target.value;
+    inscriptionChannel.setObjectState(1, state);
+    document.getElementById('currentState').textContent = state;
+});
+
+// v2: Morph weight slider
+wireSlider('sliderMorph', 'valMorph', v => {
+    morphWeight = v;
+    meshRenderer.morphWeight = v;
+});
+
+// v2: Audio simulation slider
+wireSlider('sliderAudioSim', 'valAudioSim', v => {
+    audioSimLevel = v;
+});
 
 // Splat source selector
 document.getElementById('selectSplatSource').addEventListener('change', (e) => {
@@ -971,9 +1089,13 @@ canvas.addEventListener('pointerup', () => {
     setTimeout(() => { autoOrbit = true; }, 3000);
 });
 
+let lastTime = 0;
+
 function tick() {
     const frameStart = performance.now();
     const time = (performance.now() - startTime) * 0.001;
+    const deltaTime = time - lastTime;
+    lastTime = time;
 
     if (autoOrbit && !camera.isDragging) {
         camera.azimuth += 0.003;
@@ -982,6 +1104,19 @@ function tick() {
     // Auto-animate 4D rotation for inscription
     edgeInscription.rot4dXY = time * 0.1;
     edgeInscription.rot4dYZ = time * 0.07;
+
+    // v2: Update inscription channel transitions
+    inscriptionChannel.update(deltaTime);
+
+    // v2: Simulated audio reactivity
+    if (audioSimLevel > 0) {
+        const bass = audioSimLevel * (0.5 + 0.5 * Math.sin(time * 2.1));
+        const mid  = audioSimLevel * (0.5 + 0.5 * Math.sin(time * 3.7));
+        const high = audioSimLevel * (0.5 + 0.5 * Math.sin(time * 5.3));
+        const energy = audioSimLevel * (0.6 + 0.4 * Math.sin(time * 1.3));
+        inscriptionChannel.setAudio(bass, mid, high, energy);
+        edgeInscription.setAudio(bass, mid, high, energy);
+    }
 
     const stats = pipeline.render(time, camera.viewMatrix, camera.projectionMatrix, {
         viewProjection: camera.viewProjection,

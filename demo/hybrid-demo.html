@@ -21,6 +21,7 @@
     <button class="tab-btn" data-tab="mesh-inscribe">Mesh + Inscription</button>
     <button class="tab-btn" data-tab="mesh-splat">Mesh + Splats</button>
     <button class="tab-btn" data-tab="splat-proc">Splat + Procedural</button>
+    <button class="tab-btn" data-tab="multi-scene">Multi-Object Scene</button>
     <button class="tab-btn" data-tab="benchmark">Benchmark</button>
   </div>
 
@@ -152,6 +153,33 @@
       <p class="control-desc">Holographic edge inscription using GBuffer edge detection with VIB3 procedural patterns.</p>
     </div>
 
+    <!-- v2: Semantic State + Morph -->
+    <div class="control-group">
+      <div class="controls-subtitle">v2: Scene &amp; Animation</div>
+      <label class="slider-row">
+        <span>State</span>
+        <select id="selectState" class="blend-select">
+          <option value="idle">Idle</option>
+          <option value="active" selected>Active</option>
+          <option value="selected">Selected</option>
+          <option value="powered">Powered</option>
+          <option value="damaged">Damaged</option>
+          <option value="destroyed">Destroyed</option>
+        </select>
+      </label>
+      <label class="slider-row">
+        <span>Morph</span>
+        <input type="range" id="sliderMorph" min="0" max="100" value="0">
+        <span class="slider-val" id="valMorph">0.00</span>
+      </label>
+      <label class="slider-row">
+        <span>Audio Sim</span>
+        <input type="range" id="sliderAudioSim" min="0" max="100" value="0">
+        <span class="slider-val" id="valAudioSim">0.00</span>
+      </label>
+      <p class="control-desc">Semantic inscription states + morph target blending + simulated audio reactivity.</p>
+    </div>
+
     <!-- Post-process -->
     <div class="control-group">
       <div class="controls-subtitle">Post-Process</div>
@@ -186,8 +214,10 @@
     <div class="stat-row"><span>Mesh Tris</span><strong id="meshTris">0</strong></div>
     <div class="stat-row"><span>Splat Count</span><strong id="splatCount">0</strong></div>
     <div class="stat-row"><span>Insc. Layers</span><strong id="inscLayers">4</strong></div>
+    <div class="stat-row"><span>Scene Objects</span><strong id="sceneObjects">1</strong></div>
     <div class="stat-row separator"></div>
     <div class="stat-row"><span>Active Layers</span><strong id="activeLayers">4</strong></div>
+    <div class="stat-row"><span>State</span><strong id="currentState">active</strong></div>
     <div class="stat-row"><span>Compositor</span><strong id="compositorMode">Hybrid</strong></div>
   </div>
 

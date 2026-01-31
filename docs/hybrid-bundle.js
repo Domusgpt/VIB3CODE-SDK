@@ -605,6 +605,30 @@ class OrbitCamera{
 }
 
 /* ================================================================== */
+/*  v2: InscriptionChannel (semantic state → inscription mapping)      */
+/* ================================================================== */
+
+const STATE_PRESETS={idle:{priority:0,opacityMultiplier:0.3,thicknessMultiplier:0.5,speedMultiplier:0.5,glowIntensity:0.1,colorShift:[0,0,0],rotationSpeed:0.1,patternOverride:null},active:{priority:1,opacityMultiplier:0.8,thicknessMultiplier:1.0,speedMultiplier:1.0,glowIntensity:0.5,colorShift:[0.1,0.1,0.2],rotationSpeed:0.3,patternOverride:null},selected:{priority:2,opacityMultiplier:1.0,thicknessMultiplier:1.2,speedMultiplier:0.8,glowIntensity:0.8,colorShift:[0,0.2,0.3],rotationSpeed:0.5,patternOverride:7},powered:{priority:2,opacityMultiplier:1.0,thicknessMultiplier:1.5,speedMultiplier:1.5,glowIntensity:1.0,colorShift:[0.3,0,0.5],rotationSpeed:1.0,patternOverride:6},damaged:{priority:3,opacityMultiplier:0.9,thicknessMultiplier:0.8,speedMultiplier:2.0,glowIntensity:0.7,colorShift:[0.5,-0.2,-0.2],rotationSpeed:2.0,patternOverride:5},destroyed:{priority:4,opacityMultiplier:0.4,thicknessMultiplier:2.0,speedMultiplier:3.0,glowIntensity:0.3,colorShift:[0.3,-0.1,-0.3],rotationSpeed:3.0,patternOverride:5}};
+
+const AUDIO_MAPPINGS={bass:{rot4dXW:0.5,thickness:0.3,glow:0.4},mid:{rot4dYW:0.3,speed:0.5,opacity:0.2},high:{rot4dZW:0.6,patternScale:0.3,hueShift:30},energy:{allRotation:0.3,intensity:0.5,glow:0.3}};
+
+function generateIdentityConfig(objectID,layerCount=4){const hash=(s)=>{let h=s*2654435761;h=((h>>>16)^h)*2246822507;h=((h>>>16)^h)*3266489909;h=(h>>>16)^h;return(h&0x7FFFFFFF)/0x7FFFFFFF;};const layers=[];for(let i=0;i<layerCount;i++){const s=objectID*1000+i;layers.push({geometry:Math.floor(hash(s)*24),thickness:0.3+hash(s+100)*0.4,opacity:0.7+hash(s+200)*0.3,color:[0.3+hash(s+300)*0.7,0.3+hash(s+400)*0.7,0.3+hash(s+500)*0.7],patternScale:2+hash(s+600)*4,patternSpeed:0.2+hash(s+700)*0.4,rotOffset:hash(s+800)*Math.PI*2});}return{layers,baseRotationSpeed:hash(objectID*31)*0.5,baseHue:hash(objectID*47)*360};}
+
+class InscriptionChannel{
+constructor({layerCount=4,transitionDuration=0.5}={}){this.layerCount=layerCount;this.transitionDuration=transitionDuration;this._objectStates=new Map();this._audio={bass:0,mid:0,high:0,energy:0};this._time=0;}
+registerObject(id,state='idle'){const identity=generateIdentityConfig(id,this.layerCount);const preset=STATE_PRESETS[state]||STATE_PRESETS.idle;this._objectStates.set(id,{currentState:state,targetState:state,transitionProgress:1.0,currentPreset:{...preset},targetPreset:{...preset},identity});}
+setObjectState(id,state){let obj=this._objectStates.get(id);if(!obj){this.registerObject(id,state);return;}if(obj.targetState===state)return;const preset=STATE_PRESETS[state];if(!preset)return;obj.currentPreset=this._interp(obj.currentPreset,obj.targetPreset,obj.transitionProgress);obj.targetPreset={...preset};obj.currentState=obj.targetState;obj.targetState=state;obj.transitionProgress=0;}
+setAudio(b,m,h,e){this._audio.bass=Math.max(0,Math.min(1,b||0));this._audio.mid=Math.max(0,Math.min(1,m||0));this._audio.high=Math.max(0,Math.min(1,h||0));this._audio.energy=Math.max(0,Math.min(1,e||0));}
+update(dt){this._time+=dt;for(const obj of this._objectStates.values())if(obj.transitionProgress<1)obj.transitionProgress=Math.min(1,obj.transitionProgress+dt/this.transitionDuration);}
+getInscriptionConfig(id){let obj=this._objectStates.get(id);if(!obj){this.registerObject(id);obj=this._objectStates.get(id);}const preset=this._interp(obj.currentPreset,obj.targetPreset,obj.transitionProgress);const identity=obj.identity;const audio=this._audio;const layers=[];for(let i=0;i<this.layerCount;i++){const bl=identity.layers[i];const geom=preset.patternOverride!==null?preset.patternOverride:bl.geometry;const opacity=bl.opacity*preset.opacityMultiplier+audio.energy*AUDIO_MAPPINGS.energy.intensity*0.3;const thickness=bl.thickness*preset.thicknessMultiplier+audio.bass*AUDIO_MAPPINGS.bass.thickness;const speed=bl.patternSpeed*preset.speedMultiplier+audio.mid*AUDIO_MAPPINGS.mid.speed;const hs=audio.high*AUDIO_MAPPINGS.high.hueShift/360;const color=[Math.min(1,Math.max(0,bl.color[0]+preset.colorShift[0]+hs*0.5)),Math.min(1,Math.max(0,bl.color[1]+preset.colorShift[1]+hs*0.3)),Math.min(1,Math.max(0,bl.color[2]+preset.colorShift[2]+hs))];layers.push({geometry:geom,thickness:Math.min(1,Math.max(0,thickness)),opacity:Math.min(1,Math.max(0,opacity)),color,patternScale:bl.patternScale+audio.high*AUDIO_MAPPINGS.high.patternScale,patternSpeed:speed,rotOffset:bl.rotOffset+this._time*(identity.baseRotationSpeed+preset.rotationSpeed*0.5)});}return{layers,rot4dXW:audio.bass*AUDIO_MAPPINGS.bass.rot4dXW+audio.energy*AUDIO_MAPPINGS.energy.allRotation,rot4dYW:audio.mid*AUDIO_MAPPINGS.mid.rot4dYW+audio.energy*AUDIO_MAPPINGS.energy.allRotation,rot4dZW:audio.high*AUDIO_MAPPINGS.high.rot4dZW+audio.energy*AUDIO_MAPPINGS.energy.allRotation,globalThickness:0.6*preset.thicknessMultiplier+audio.bass*0.2,glowIntensity:preset.glowIntensity+audio.energy*AUDIO_MAPPINGS.energy.glow,bass:audio.bass,mid:audio.mid,high:audio.high,energy:audio.energy};}
+applyToLayer(layer,id){const cfg=this.getInscriptionConfig(id);layer.rot4dXW=cfg.rot4dXW;layer.rot4dYW=cfg.rot4dYW;layer.rot4dZW=cfg.rot4dZW;layer.globalThickness=cfg.globalThickness;if(layer.setAudio)layer.setAudio(cfg.bass,cfg.mid,cfg.high,cfg.energy);for(let i=0;i<cfg.layers.length&&i<layer.layerCount;i++)if(layer.setLayerConfig)layer.setLayerConfig(i,cfg.layers[i]);}
+get registeredObjects(){return Array.from(this._objectStates.keys());}
+get stateNames(){return Object.keys(STATE_PRESETS);}
+_interp(a,b,t){const st=t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;return{priority:b.priority,opacityMultiplier:a.opacityMultiplier+(b.opacityMultiplier-a.opacityMultiplier)*st,thicknessMultiplier:a.thicknessMultiplier+(b.thicknessMultiplier-a.thicknessMultiplier)*st,speedMultiplier:a.speedMultiplier+(b.speedMultiplier-a.speedMultiplier)*st,glowIntensity:a.glowIntensity+(b.glowIntensity-a.glowIntensity)*st,colorShift:[a.colorShift[0]+(b.colorShift[0]-a.colorShift[0])*st,a.colorShift[1]+(b.colorShift[1]-a.colorShift[1])*st,a.colorShift[2]+(b.colorShift[2]-a.colorShift[2])*st],rotationSpeed:a.rotationSpeed+(b.rotationSpeed-a.rotationSpeed)*st,patternOverride:st>0.5?b.patternOverride:a.patternOverride};}
+dispose(){this._objectStates.clear();}
+}
+
+/* ================================================================== */
 /*  SETUP                                                              */
 /* ================================================================== */
 
@@ -628,6 +652,13 @@ const splatRenderer = new GaussianSplatRenderer(gl,{pointScale:canvas.height/(2*
 const edgeInscription = new EdgeInscriptionLayer(gl,{layerCount:4,geometry:3,thickness:0.6,patternScale:3.0,patternSpeed:0.3,depthSensitivity:8.0,normalSensitivity:2.0,opacity:0.8});
 const pipeline = new HybridRenderPipeline(gl,{exposure:1.2,gamma:2.2});
 pipeline.setMeshRenderer(meshRenderer); pipeline.setSplatRenderer(splatRenderer); pipeline.setEdgeInscription(edgeInscription);
+if(pipeline.setDPR)pipeline.setDPR(devicePixelRatio);
+
+// v2: InscriptionChannel
+const inscriptionChannel = new InscriptionChannel({layerCount:4,transitionDuration:0.5});
+inscriptionChannel.registerObject(1,'active');
+if(pipeline.setInscriptionChannel)pipeline.setInscriptionChannel(inscriptionChannel);
+let audioSimLevel=0;
 
 // Procedural shader (Layer 2)
 let procProgram=null,procQuadVao=null,procGeometry=3;
@@ -659,7 +690,7 @@ function loadMesh(key){
 /* ================================================================== */
 
 let currentTab='hybrid';
-const TAB_CFGS={'hybrid':{m:true,s:true,p:true,i:true,l:'Hybrid'},'mesh-inscribe':{m:true,s:false,p:false,i:true,l:'Mesh+Insc'},'mesh-splat':{m:true,s:true,p:false,i:false,l:'Mesh+Splat'},'splat-proc':{m:false,s:true,p:true,i:false,l:'Splat+Proc'},'benchmark':{m:true,s:true,p:true,i:true,l:'Benchmark'}};
+const TAB_CFGS={'hybrid':{m:true,s:true,p:true,i:true,l:'Hybrid'},'mesh-inscribe':{m:true,s:false,p:false,i:true,l:'Mesh+Insc'},'mesh-splat':{m:true,s:true,p:false,i:false,l:'Mesh+Splat'},'splat-proc':{m:false,s:true,p:true,i:false,l:'Splat+Proc'},'multi-scene':{m:true,s:false,p:false,i:true,l:'MultiObj'},'benchmark':{m:true,s:true,p:true,i:true,l:'Benchmark'}};
 
 function switchTab(tab){
     currentTab=tab;const c=TAB_CFGS[tab];if(!c)return;
@@ -697,6 +728,10 @@ const slG=document.getElementById('sliderGeometry'),vlG=document.getElementById(
 const slE=document.getElementById('sliderExposure'),vlE=document.getElementById('valExposure');slE.addEventListener('input',()=>{const v=slE.value/100;vlE.textContent=v.toFixed(2);pipeline.exposure=v;});
 function wire4D(sid,vid,prop){const s=document.getElementById(sid),v=document.getElementById(vid);s.addEventListener('input',()=>{const val=s.value/100;v.textContent=val.toFixed(2);edgeInscription[prop]=val;});}
 wire4D('slider4DXW','val4DXW','rot4dXW');wire4D('slider4DYW','val4DYW','rot4dYW');wire4D('slider4DZW','val4DZW','rot4dZW');
+// v2: Semantic state + audio sim
+const elState=document.getElementById('selectState');if(elState)elState.addEventListener('change',e=>{inscriptionChannel.setObjectState(1,e.target.value);const cs=document.getElementById('currentState');if(cs)cs.textContent=e.target.value;});
+const elMorph=document.getElementById('sliderMorph'),elMorphV=document.getElementById('valMorph');if(elMorph)elMorph.addEventListener('input',()=>{const v=elMorph.value/100;if(elMorphV)elMorphV.textContent=v.toFixed(2);meshRenderer.morphWeight=v;});
+const elAudioS=document.getElementById('sliderAudioSim'),elAudioSV=document.getElementById('valAudioSim');if(elAudioS)elAudioS.addEventListener('input',()=>{const v=elAudioS.value/100;if(elAudioSV)elAudioSV.textContent=v.toFixed(2);audioSimLevel=v;});
 document.getElementById('selectSplatSource').addEventListener('change',e=>{const src=e.target.value;if(src==='texture'){loadMesh(currentMeshKey);}else{const seeds=[];const count=src==='galaxy'?200000:150000;for(let i=0;i<count;i++){const t=Math.random()*Math.PI*2,r=Math.pow(Math.random(),0.5)*3;if(src==='galaxy'){const arm=Math.floor(Math.random()*3)*(Math.PI*2/3),sp=t*0.5;seeds.push({position:[r*Math.cos(t+arm+sp)+(Math.random()-0.5)*0.3,(Math.random()-0.5)*0.2*(1-r/3),r*Math.sin(t+arm+sp)+(Math.random()-0.5)*0.3],orientation:[1,0,0,0],scale:0.015+Math.random()*0.02,color:[0.6+Math.random()*0.4,0.4+Math.random()*0.4,0.8+Math.random()*0.2],depth:r*0.3});}else{const phi=(Math.random()-0.5)*Math.PI;seeds.push({position:[r*Math.cos(t)*Math.cos(phi),r*Math.sin(phi)*0.6,r*Math.sin(t)*Math.cos(phi)],orientation:[1,0,0,0],scale:0.02+Math.random()*0.03,color:[0.8+Math.random()*0.2,0.2+Math.random()*0.3,0.5+Math.random()*0.5],depth:r*0.2});}}splatRenderer.updateSeeds(encodeGaussianSeeds(seeds),seeds.length);document.getElementById('splatCount').textContent=seeds.length.toLocaleString();}});
 
 /* ================================================================== */
@@ -725,14 +760,18 @@ document.getElementById('runBenchmark').addEventListener('click',runBenchmark);
 /*  STATS + RENDER LOOP                                                */
 /* ================================================================== */
 
-let frameCount=0,lastFpsTime=performance.now(),autoOrbit=true,startTime=performance.now();
+let frameCount=0,lastFpsTime=performance.now(),autoOrbit=true,startTime=performance.now(),lastTime=0;
 const elFps=document.getElementById('fps'),elFT=document.getElementById('frameTime'),elAL=document.getElementById('activeLayers');
 canvas.addEventListener('pointerdown',()=>{autoOrbit=false;});canvas.addEventListener('pointerup',()=>{setTimeout(()=>{autoOrbit=true;},3000);});
 
 function tick(){
     const fs=performance.now(),time=(performance.now()-startTime)*0.001;
+    const deltaTime=time-lastTime;lastTime=time;
     if(autoOrbit&&!camera.isDragging)camera.azimuth+=0.003;
     edgeInscription.rot4dXY=time*0.1;edgeInscription.rot4dYZ=time*0.07;
+    // v2: Update inscription channel
+    inscriptionChannel.update(deltaTime);
+    if(audioSimLevel>0){const bass=audioSimLevel*(0.5+0.5*Math.sin(time*2.1)),mid=audioSimLevel*(0.5+0.5*Math.sin(time*3.7)),high=audioSimLevel*(0.5+0.5*Math.sin(time*5.3)),energy=audioSimLevel*(0.6+0.4*Math.sin(time*1.3));inscriptionChannel.setAudio(bass,mid,high,energy);if(edgeInscription.setAudio)edgeInscription.setAudio(bass,mid,high,energy);}
     const stats=pipeline.render(time,camera.viewMatrix,camera.projectionMatrix,{viewProjection:camera.viewProjection});
     frameCount++;const now=performance.now();
     if(now-lastFpsTime>500){elFps.textContent=Math.round(frameCount/((now-lastFpsTime)/1000));elFT.textContent=(now-fs).toFixed(1)+' ms';frameCount=0;lastFpsTime=now;}

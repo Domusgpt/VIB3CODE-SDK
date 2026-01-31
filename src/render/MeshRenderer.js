@@ -1,26 +1,20 @@
 /**
- * MeshRenderer
+ * MeshRenderer (v2 — Morph Targets + Object ID GBuffer)
  *
- * Traditional triangle-mesh renderer that integrates with the VIB3+ hybrid
- * pipeline.  Renders indexed triangle geometry with:
+ * Traditional triangle-mesh renderer for the VIB3+ hybrid pipeline.
  *
- *   - Position / Normal / UV / Color vertex attributes
- *   - Blinn-Phong lighting with configurable light direction
- *   - Texture map support (diffuse sampler)
- *   - GBuffer output: color (RGBA), depth, view-space normals
- *   - Optional 4D rotation via the VIB3 6-plane system
+ * v2 Enhancements:
+ *   - **Morph targets**: Blend between two vertex position/normal sets
+ *     for animation (character poses, shape keys, vertex animation)
+ *   - **Object ID output**: 3rd GBuffer MRT encodes per-object integer ID
+ *     for cross-object edge inscription routing
+ *   - **Uint32 index support**: Large meshes > 65K vertices
+ *   - **Multi-draw**: Submit multiple meshes to shared GBuffer in one pass
  *
- * The renderer writes to an FBO so the HybridRenderPipeline can composite
- * the mesh layer with splat, procedural, and edge-inscription layers.
- *
- * Usage:
- *   const mesh = new MeshRenderer(gl);
- *   mesh.uploadGeometry({ positions, normals, uvs, indices });
- *   mesh.uploadTexture(imageOrCanvas);        // optional diffuse map
- *   mesh.render(viewProjection, {
- *       lightDir: [0.5, 1.0, 0.3],
- *       rotation4D: rotate4DMatrix,           // optional 4D rotation
- *   });
+ * GBuffer layout:
+ *   Attachment 0: RGBA8   — Lit surface color
+ *   Attachment 1: RGBA16F — View-space normals (RGB) + linear depth (A)
+ *   Attachment 2: RGBA8   — Object ID (R), reserved (GBA)
  */
 
 /* ------------------------------------------------------------------ */
@@ -35,31 +29,42 @@ in vec3  a_normal;
 in vec2  a_uv;
 in vec4  a_color;
 
+// Morph target attributes
+in vec3  a_morphPosition;
+in vec3  a_morphNormal;
+
 uniform mat4  u_modelView;
 uniform mat4  u_projection;
 uniform mat4  u_normalMatrix;
-uniform mat4  u_rotation4D;     // identity when no 4D rotation
-uniform float u_projDistance;   // 4D perspective distance (default 2.0)
-uniform float u_use4D;         // 0.0 = bypass 4D, 1.0 = apply 4D rotation
+uniform mat4  u_rotation4D;
+uniform float u_projDistance;
+uniform float u_use4D;
+uniform float u_morphWeight;    // 0.0 = base, 1.0 = fully morphed
+uniform float u_hasMorphTarget; // 0.0 = no morph, 1.0 = blend
 
-out vec3  v_position;     // view-space position
-out vec3  v_normal;       // view-space normal
+out vec3  v_position;
+out vec3  v_normal;
 out vec2  v_uv;
 out vec4  v_color;
-out float v_depth;        // linear view-space depth (for edge detection)
+out float v_depth;
 
 void main() {
+    // Morph target blending
     vec3 pos = a_position;
     vec3 nrm = a_normal;
+    if (u_hasMorphTarget > 0.5) {
+        pos = mix(a_position, a_morphPosition, u_morphWeight);
+        nrm = normalize(mix(a_normal, a_morphNormal, u_morphWeight));
+    }
 
-    // --- Optional 4D rotation path ---
+    // Optional 4D rotation
     if (u_use4D > 0.5) {
-        vec4 p4 = u_rotation4D * vec4(a_position, 0.0);
+        vec4 p4 = u_rotation4D * vec4(pos, 0.0);
         float w  = u_projDistance - p4.w;
         if (abs(w) < 0.0001) w = 0.0001;
         pos = p4.xyz / w;
 
-        vec4 n4 = u_rotation4D * vec4(a_normal, 0.0);
+        vec4 n4 = u_rotation4D * vec4(nrm, 0.0);
         nrm = normalize(n4.xyz);
     }
 
@@ -68,7 +73,7 @@ void main() {
     v_normal   = normalize((u_normalMatrix * vec4(nrm, 0.0)).xyz);
     v_uv       = a_uv;
     v_color    = a_color;
-    v_depth    = -viewPos.z;    // positive linear depth
+    v_depth    = -viewPos.z;
 
     gl_Position = u_projection * viewPos;
 }
@@ -84,18 +89,19 @@ in vec4  v_color;
 in float v_depth;
 
 uniform sampler2D u_diffuseMap;
-uniform float     u_hasTexture;    // 1.0 = sample texture, 0.0 = vertex color
+uniform float     u_hasTexture;
 uniform vec3      u_lightDir;
 uniform vec3      u_lightColor;
 uniform vec3      u_ambientColor;
 uniform float     u_specularPower;
 uniform float     u_opacity;
+uniform float     u_objectID;       // per-object ID (0-255 encoded as float)
 
-layout(location = 0) out vec4 outColor;    // RGBA color
-layout(location = 1) out vec4 outNormal;   // view-space normal + depth
+layout(location = 0) out vec4 outColor;
+layout(location = 1) out vec4 outNormal;
+layout(location = 2) out vec4 outObjectID;
 
 void main() {
-    // Material color
     vec4 baseColor = v_color;
     if (u_hasTexture > 0.5) {
         baseColor *= texture(u_diffuseMap, v_uv);
@@ -117,20 +123,21 @@ void main() {
 
     vec3 finalColor = baseColor.rgb * (ambient + diffuse) + specular;
 
-    outColor  = vec4(finalColor, baseColor.a * u_opacity);
-    outNormal = vec4(N * 0.5 + 0.5, v_depth / 100.0);   // encode normal + depth
+    outColor    = vec4(finalColor, baseColor.a * u_opacity);
+    outNormal   = vec4(N * 0.5 + 0.5, v_depth / 100.0);
+    outObjectID = vec4(u_objectID / 255.0, 0.0, 0.0, 1.0);
 }
 `;
 
 /* ------------------------------------------------------------------ */
-/*  FBO helper (GBuffer: color + normal/depth)                         */
+/*  GBuffer helper (3 MRT: color + normal/depth + objectID)            */
 /* ------------------------------------------------------------------ */
 
 function createGBuffer(gl, w, h) {
     const fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
 
-    // Color attachment 0 — RGBA8
+    // Attachment 0: Color (RGBA8)
     const colorTex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, colorTex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -140,12 +147,12 @@ function createGBuffer(gl, w, h) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTex, 0);
 
-    // Color attachment 1 — normal + depth (RGBA16F if available, else RGBA8)
+    // Attachment 1: Normals + Depth (RGBA16F preferred)
     const normalTex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, normalTex);
     let normalFormat = gl.RGBA8;
     let normalType = gl.UNSIGNED_BYTE;
-    if (gl.getExtension('EXT_color_buffer_half_float')) {
+    if (gl.getExtension('EXT_color_buffer_half_float') || gl.getExtension('EXT_color_buffer_float')) {
         normalFormat = gl.RGBA16F;
         normalType = gl.HALF_FLOAT;
     }
@@ -156,14 +163,24 @@ function createGBuffer(gl, w, h) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, normalTex, 0);
 
+    // Attachment 2: Object ID (RGBA8)
+    const objectIDTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, objectIDTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT2, gl.TEXTURE_2D, objectIDTex, 0);
+
     // Depth renderbuffer
     const depthRb = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, depthRb);
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, w, h);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRb);
 
-    // Draw to both color attachments
-    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+    // Draw to all 3 attachments
+    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1, gl.COLOR_ATTACHMENT2]);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -171,9 +188,9 @@ function createGBuffer(gl, w, h) {
         framebuffer: fb,
         colorTexture: colorTex,
         normalTexture: normalTex,
+        objectIDTexture: objectIDTex,
         depthRenderbuffer: depthRb,
-        width: w,
-        height: h,
+        width: w, height: h,
     };
 }
 
@@ -181,6 +198,7 @@ function destroyGBuffer(gl, gb) {
     gl.deleteFramebuffer(gb.framebuffer);
     gl.deleteTexture(gb.colorTexture);
     gl.deleteTexture(gb.normalTexture);
+    gl.deleteTexture(gb.objectIDTexture);
     gl.deleteRenderbuffer(gb.depthRenderbuffer);
 }
 
@@ -192,10 +210,6 @@ export class MeshRenderer {
     /**
      * @param {WebGL2RenderingContext} gl
      * @param {object} [opts]
-     * @param {number[]} [opts.lightDir]       Default light direction
-     * @param {number[]} [opts.lightColor]     Default light color
-     * @param {number[]} [opts.ambientColor]   Default ambient color
-     * @param {number}   [opts.specularPower]  Blinn-Phong exponent
      */
     constructor(gl, {
         lightDir = [0.4, 0.8, 0.3],
@@ -209,6 +223,11 @@ export class MeshRenderer {
         this.ambientColor = ambientColor;
         this.specularPower = specularPower;
         this.opacity = 1.0;
+        this.objectID = 0;
+
+        // Morph target state
+        this.morphWeight = 0.0;
+        this._hasMorphTarget = false;
 
         this._program = null;
         this._vao = null;
@@ -216,40 +235,38 @@ export class MeshRenderer {
         this._nrmBuf = null;
         this._uvBuf = null;
         this._colBuf = null;
+        this._morphPosBuf = null;
+        this._morphNrmBuf = null;
         this._idxBuf = null;
         this._indexCount = 0;
         this._vertexCount = 0;
+        this._indexType = 0; // gl.UNSIGNED_SHORT or gl.UNSIGNED_INT
         this._diffuseTexture = null;
         this._hasTexture = false;
 
         this._gbuffer = null;
         this._gbufferWidth = 0;
         this._gbufferHeight = 0;
-
         this._uniforms = {};
 
         this._init();
     }
 
-    /* -------------------------------------------------------------- */
-    /*  Init                                                           */
-    /* -------------------------------------------------------------- */
-
     _init() {
         const gl = this.gl;
 
-        // Compile program
         this._program = this._createProgram(MESH_VERTEX, MESH_FRAGMENT);
 
-        // Uniform locations
         const u = (n) => gl.getUniformLocation(this._program, n);
         this._uniforms = {
             modelView:     u('u_modelView'),
             projection:    u('u_projection'),
             normalMatrix:  u('u_normalMatrix'),
             rotation4D:    u('u_rotation4D'),
-            projDistance:   u('u_projDistance'),
+            projDistance:  u('u_projDistance'),
             use4D:         u('u_use4D'),
+            morphWeight:   u('u_morphWeight'),
+            hasMorphTarget: u('u_hasMorphTarget'),
             diffuseMap:    u('u_diffuseMap'),
             hasTexture:    u('u_hasTexture'),
             lightDir:      u('u_lightDir'),
@@ -257,39 +274,57 @@ export class MeshRenderer {
             ambientColor:  u('u_ambientColor'),
             specularPower: u('u_specularPower'),
             opacity:       u('u_opacity'),
+            objectID:      u('u_objectID'),
         };
 
-        // VAO
         this._vao = gl.createVertexArray();
         gl.bindVertexArray(this._vao);
 
-        // Position buffer (location 0)
+        // Position (loc 0)
         this._posBuf = gl.createBuffer();
         const posLoc = gl.getAttribLocation(this._program, 'a_position');
         gl.bindBuffer(gl.ARRAY_BUFFER, this._posBuf);
         gl.enableVertexAttribArray(posLoc);
         gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
 
-        // Normal buffer (location 1)
+        // Normal (loc 1)
         this._nrmBuf = gl.createBuffer();
         const nrmLoc = gl.getAttribLocation(this._program, 'a_normal');
         gl.bindBuffer(gl.ARRAY_BUFFER, this._nrmBuf);
         gl.enableVertexAttribArray(nrmLoc);
         gl.vertexAttribPointer(nrmLoc, 3, gl.FLOAT, false, 0, 0);
 
-        // UV buffer (location 2)
+        // UV (loc 2)
         this._uvBuf = gl.createBuffer();
         const uvLoc = gl.getAttribLocation(this._program, 'a_uv');
         gl.bindBuffer(gl.ARRAY_BUFFER, this._uvBuf);
         gl.enableVertexAttribArray(uvLoc);
         gl.vertexAttribPointer(uvLoc, 2, gl.FLOAT, false, 0, 0);
 
-        // Color buffer (location 3)
+        // Color (loc 3)
         this._colBuf = gl.createBuffer();
         const colLoc = gl.getAttribLocation(this._program, 'a_color');
         gl.bindBuffer(gl.ARRAY_BUFFER, this._colBuf);
         gl.enableVertexAttribArray(colLoc);
         gl.vertexAttribPointer(colLoc, 4, gl.FLOAT, false, 0, 0);
+
+        // Morph position (loc 4)
+        this._morphPosBuf = gl.createBuffer();
+        const morphPosLoc = gl.getAttribLocation(this._program, 'a_morphPosition');
+        if (morphPosLoc >= 0) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._morphPosBuf);
+            gl.enableVertexAttribArray(morphPosLoc);
+            gl.vertexAttribPointer(morphPosLoc, 3, gl.FLOAT, false, 0, 0);
+        }
+
+        // Morph normal (loc 5)
+        this._morphNrmBuf = gl.createBuffer();
+        const morphNrmLoc = gl.getAttribLocation(this._program, 'a_morphNormal');
+        if (morphNrmLoc >= 0) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._morphNrmBuf);
+            gl.enableVertexAttribArray(morphNrmLoc);
+            gl.vertexAttribPointer(morphNrmLoc, 3, gl.FLOAT, false, 0, 0);
+        }
 
         // Index buffer
         this._idxBuf = gl.createBuffer();
@@ -303,13 +338,12 @@ export class MeshRenderer {
 
     /**
      * Upload triangle mesh data.
-     *
      * @param {object} geometry
-     * @param {Float32Array} geometry.positions   Flat xyz (3 floats/vertex)
-     * @param {Float32Array} [geometry.normals]   Flat xyz (3 floats/vertex)
-     * @param {Float32Array} [geometry.uvs]       Flat uv (2 floats/vertex)
-     * @param {Float32Array} [geometry.colors]    Flat rgba (4 floats/vertex)
-     * @param {Uint16Array|Uint32Array} [geometry.indices]  Triangle indices
+     * @param {Float32Array} geometry.positions
+     * @param {Float32Array} [geometry.normals]
+     * @param {Float32Array} [geometry.uvs]
+     * @param {Float32Array} [geometry.colors]
+     * @param {Uint16Array|Uint32Array} [geometry.indices]
      */
     uploadGeometry({ positions, normals, uvs, colors, indices }) {
         const gl = this.gl;
@@ -317,71 +351,81 @@ export class MeshRenderer {
         this._vertexCount = vertexCount;
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._posBuf);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.DYNAMIC_DRAW);
 
-        // Default normals: up
         if (normals) {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._nrmBuf);
-            gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, normals, gl.DYNAMIC_DRAW);
         } else {
             const def = new Float32Array(vertexCount * 3);
-            for (let i = 0; i < vertexCount; i++) { def[i * 3 + 1] = 1.0; }
+            for (let i = 0; i < vertexCount; i++) def[i * 3 + 1] = 1.0;
             gl.bindBuffer(gl.ARRAY_BUFFER, this._nrmBuf);
-            gl.bufferData(gl.ARRAY_BUFFER, def, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, def, gl.DYNAMIC_DRAW);
         }
 
-        // Default UVs: 0,0
         if (uvs) {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._uvBuf);
-            gl.bufferData(gl.ARRAY_BUFFER, uvs, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, uvs, gl.DYNAMIC_DRAW);
         } else {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._uvBuf);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexCount * 2), gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexCount * 2), gl.DYNAMIC_DRAW);
         }
 
-        // Default colors: white
         if (colors) {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._colBuf);
-            gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, colors, gl.DYNAMIC_DRAW);
         } else {
             const white = new Float32Array(vertexCount * 4);
             for (let i = 0; i < vertexCount; i++) {
-                white[i * 4]     = 1.0;
-                white[i * 4 + 1] = 1.0;
-                white[i * 4 + 2] = 1.0;
-                white[i * 4 + 3] = 1.0;
+                white[i*4] = 1; white[i*4+1] = 1; white[i*4+2] = 1; white[i*4+3] = 1;
             }
             gl.bindBuffer(gl.ARRAY_BUFFER, this._colBuf);
-            gl.bufferData(gl.ARRAY_BUFFER, white, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, white, gl.DYNAMIC_DRAW);
         }
+
+        // Initialize morph buffers to match base (zero displacement)
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._morphPosBuf);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._morphNrmBuf);
+        gl.bufferData(gl.ARRAY_BUFFER, normals || new Float32Array(vertexCount * 3), gl.DYNAMIC_DRAW);
 
         if (indices) {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._idxBuf);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
             this._indexCount = indices.length;
+            this._indexType = indices instanceof Uint32Array ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
         } else {
             this._indexCount = 0;
         }
+    }
+
+    /**
+     * Upload morph target data for animation/shape keys.
+     * @param {Float32Array} morphPositions  Target positions (same vertex count)
+     * @param {Float32Array} [morphNormals]  Target normals
+     */
+    uploadMorphTarget(morphPositions, morphNormals) {
+        const gl = this.gl;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._morphPosBuf);
+        gl.bufferData(gl.ARRAY_BUFFER, morphPositions, gl.DYNAMIC_DRAW);
+
+        if (morphNormals) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._morphNrmBuf);
+            gl.bufferData(gl.ARRAY_BUFFER, morphNormals, gl.DYNAMIC_DRAW);
+        }
+
+        this._hasMorphTarget = true;
     }
 
     /* -------------------------------------------------------------- */
     /*  Texture upload                                                  */
     /* -------------------------------------------------------------- */
 
-    /**
-     * Upload a diffuse texture from an image, canvas, or ImageData.
-     *
-     * @param {HTMLImageElement|HTMLCanvasElement|ImageData} source
-     */
     uploadTexture(source) {
         const gl = this.gl;
-
-        if (!this._diffuseTexture) {
-            this._diffuseTexture = gl.createTexture();
-        }
+        if (!this._diffuseTexture) this._diffuseTexture = gl.createTexture();
 
         gl.bindTexture(gl.TEXTURE_2D, this._diffuseTexture);
-
         if (source instanceof ImageData) {
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, source.width, source.height,
                 0, gl.RGBA, gl.UNSIGNED_BYTE, source.data);
@@ -394,28 +438,22 @@ export class MeshRenderer {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-
         this._hasTexture = true;
     }
 
     /* -------------------------------------------------------------- */
-    /*  GBuffer management                                              */
+    /*  GBuffer                                                        */
     /* -------------------------------------------------------------- */
 
     _ensureGBuffer(w, h) {
-        if (this._gbuffer && this._gbufferWidth === w && this._gbufferHeight === h) {
-            return;
-        }
+        if (this._gbuffer && this._gbufferWidth === w && this._gbufferHeight === h) return;
         if (this._gbuffer) destroyGBuffer(this.gl, this._gbuffer);
         this._gbuffer = createGBuffer(this.gl, w, h);
         this._gbufferWidth = w;
         this._gbufferHeight = h;
     }
 
-    /** @returns {{ colorTexture, normalTexture, width, height }} */
-    get gbuffer() {
-        return this._gbuffer;
-    }
+    get gbuffer() { return this._gbuffer; }
 
     /* -------------------------------------------------------------- */
     /*  Render                                                          */
@@ -423,21 +461,17 @@ export class MeshRenderer {
 
     /**
      * Render the mesh into the internal GBuffer.
-     *
-     * @param {Float32Array} modelView      4x4 model-view matrix (column-major)
-     * @param {Float32Array} projection     4x4 projection matrix (column-major)
+     * @param {Float32Array} modelView
+     * @param {Float32Array} projection
      * @param {object} [opts]
-     * @param {Float32Array} [opts.rotation4D]   4x4 rotation matrix for 4D transform
-     * @param {number}       [opts.projDistance]  4D projection distance
-     * @param {number}       [opts.width]         Override canvas width
-     * @param {number}       [opts.height]        Override canvas height
-     * @returns {{ colorTexture, normalTexture, depthRenderbuffer, framebuffer }}
+     * @returns {{ colorTexture, normalTexture, objectIDTexture, depthRenderbuffer, framebuffer }}
      */
     render(modelView, projection, {
         rotation4D = null,
         projDistance = 2.0,
         width = 0,
         height = 0,
+        clearBuffer = true,
     } = {}) {
         const gl = this.gl;
         const w = width || gl.canvas.width;
@@ -445,19 +479,19 @@ export class MeshRenderer {
 
         this._ensureGBuffer(w, h);
 
-        // Bind GBuffer FBO
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._gbuffer.framebuffer);
         gl.viewport(0, 0, w, h);
 
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        if (clearBuffer) {
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        }
 
         if (this._vertexCount === 0 && this._indexCount === 0) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             return this._gbuffer;
         }
 
-        // Render state
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
         gl.depthMask(true);
@@ -468,7 +502,6 @@ export class MeshRenderer {
         gl.useProgram(this._program);
         gl.bindVertexArray(this._vao);
 
-        // Bind index buffer inside VAO
         if (this._indexCount > 0) {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._idxBuf);
         }
@@ -476,28 +509,24 @@ export class MeshRenderer {
         const u = this._uniforms;
         const IDENTITY = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
 
-        // Matrices
         gl.uniformMatrix4fv(u.modelView, false, modelView || IDENTITY);
         gl.uniformMatrix4fv(u.projection, false, projection || IDENTITY);
-
-        // Normal matrix (inverse transpose of modelView — for uniform scaling
-        // we can approximate with the upper-left 3x3 of modelView)
-        // For now pass modelView; proper normal matrix would need inverse transpose.
         gl.uniformMatrix4fv(u.normalMatrix, false, modelView || IDENTITY);
-
-        // 4D rotation
         gl.uniformMatrix4fv(u.rotation4D, false, rotation4D || IDENTITY);
         gl.uniform1f(u.projDistance, projDistance);
         gl.uniform1f(u.use4D, rotation4D ? 1.0 : 0.0);
 
-        // Lighting
+        // Morph target
+        gl.uniform1f(u.morphWeight, this.morphWeight);
+        gl.uniform1f(u.hasMorphTarget, this._hasMorphTarget ? 1.0 : 0.0);
+
         gl.uniform3fv(u.lightDir, this.lightDir);
         gl.uniform3fv(u.lightColor, this.lightColor);
         gl.uniform3fv(u.ambientColor, this.ambientColor);
         gl.uniform1f(u.specularPower, this.specularPower);
         gl.uniform1f(u.opacity, this.opacity);
+        gl.uniform1f(u.objectID, this.objectID);
 
-        // Texture
         if (this._hasTexture && this._diffuseTexture) {
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this._diffuseTexture);
@@ -507,9 +536,8 @@ export class MeshRenderer {
             gl.uniform1f(u.hasTexture, 0.0);
         }
 
-        // Draw
         if (this._indexCount > 0) {
-            gl.drawElements(gl.TRIANGLES, this._indexCount, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(gl.TRIANGLES, this._indexCount, this._indexType, 0);
         } else {
             gl.drawArrays(gl.TRIANGLES, 0, this._vertexCount);
         }
@@ -558,6 +586,8 @@ export class MeshRenderer {
         gl.deleteBuffer(this._nrmBuf);
         gl.deleteBuffer(this._uvBuf);
         gl.deleteBuffer(this._colBuf);
+        gl.deleteBuffer(this._morphPosBuf);
+        gl.deleteBuffer(this._morphNrmBuf);
         gl.deleteBuffer(this._idxBuf);
         if (this._diffuseTexture) gl.deleteTexture(this._diffuseTexture);
         if (this._gbuffer) destroyGBuffer(gl, this._gbuffer);

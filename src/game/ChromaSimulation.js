@@ -30,30 +30,30 @@ const INITIAL_CLUSTERS = 300;
 const WORLD_RADIUS = 8.0;
 
 // Flocking
-const W_SEPARATION  = 2.0;
-const W_COHESION    = 0.7;
-const W_ALIGNMENT   = 0.4;
-const W_CHASE       = 1.0;
-const W_FLEE        = 1.8;
+const W_SEPARATION  = 2.5;
+const W_COHESION    = 1.2;
+const W_ALIGNMENT   = 0.5;
+const W_CHASE       = 2.5;
+const W_FLEE        = 3.0;
 const W_SEEK_ALLY   = 0.5;
-const W_BARRIER     = 3.0;
-const W_CENTER      = 0.35;
-const W_PHEROMONE   = 0.3;  // ant trail attraction
+const W_BARRIER     = 4.0;
+const W_CENTER      = 0.4;
+const W_PHEROMONE   = 0.5;  // ant trail attraction
 
 // Physics
-const CLUSTER_SPEED     = 1.2;
-const CLUSTER_MAX_SPEED = 2.8;
-const PARTICLE_DAMP     = 0.97;
-const PARTICLE_SPRING   = 0.08;
-const PARTICLE_SCATTER  = 0.02;
+const CLUSTER_SPEED     = 2.5;
+const CLUSTER_MAX_SPEED = 5.0;
+const PARTICLE_DAMP     = 0.96;
+const PARTICLE_SPRING   = 0.12;
+const PARTICLE_SCATTER  = 0.04;
 
 // Spatial hash
 const HASH_CELL_SIZE = 1.0;
 const HASH_TABLE_SIZE = 4096;
 
 // Capture
-const CAPTURE_RADIUS = 0.6;
-const CAPTURE_MIN_RATIO = 1.5;
+const CAPTURE_RADIUS = 1.2;
+const CAPTURE_MIN_RATIO = 1.3;
 const MEMBRANE_PARTICLES_PER_CLUSTER = 30; // ring around captured groups
 
 // Crystal milestones
@@ -67,10 +67,10 @@ const MAX_PLAYER_LINES = 3;
 const LINE_DURATION    = 8.0;
 const LINE_THICKNESS   = 0.15;
 
-// Plane tilt
-const TILT_MAX     = 0.15;
-const TILT_DAMPING = 0.95;
-const TILT_SPRING  = 0.003;
+// Plane tilt — dramatic Z-axis separation
+const TILT_MAX     = 1.5;
+const TILT_DAMPING = 0.93;
+const TILT_SPRING  = 0.02;
 
 // Behavioural modes
 const MODE_SWARM   = 0;  // default flocking

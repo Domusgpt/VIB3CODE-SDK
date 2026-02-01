@@ -56,10 +56,10 @@ let lineEnd = null;
 
 // Camera
 const cam = {
-    distance: 14.0,
-    elevation: 0.35,
+    distance: 18.0,
+    elevation: 0.6,
     azimuth: 0,
-    fov: 55,
+    fov: 50,
 };
 
 // Stats DOM
@@ -248,7 +248,7 @@ function onPointerUp(e) {
 /* ================================================================== */
 
 function updateCamera() {
-    cam.azimuth += 0.0005;
+    cam.azimuth += 0.0012;
 
     const eyeX = Math.sin(cam.azimuth) * cam.distance * Math.cos(cam.elevation);
     const eyeY = Math.sin(cam.elevation) * cam.distance;

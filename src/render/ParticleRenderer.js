@@ -65,13 +65,20 @@ vec3 getPalette(float idx) {
 
 float getPlaneZ(vec2 pos, float colorIdx) {
     int i = int(colorIdx * 255.0 + 0.5);
-    if (i == 12) return 0.0;                          // Membrane: flat
+    // Base Z offset separates the three color planes vertically
+    float baseZ = 0.0;
     vec3 tilt;
-    if (i <= 0 || i == 3 || i == 6 || i == 9)      tilt = u_planeTiltA;
-    else if (i == 1 || i == 4 || i == 5 || i == 10) tilt = u_planeTiltB;
-    else                                              tilt = u_planeTiltC;
-    // Z = dot(pos, tilt.xy) * tilt.z  (tilt.z = angle magnitude)
-    return dot(pos, tilt.xy) * tilt.z;
+    if (i == 12) {
+        return 0.0;  // Membrane: flat center
+    } else if (i <= 0 || i == 3 || i == 6 || i == 9) {
+        tilt = u_planeTiltA;  baseZ = 0.8;   // Red plane: top
+    } else if (i == 1 || i == 4 || i == 5 || i == 10) {
+        tilt = u_planeTiltB;  baseZ = 0.0;   // Yellow plane: middle
+    } else {
+        tilt = u_planeTiltC;  baseZ = -0.8;  // Blue plane: bottom
+    }
+    // Tilt displacement: dot(position, tilt_axis) * tilt_magnitude
+    return baseZ + dot(pos, tilt.xy) * tilt.z * 3.0;
 }
 
 void main() {
@@ -87,8 +94,8 @@ void main() {
     // View-space position
     vec4 viewPos = u_viewMatrix * worldPos;
 
-    // Billboard size in pixels (3-10px based on size attribute + crystal boost)
-    float pixelSize = mix(3.0, 10.0, size) + step(0.9, state) * 5.0;
+    // Billboard size in pixels (4-14px based on size attribute + crystal boost)
+    float pixelSize = mix(4.0, 14.0, size) + step(0.9, state) * 8.0;
 
     // Perspective scaling
     vec4 clipPos = u_projMatrix * viewPos;

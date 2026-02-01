@@ -813,6 +813,7 @@ const TAB_CFGS = {
     'volumetric': { m: true, s: false, p: false, i: false, shadow: false, particles: false, volumetric: true, deferred: false, bloom: true, ssr: false, autoShow: false, l: 'Volumetric' },
     'inscFX': { m: true, s: false, p: false, i: true, shadow: true, particles: true, volumetric: false, deferred: true, bloom: true, ssr: true, autoShow: false, l: 'Inscription FX' },
     'cinematic': { m: true, s: true, p: true, i: true, shadow: true, particles: true, volumetric: false, deferred: true, bloom: true, ssr: true, autoShow: true, l: 'Cinematic' },
+    'mediaShow': { m: true, s: true, p: true, i: true, shadow: true, particles: true, volumetric: false, deferred: true, bloom: true, ssr: true, autoShow: false, mediaShow: true, l: 'Media Showcase' },
     'benchmark': { m: true, s: true, p: true, i: true, shadow: true, particles: true, volumetric: false, deferred: true, bloom: true, ssr: false, autoShow: false, l: 'Benchmark' },
 };
 
@@ -830,6 +831,13 @@ function switchTab(tab) {
     bloomEnabled = c.bloom !== false;
     ssrEnabled = c.ssr === true;
     autoShowcase = c.autoShow === true;
+
+    // Media showcase mode
+    if (c.mediaShow) {
+        startMediaShowcase();
+    } else {
+        stopMediaShowcase();
+    }
 
     // Sync toggles
     document.getElementById('toggleMesh').checked = c.m;
@@ -961,6 +969,205 @@ wireSlider('sliderSSRStrength', 'valSSRStrength', v => { ssrStrength = v; if (ss
 // v3: Cinematic controls
 wireSlider('sliderVignette', 'valVignette', v => vignetteStrength = v);
 wireSlider('sliderChromatic', 'valChromatic', v => chromaticStrength = v * 0.01);
+
+/* ================================================================== */
+/*  v3: MEDIA SHOWCASE — Choreographed Multi-Scene Demo                */
+/* ================================================================== */
+
+let mediaShowcaseActive = false;
+let mediaShowcaseScene = -1;
+let mediaShowcaseTimer = 0;
+let mediaShowcaseTransition = 0; // 0-1 fade progress
+const MEDIA_SCENE_DURATION = 8; // seconds per scene
+const MEDIA_TRANSITION_DUR = 1.2; // crossfade duration
+
+const MEDIA_SCENES = [
+    {
+        name: 'Video Cube',
+        sub: 'Live webcam → 3D mesh texture, zero-copy GPU path',
+        mesh: 'cube',
+        splatMode: 'surface',
+        cam: { az: 0.4, el: 0.3, dist: 4.5, speed: 0.08, choro: { elAmp: 0.06, elFreq: 0.3, distAmp: 0.2, distFreq: 0.2 } },
+        fx: { bloom: 0.5, threshold: 0.55, vignette: 0.4, chromatic: 0.002, splats: true, inscription: true, shadows: true, deferred: true, particles: true, ssr: false, procGeo: 3 },
+    },
+    {
+        name: 'Liquid Sphere',
+        sub: 'Chromatic aberration + tight orbit, every pixel re-rendered per frame',
+        mesh: 'sphere',
+        splatMode: 'surface',
+        cam: { az: 0, el: 0.15, dist: 3.2, speed: 0.15, choro: { elAmp: 0.12, elFreq: 0.5, distAmp: 0.4, distFreq: 0.35 } },
+        fx: { bloom: 0.6, threshold: 0.45, vignette: 0.5, chromatic: 0.008, splats: true, inscription: true, shadows: true, deferred: true, particles: true, ssr: true, procGeo: 2 },
+    },
+    {
+        name: 'Splat Dissolve',
+        sub: 'Video frames → 10K Gaussian splat particles in real time',
+        mesh: 'sphere',
+        splatMode: 'dissolve',
+        cam: { az: 0.8, el: 0.5, dist: 5.5, speed: 0.06, choro: { elAmp: 0.15, elFreq: 0.25, distAmp: 0.6, distFreq: 0.18 } },
+        fx: { bloom: 0.7, threshold: 0.4, vignette: 0.3, chromatic: 0.004, splats: true, inscription: false, shadows: false, deferred: false, particles: true, ssr: false, procGeo: 5 },
+    },
+    {
+        name: 'Torus Portal',
+        sub: '4D hyperspace rotation — geometry impossible in conventional renderers',
+        mesh: 'torus',
+        splatMode: 'surface',
+        cam: { az: 1.2, el: 0.2, dist: 3.8, speed: 0.1, choro: { elAmp: 0.1, elFreq: 0.4, distAmp: 0.3, distFreq: 0.3 } },
+        fx: { bloom: 0.55, threshold: 0.5, vignette: 0.35, chromatic: 0.005, splats: true, inscription: true, shadows: true, deferred: true, particles: true, ssr: true, procGeo: 4 },
+    },
+    {
+        name: 'Knot Weave',
+        sub: 'Trefoil knot — video texture + edge inscription + deferred specular',
+        mesh: 'knot',
+        splatMode: 'surface',
+        cam: { az: 0.6, el: 0.4, dist: 4.0, speed: 0.12, choro: { elAmp: 0.08, elFreq: 0.35, distAmp: 0.25, distFreq: 0.28 } },
+        fx: { bloom: 0.45, threshold: 0.6, vignette: 0.45, chromatic: 0.003, splats: true, inscription: true, shadows: true, deferred: true, particles: true, ssr: true, procGeo: 7 },
+    },
+    {
+        name: 'Full Pipeline',
+        sub: '12 render passes composited at 60fps — mesh, splats, procedural, inscription, shadows, particles, bloom, SSR, ACES',
+        mesh: 'torus',
+        splatMode: 'surface',
+        cam: { az: 0, el: 0.35, dist: 5.0, speed: 0.18, choro: { elAmp: 0.1, elFreq: 0.45, distAmp: 0.35, distFreq: 0.25 } },
+        fx: { bloom: 0.6, threshold: 0.5, vignette: 0.4, chromatic: 0.005, splats: true, inscription: true, shadows: true, deferred: true, particles: true, ssr: true, procGeo: 3 },
+    },
+];
+
+function applyMediaScene(idx) {
+    const scene = MEDIA_SCENES[idx];
+    if (!scene) return;
+
+    // Switch mesh
+    if (currentMeshKey !== scene.mesh) loadMesh(scene.mesh);
+
+    // Set splat mode
+    mediaSplatMode = scene.splatMode;
+    const selSM = document.getElementById('selectSplatMode');
+    if (selSM) selSM.value = scene.splatMode;
+
+    // Camera target
+    camera.setTarget(scene.cam.az, scene.cam.el, scene.cam.dist, scene.cam.speed, scene.cam.choro);
+
+    // Effects
+    const fx = scene.fx;
+    bloomEnabled = true;
+    bloomIntensity = fx.bloom;
+    bloomThreshold = fx.threshold;
+    vignetteStrength = fx.vignette;
+    chromaticStrength = fx.chromatic;
+    pipeline.splatLayer.enabled = fx.splats;
+    pipeline.inscriptionLayer.enabled = fx.inscription;
+    shadowsEnabled = fx.shadows;
+    deferredLitEnabled = fx.deferred;
+    particlesEnabled = fx.particles;
+    ssrEnabled = fx.ssr;
+    procGeometry = fx.procGeo;
+    edgeInscription.geometry = fx.procGeo;
+
+    // Sync UI toggles
+    const sync = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
+    sync('toggleSplat', fx.splats);
+    sync('toggleInscription', fx.inscription);
+    sync('toggleShadows', fx.shadows);
+    sync('toggleDeferredLit', fx.deferred);
+    sync('toggleParticles', fx.particles);
+    sync('toggleBloom', true);
+    sync('toggleSSR', fx.ssr);
+    updateBadges();
+
+    // Update caption
+    const capTitle = document.getElementById('showcaseTitle');
+    const capSub = document.getElementById('showcaseSub');
+    const capNum = document.getElementById('showcaseNum');
+    if (capTitle) capTitle.textContent = scene.name;
+    if (capSub) capSub.textContent = scene.sub;
+    if (capNum) capNum.textContent = `${idx + 1} / ${MEDIA_SCENES.length}`;
+}
+
+function startMediaShowcase() {
+    mediaShowcaseActive = true;
+    mediaShowcaseScene = -1;
+    mediaShowcaseTimer = MEDIA_SCENE_DURATION; // trigger immediate first scene
+    mediaShowcaseTransition = 0;
+
+    // Enable all pipeline layers
+    pipeline.meshLayer.enabled = true;
+    pipeline.proceduralLayer.enabled = true;
+    vignetteEnabled = true;
+    chromaticEnabled = true;
+    autoShowcase = false; // disable generic auto-showcase
+
+    // Show caption overlay
+    const cap = document.getElementById('showcaseCaption');
+    if (cap) cap.classList.add('visible');
+
+    // Show PiP
+    const pip = document.getElementById('pipOverlay');
+    if (pip) pip.classList.add('visible');
+
+    // Auto-start webcam if not already running
+    if (!mediaActive || mediaSource === 'none') {
+        startWebcam().then(() => updateMediaBadge());
+    }
+}
+
+function stopMediaShowcase() {
+    mediaShowcaseActive = false;
+    const cap = document.getElementById('showcaseCaption');
+    if (cap) cap.classList.remove('visible');
+    const pip = document.getElementById('pipOverlay');
+    if (pip) pip.classList.remove('visible');
+}
+
+function updateMediaShowcase(dt, time) {
+    if (!mediaShowcaseActive) return;
+
+    mediaShowcaseTimer += dt;
+
+    // Advance to next scene
+    if (mediaShowcaseTimer >= MEDIA_SCENE_DURATION) {
+        mediaShowcaseTimer = 0;
+        mediaShowcaseScene = (mediaShowcaseScene + 1) % MEDIA_SCENES.length;
+        applyMediaScene(mediaShowcaseScene);
+        mediaShowcaseTransition = 0;
+
+        // Update progress dots
+        document.querySelectorAll('.showcase-dot').forEach((d, i) => {
+            d.classList.toggle('active', i === mediaShowcaseScene);
+        });
+    }
+
+    // Transition fade-in
+    if (mediaShowcaseTransition < 1) {
+        mediaShowcaseTransition = Math.min(1, mediaShowcaseTransition + dt / MEDIA_TRANSITION_DUR);
+    }
+
+    // Per-scene dynamic parameter sweeps
+    const scene = MEDIA_SCENES[mediaShowcaseScene];
+    if (!scene) return;
+    const sceneT = mediaShowcaseTimer / MEDIA_SCENE_DURATION; // 0-1 progress
+
+    // Sweep bloom intensity up then down for dramatic effect
+    bloomIntensity = scene.fx.bloom * (0.7 + 0.3 * Math.sin(sceneT * Math.PI));
+
+    // Sweep chromatic aberration
+    chromaticStrength = scene.fx.chromatic * (0.5 + 0.5 * Math.sin(sceneT * Math.PI * 2));
+
+    // For dissolve scene, oscillate splat update frequency for varying detail
+    if (scene.splatMode === 'dissolve') {
+        mediaSplatUpdateInterval = Math.max(2, Math.floor(6 - sceneT * 4)); // speed up during scene
+    } else {
+        mediaSplatUpdateInterval = 6;
+    }
+
+    // Update PiP canvas with raw webcam feed
+    if (mediaVideo && mediaVideo.readyState >= 2) {
+        const pipCanvas = document.getElementById('pipCanvas');
+        if (pipCanvas) {
+            const pctx = pipCanvas.getContext('2d');
+            pctx.drawImage(mediaVideo, 0, 0, pipCanvas.width, pipCanvas.height);
+        }
+    }
+}
 
 // Splat source switch
 document.getElementById('selectSplatSource').addEventListener('change', e => {
@@ -1672,6 +1879,9 @@ function tick() {
         camera._choroDistAmp = 0.3;
         camera._choroDistFreq = 0.25;
     }
+
+    // --- v3: Media showcase choreography ---
+    updateMediaShowcase(deltaTime, time);
 
     // --- v3: Update media texture from webcam/video ---
     updateMediaTexture();

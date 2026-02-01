@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ChromaWar — 200K Particle Warfare</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: #0a0812;
+        overflow: hidden;
+        font-family: 'Courier New', monospace;
+        color: #ddd;
+        touch-action: none;
+    }
+
+    #chromawar-canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        cursor: crosshair;
+    }
+
+    /* ---- HUD Overlay ---- */
+    .hud {
+        position: fixed;
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    /* Top bar: balance meter */
+    #balance-bar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 6px;
+        display: flex;
+        z-index: 20;
+    }
+    #bar-red    { background: #ff2820; height: 100%; width: 33.3%; transition: width 0.3s; }
+    #bar-yellow { background: #ffd910; height: 100%; width: 33.3%; transition: width 0.3s; }
+    #bar-blue   { background: #2868ff; height: 100%; width: 33.3%; transition: width 0.3s; }
+
+    /* Top-left: stats */
+    #stats-panel {
+        position: fixed;
+        top: 14px; left: 12px;
+        background: rgba(10, 8, 18, 0.7);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 11px;
+        line-height: 1.6;
+        z-index: 15;
+    }
+    #stats { opacity: 0.7; }
+
+    /* Top-right: score + lines */
+    #score-panel {
+        position: fixed;
+        top: 14px; right: 12px;
+        background: rgba(10, 8, 18, 0.7);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 13px;
+        text-align: right;
+        z-index: 15;
+    }
+    #score { font-size: 18px; font-weight: bold; color: #0ff; }
+    #line-count { opacity: 0.7; font-size: 11px; }
+
+    /* Center: balance message */
+    #message {
+        position: fixed;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 28px;
+        font-weight: bold;
+        text-shadow: 0 0 20px rgba(0,255,255,0.5);
+        z-index: 15;
+        opacity: 0.6;
+        transition: opacity 0.5s;
+        pointer-events: none;
+    }
+
+    /* Bottom: instructions */
+    #instructions {
+        position: fixed;
+        bottom: 12px; left: 50%;
+        transform: translateX(-50%);
+        background: rgba(10, 8, 18, 0.6);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 8px;
+        padding: 6px 16px;
+        font-size: 11px;
+        opacity: 0.5;
+        z-index: 15;
+        text-align: center;
+        pointer-events: none;
+    }
+
+    /* Scanline overlay */
+    #scanlines {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0,0,0,0.03) 2px,
+            rgba(0,0,0,0.03) 4px
+        );
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    /* Win state flash */
+    .win-flash {
+        animation: winPulse 1s ease-in-out infinite alternate;
+    }
+    @keyframes winPulse {
+        from { text-shadow: 0 0 20px rgba(0,255,255,0.5); }
+        to   { text-shadow: 0 0 40px rgba(0,255,255,1.0), 0 0 80px rgba(0,255,200,0.5); }
+    }
+
+    /* Color legend in stats */
+    .color-dot {
+        display: inline-block;
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        margin-right: 4px;
+        vertical-align: middle;
+    }
+    .dot-red    { background: #ff2820; }
+    .dot-yellow { background: #ffd910; }
+    .dot-blue   { background: #2868ff; }
+</style>
+</head>
+<body>
+
+<canvas id="chromawar-canvas"></canvas>
+
+<!-- Balance bar -->
+<div id="balance-bar">
+    <div id="bar-red"></div>
+    <div id="bar-yellow"></div>
+    <div id="bar-blue"></div>
+</div>
+
+<!-- Stats panel -->
+<div id="stats-panel" class="hud">
+    <div style="font-size:14px;font-weight:bold;margin-bottom:4px;color:#0ff;">CHROMAWAR</div>
+    <div id="stats">Loading...</div>
+    <div style="margin-top:4px;font-size:10px;opacity:0.5;">
+        <span class="color-dot dot-red"></span>Red
+        <span class="color-dot dot-yellow" style="margin-left:6px;"></span>Yellow
+        <span class="color-dot dot-blue" style="margin-left:6px;"></span>Blue
+    </div>
+</div>
+
+<!-- Score panel -->
+<div id="score-panel" class="hud">
+    <div id="score">Score: 0</div>
+    <div id="line-count">Lines: 0 / 3</div>
+</div>
+
+<!-- Center message -->
+<div id="message">Balance: 0%</div>
+
+<!-- Instructions -->
+<div id="instructions">
+    Draw lines (click + drag) to create barriers &middot; Max 3 lines &middot; 8s duration &middot; Goal: balance all colours
+</div>
+
+<!-- Scanline overlay -->
+<div id="scanlines"></div>
+
+<script type="module" src="./chromawar-demo.js"></script>
+</body>
+</html>

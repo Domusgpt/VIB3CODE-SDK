@@ -13,7 +13,8 @@ export default defineConfig({
                 'showcase': resolve(import.meta.dirname, 'demo/showcase-demo.html'),
                 'experiment': resolve(import.meta.dirname, 'demo/experiment-demo.html'),
                 'hifi': resolve(import.meta.dirname, 'demo/hifi-demo.html'),
-                'pyramid': resolve(import.meta.dirname, 'demo/pyramid-demo.html')
+                'pyramid': resolve(import.meta.dirname, 'demo/pyramid-demo.html'),
+                'chromawar': resolve(import.meta.dirname, 'demo/chromawar-demo.html')
             }
         }
     }

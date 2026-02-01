@@ -5,180 +5,641 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>ChromaWar — 200K Particle Warfare</title>
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-        background: #0a0812;
-        overflow: hidden;
-        font-family: 'Courier New', monospace;
-        color: #ddd;
-        touch-action: none;
-    }
-
-    #chromawar-canvas {
-        width: 100vw;
-        height: 100vh;
-        display: block;
-        cursor: crosshair;
-    }
-
-    /* ---- HUD Overlay ---- */
-    .hud {
-        position: fixed;
-        z-index: 10;
-        pointer-events: none;
-    }
-
-    /* Top bar: balance meter */
-    #balance-bar {
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        height: 6px;
-        display: flex;
-        z-index: 20;
-    }
-    #bar-red    { background: #ff2820; height: 100%; width: 33.3%; transition: width 0.3s; }
-    #bar-yellow { background: #ffd910; height: 100%; width: 33.3%; transition: width 0.3s; }
-    #bar-blue   { background: #2868ff; height: 100%; width: 33.3%; transition: width 0.3s; }
-
-    /* Top-left: stats */
-    #stats-panel {
-        position: fixed;
-        top: 14px; left: 12px;
-        background: rgba(10, 8, 18, 0.7);
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 8px;
-        padding: 8px 14px;
-        font-size: 11px;
-        line-height: 1.6;
-        z-index: 15;
-    }
-    #stats { opacity: 0.7; }
-
-    /* Top-right: score + lines */
-    #score-panel {
-        position: fixed;
-        top: 14px; right: 12px;
-        background: rgba(10, 8, 18, 0.7);
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 8px;
-        padding: 8px 14px;
-        font-size: 13px;
-        text-align: right;
-        z-index: 15;
-    }
-    #score { font-size: 18px; font-weight: bold; color: #0ff; }
-    #line-count { opacity: 0.7; font-size: 11px; }
-
-    /* Center: balance message */
-    #message {
-        position: fixed;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 28px;
-        font-weight: bold;
-        text-shadow: 0 0 20px rgba(0,255,255,0.5);
-        z-index: 15;
-        opacity: 0.6;
-        transition: opacity 0.5s;
-        pointer-events: none;
-    }
-
-    /* Bottom: instructions */
-    #instructions {
-        position: fixed;
-        bottom: 12px; left: 50%;
-        transform: translateX(-50%);
-        background: rgba(10, 8, 18, 0.6);
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 8px;
-        padding: 6px 16px;
-        font-size: 11px;
-        opacity: 0.5;
-        z-index: 15;
-        text-align: center;
-        pointer-events: none;
-    }
-
-    /* Scanline overlay */
-    #scanlines {
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent 2px,
-            rgba(0,0,0,0.03) 2px,
-            rgba(0,0,0,0.03) 4px
-        );
-        pointer-events: none;
-        z-index: 5;
-    }
-
-    /* Win state flash */
-    .win-flash {
-        animation: winPulse 1s ease-in-out infinite alternate;
-    }
-    @keyframes winPulse {
-        from { text-shadow: 0 0 20px rgba(0,255,255,0.5); }
-        to   { text-shadow: 0 0 40px rgba(0,255,255,1.0), 0 0 80px rgba(0,255,200,0.5); }
-    }
-
-    /* Color legend in stats */
-    .color-dot {
-        display: inline-block;
-        width: 8px; height: 8px;
-        border-radius: 50%;
-        margin-right: 4px;
-        vertical-align: middle;
-    }
-    .dot-red    { background: #ff2820; }
-    .dot-yellow { background: #ffd910; }
-    .dot-blue   { background: #2868ff; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0812;overflow:hidden;font-family:'Courier New',monospace;color:#ddd;touch-action:none}
+canvas{width:100vw;height:100vh;display:block;cursor:crosshair}
+.hud{position:fixed;z-index:10;pointer-events:none}
+#balance-bar{position:fixed;top:0;left:0;right:0;height:6px;display:flex;z-index:20}
+#bar-red{background:#ff2820;height:100%;width:33.3%;transition:width .3s}
+#bar-yellow{background:#ffd910;height:100%;width:33.3%;transition:width .3s}
+#bar-blue{background:#2868ff;height:100%;width:33.3%;transition:width .3s}
+#stats-panel{position:fixed;top:14px;left:12px;background:rgba(10,8,18,.7);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 14px;font-size:11px;line-height:1.6;z-index:15}
+#stats{opacity:.7}
+#score-panel{position:fixed;top:14px;right:12px;background:rgba(10,8,18,.7);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 14px;font-size:13px;text-align:right;z-index:15}
+#score{font-size:18px;font-weight:bold;color:#0ff}
+#line-count{opacity:.7;font-size:11px}
+#message{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(0,255,255,.5);z-index:15;opacity:.6;transition:opacity .5s;pointer-events:none}
+#instructions{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(10,8,18,.6);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:6px 16px;font-size:11px;opacity:.5;z-index:15;text-align:center;pointer-events:none}
+#error-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,0,0,.2);border:1px solid red;padding:20px;max-width:80%;z-index:100;display:none;font-size:12px;word-break:break-all}
+.color-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.dot-red{background:#ff2820}.dot-yellow{background:#ffd910}.dot-blue{background:#2868ff}
 </style>
 </head>
 <body>
-
-<canvas id="chromawar-canvas"></canvas>
-
-<!-- Balance bar -->
-<div id="balance-bar">
-    <div id="bar-red"></div>
-    <div id="bar-yellow"></div>
-    <div id="bar-blue"></div>
-</div>
-
-<!-- Stats panel -->
+<canvas id="c"></canvas>
+<div id="balance-bar"><div id="bar-red"></div><div id="bar-yellow"></div><div id="bar-blue"></div></div>
 <div id="stats-panel" class="hud">
-    <div style="font-size:14px;font-weight:bold;margin-bottom:4px;color:#0ff;">CHROMAWAR</div>
-    <div id="stats">Loading...</div>
-    <div style="margin-top:4px;font-size:10px;opacity:0.5;">
-        <span class="color-dot dot-red"></span>Red
-        <span class="color-dot dot-yellow" style="margin-left:6px;"></span>Yellow
-        <span class="color-dot dot-blue" style="margin-left:6px;"></span>Blue
-    </div>
+  <div style="font-size:14px;font-weight:bold;margin-bottom:4px;color:#0ff">CHROMAWAR</div>
+  <div id="stats">Initializing...</div>
+  <div style="margin-top:4px;font-size:10px;opacity:.5">
+    <span class="color-dot dot-red"></span>Red
+    <span class="color-dot dot-yellow" style="margin-left:6px"></span>Yellow
+    <span class="color-dot dot-blue" style="margin-left:6px"></span>Blue
+  </div>
 </div>
-
-<!-- Score panel -->
-<div id="score-panel" class="hud">
-    <div id="score">Score: 0</div>
-    <div id="line-count">Lines: 0 / 3</div>
-</div>
-
-<!-- Center message -->
+<div id="score-panel" class="hud"><div id="score">Score: 0</div><div id="line-count">Lines: 0 / 3</div></div>
 <div id="message">Balance: 0%</div>
+<div id="instructions">Draw lines (click + drag) to create barriers · Max 3 lines · 8s duration · Goal: balance all colours</div>
+<div id="error-box"></div>
 
-<!-- Instructions -->
-<div id="instructions">
-    Draw lines (click + drag) to create barriers &middot; Max 3 lines &middot; 8s duration &middot; Goal: balance all colours
-</div>
+<script>
+// ===== FULLY SELF-CONTAINED CHROMAWAR =====
+// No ES module imports — everything inline to avoid module resolution issues on GitHub Pages.
 
-<!-- Scanline overlay -->
-<div id="scanlines"></div>
+(function() {
+'use strict';
 
-<script type="module" src="./chromawar-demo.js"></script>
+function showError(msg) {
+    const el = document.getElementById('error-box');
+    el.style.display = 'block';
+    el.textContent = 'ERROR: ' + msg;
+    console.error('ChromaWar:', msg);
+}
+
+try {
+
+/* ================================================================ */
+/*  CONFIG                                                           */
+/* ================================================================ */
+const PARTICLE_COUNT = 50000;
+const CLUSTER_COUNT  = 150;
+const WORLD_RADIUS   = 6.0;
+
+/* ================================================================ */
+/*  SHADERS                                                          */
+/* ================================================================ */
+const VS = `#version 300 es
+precision highp float;
+in vec2 a_corner;
+in vec2 a_position;
+in vec4 a_attrib;
+uniform mat4 u_vp;
+uniform vec2 u_viewport;
+out vec2 v_uv;
+out vec3 v_color;
+out float v_alpha;
+
+vec3 palette(int i) {
+    if(i==0) return vec3(1,.15,.12);
+    if(i==1) return vec3(1,.85,.1);
+    if(i==2) return vec3(.15,.4,1);
+    if(i==3) return vec3(1,.5,.05);
+    if(i==4) return vec3(.6,.1,.8);
+    if(i==5) return vec3(.1,.9,.3);
+    if(i==6) return vec3(1,.65,.4);
+    if(i==7) return vec3(.4,.2,.7);
+    if(i==8) return vec3(.2,.7,.9);
+    if(i==9) return vec3(1,.3,.2);
+    if(i==10) return vec3(1,.95,.3);
+    if(i==11) return vec3(.3,.5,1);
+    return vec3(.5);
+}
+
+void main() {
+    int colIdx = int(a_attrib.x * 255.0 + 0.5);
+    float state = a_attrib.y;
+    float size = a_attrib.z;
+    float glow = a_attrib.w;
+
+    vec4 clipPos = u_vp * vec4(a_position, 0.0, 1.0);
+    float w = max(clipPos.w, 0.001);
+    float px = mix(4.0, 12.0, size) + step(0.9, state) * 6.0;
+    vec2 off = a_corner * px * 2.0 / u_viewport;
+    gl_Position = vec4(clipPos.xy / w + off, clipPos.z / w, 1.0);
+
+    v_uv = a_corner;
+    v_color = palette(colIdx) * (1.0 + glow * 2.0);
+    v_alpha = 0.7 + glow * 0.3;
+}`;
+
+const FS = `#version 300 es
+precision mediump float;
+in vec2 v_uv;
+in vec3 v_color;
+in float v_alpha;
+out vec4 fragColor;
+void main() {
+    float d = dot(v_uv, v_uv);
+    if(d > 1.0) discard;
+    float a = exp(-d * 3.5) * v_alpha;
+    fragColor = vec4(v_color * a, a);
+}`;
+
+/* ================================================================ */
+/*  NOISE TABLE                                                      */
+/* ================================================================ */
+const NOISE_N = 8192;
+const NOISE_M = NOISE_N - 1;
+const _n = new Float32Array(NOISE_N);
+for(let i = 0; i < NOISE_N; i++) _n[i] = Math.random() - 0.5;
+let _ni = 0;
+
+/* ================================================================ */
+/*  SIMULATION                                                       */
+/* ================================================================ */
+// Cluster arrays
+const cx = new Float32Array(CLUSTER_COUNT);
+const cy = new Float32Array(CLUSTER_COUNT);
+const cvx = new Float32Array(CLUSTER_COUNT);
+const cvy = new Float32Array(CLUSTER_COUNT);
+const ccolor = new Uint8Array(CLUSTER_COUNT);
+const cstate = new Uint8Array(CLUSTER_COUNT);
+const ccaptor = new Int32Array(CLUSTER_COUNT).fill(-1);
+const csize = new Uint32Array(CLUSTER_COUNT);
+const calive = new Uint8Array(CLUSTER_COUNT).fill(1);
+
+// Particle arrays (positions + attribs are GPU-uploaded directly)
+const positions = new Float32Array(PARTICLE_COUNT * 2);
+const attribs = new Uint8Array(PARTICLE_COUNT * 4);
+const pvx = new Float32Array(PARTICLE_COUNT);
+const pvy = new Float32Array(PARTICLE_COUNT);
+const pcluster = new Int32Array(PARTICLE_COUNT);
+
+// Game state
+const balance = [0, 0, 0];
+let balanceMetric = 0, score = 0, isBalanced = false, simMs = 0;
+
+// Player lines
+const playerLines = [];
+const MAX_LINES = 3, LINE_DUR = 8;
+
+// Spatial hash for clusters
+const HASH_SIZE = 2048;
+const hashTable = new Array(HASH_SIZE);
+for(let i = 0; i < HASH_SIZE; i++) hashTable[i] = [];
+function hashClear() { for(let i = 0; i < HASH_SIZE; i++) hashTable[i].length = 0; }
+function hashKey(x, y) {
+    let h = (Math.floor(x) * 92837111) ^ (Math.floor(y) * 689287499);
+    return ((h >> 16) ^ h) & (HASH_SIZE - 1);
+}
+function hashInsert(id, x, y) { hashTable[hashKey(x, y)].push(id); }
+function hashQuery(x, y, r) {
+    const res = [];
+    const ri = Math.ceil(r);
+    const bx = Math.floor(x), by = Math.floor(y);
+    for(let dx = -ri; dx <= ri; dx++)
+        for(let dy = -ri; dy <= ri; dy++) {
+            const b = hashTable[hashKey(bx+dx, by+dy)];
+            for(let i = 0; i < b.length; i++) res.push(b[i]);
+        }
+    return res;
+}
+
+// Tint map: [base][captor] → colorIdx
+const TINT = [[0,3,4],[6,1,5],[7,8,2]];
+
+// Init clusters
+const perColor = Math.floor(CLUSTER_COUNT / 3);
+for(let i = 0; i < CLUSTER_COUNT; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const d = Math.random() * WORLD_RADIUS * 0.7;
+    cx[i] = Math.cos(a) * d;
+    cy[i] = Math.sin(a) * d;
+    const va = Math.random() * Math.PI * 2;
+    cvx[i] = Math.cos(va) * 0.3;
+    cvy[i] = Math.sin(va) * 0.3;
+    ccolor[i] = i < perColor ? 0 : i < perColor*2 ? 1 : 2;
+}
+
+// Init particles
+const perClust = Math.floor(PARTICLE_COUNT / CLUSTER_COUNT);
+for(let i = 0; i < PARTICLE_COUNT; i++) {
+    const ci = Math.min(Math.floor(i / perClust), CLUSTER_COUNT - 1);
+    pcluster[i] = ci;
+    csize[ci]++;
+    positions[i*2]   = cx[ci] + _n[(_ni++) & NOISE_M];
+    positions[i*2+1] = cy[ci] + _n[(_ni++) & NOISE_M];
+    attribs[i*4]   = ccolor[ci];
+    attribs[i*4+1] = 0;
+    attribs[i*4+2] = 80 + ((i * 137) & 127);
+    attribs[i*4+3] = 0;
+}
+
+function stepSim(dt) {
+    const t0 = performance.now();
+    dt = Math.min(dt, 0.033);
+
+    // Build hash
+    hashClear();
+    for(let i = 0; i < CLUSTER_COUNT; i++) {
+        if(!calive[i]) continue;
+        hashInsert(i, cx[i], cy[i]);
+    }
+
+    // Cluster AI
+    for(let i = 0; i < CLUSTER_COUNT; i++) {
+        if(!calive[i]) continue;
+        if(cstate[i] === 1) {
+            const cap = ccaptor[i];
+            if(cap >= 0 && calive[cap]) {
+                cvx[i] += (cx[cap] - cx[i]) * 0.02;
+                cvy[i] += (cy[cap] - cy[i]) * 0.02;
+            }
+            cvx[i] *= 0.98; cvy[i] *= 0.98;
+            cx[i] += cvx[i] * dt; cy[i] += cvy[i] * dt;
+            continue;
+        }
+
+        const nb = hashQuery(cx[i], cy[i], 3);
+        let sepX=0,sepY=0,cohX=0,cohY=0,cohN=0;
+        let chaseX=0,chaseY=0,fleeX=0,fleeY=0;
+
+        for(let ni = 0; ni < nb.length; ni++) {
+            const j = nb[ni];
+            if(j === i || !calive[j]) continue;
+            const dx = cx[j]-cx[i], dy = cy[j]-cy[i];
+            const d2 = dx*dx + dy*dy;
+            if(d2 < 0.001) continue;
+            const d = Math.sqrt(d2);
+
+            if(d < 1.5) { const r = 1/d2; sepX -= dx*r; sepY -= dy*r; }
+
+            if(ccolor[j] === ccolor[i]) {
+                cohX += cx[j]; cohY += cy[j]; cohN++;
+            } else if(cstate[j] !== 1) {
+                const my = csize[i], th = csize[j];
+                if(my > th * 1.5 && d < 2.5) { chaseX += dx/d; chaseY += dy/d; }
+                else if(th > my * 1.5 && d < 3) { const u = 1/Math.max(d,.5); fleeX -= dx/d*u; fleeY -= dy/d*u; }
+            }
+        }
+
+        let fx = sepX * 1.8 + chaseX * 0.9 + fleeX * 1.5;
+        let fy = sepY * 1.8 + chaseY * 0.9 + fleeY * 1.5;
+        if(cohN > 0) {
+            fx += ((cohX/cohN) - cx[i]) * 0.6;
+            fy += ((cohY/cohN) - cy[i]) * 0.6;
+        }
+
+        // Barrier avoidance
+        for(let li = 0; li < playerLines.length; li++) {
+            const L = playerLines[li];
+            const ldx=L.x1-L.x0, ldy=L.y1-L.y0, len2=ldx*ldx+ldy*ldy;
+            if(len2 < 0.01) continue;
+            let t = ((cx[i]-L.x0)*ldx+(cy[i]-L.y0)*ldy)/len2;
+            t = Math.max(0, Math.min(1, t));
+            const px2=L.x0+t*ldx, py2=L.y0+t*ldy;
+            const dd = Math.sqrt((cx[i]-px2)*(cx[i]-px2)+(cy[i]-py2)*(cy[i]-py2));
+            if(dd < 0.6) {
+                const nx = -(L.y1-L.y0), ny = L.x1-L.x0;
+                const nl = Math.sqrt(nx*nx+ny*ny)||1;
+                const side = (cx[i]-L.x0)*nx+(cy[i]-L.y0)*ny >= 0 ? 1 : -1;
+                const force = 2.5 / Math.max(dd, 0.1);
+                fx += (nx/nl)*force*side; fy += (ny/nl)*force*side;
+            }
+        }
+
+        // Boundary
+        const dc = Math.sqrt(cx[i]*cx[i]+cy[i]*cy[i]);
+        if(dc > WORLD_RADIUS * 0.7) {
+            const pull = (dc - WORLD_RADIUS*0.7) * 0.3;
+            fx -= (cx[i]/dc)*pull; fy -= (cy[i]/dc)*pull;
+        }
+
+        const sm = 1 / (1 + Math.log2(Math.max(csize[i],1)) * 0.3);
+        cvx[i] += fx * dt; cvy[i] += fy * dt;
+        const spd = Math.sqrt(cvx[i]*cvx[i]+cvy[i]*cvy[i]);
+        const ms = 2.5 * sm;
+        if(spd > ms) { cvx[i] *= ms/spd; cvy[i] *= ms/spd; }
+        cx[i] += cvx[i]*dt*1.2; cy[i] += cvy[i]*dt*1.2;
+
+        // Clamp to world
+        const r2 = cx[i]*cx[i]+cy[i]*cy[i];
+        if(r2 > WORLD_RADIUS*WORLD_RADIUS) {
+            const r = Math.sqrt(r2);
+            cx[i] = cx[i]/r*WORLD_RADIUS; cy[i] = cy[i]/r*WORLD_RADIUS;
+        }
+    }
+
+    // Capture (every 3rd call)
+    if(Math.floor(performance.now()/50) % 3 === 0) {
+        for(let i = 0; i < CLUSTER_COUNT; i++) {
+            if(!calive[i] || cstate[i]===1) continue;
+            const nb = hashQuery(cx[i], cy[i], 1.2);
+            for(let ni = 0; ni < nb.length; ni++) {
+                const j = nb[ni];
+                if(j===i||!calive[j]||ccolor[j]===ccolor[i]) continue;
+                const dx=cx[j]-cx[i], dy=cy[j]-cy[i];
+                if(dx*dx+dy*dy > 0.36) continue;
+                if(csize[i] > csize[j]*1.5 && cstate[j]!==1) {
+                    cstate[j]=1; ccaptor[j]=i; csize[i]+=csize[j];
+                } else if(csize[j] > csize[i]*1.5 && cstate[i]!==1) {
+                    cstate[i]=1; ccaptor[i]=j; csize[j]+=csize[i]; break;
+                }
+            }
+        }
+    }
+
+    // Decay lines
+    for(let i = playerLines.length-1; i >= 0; i--) {
+        playerLines[i].t -= dt;
+        if(playerLines[i].t <= 0) playerLines.splice(i, 1);
+    }
+
+    // Particles + color (single loop)
+    for(let i = 0; i < PARTICLE_COUNT; i++) {
+        const ci = pcluster[i];
+        if(ci < 0 || !calive[ci]) continue;
+        const i2 = i*2, i4 = i*4;
+
+        // Spring
+        const dx = cx[ci]-positions[i2], dy = cy[ci]-positions[i2+1];
+        pvx[i] = pvx[i]*0.97 + dx*0.08 + _n[(i+_ni)&NOISE_M]*0.02;
+        pvy[i] = pvy[i]*0.97 + dy*0.08 + _n[(i+_ni+4091)&NOISE_M]*0.02;
+        positions[i2] += pvx[i]; positions[i2+1] += pvy[i];
+
+        // Color
+        const bc = ccolor[ci];
+        let col = bc;
+        if(cstate[ci]===1 && ccaptor[ci]>=0) col = TINT[bc][ccolor[ccaptor[ci]]];
+        attribs[i4] = col;
+        attribs[i4+1] = cstate[ci]===1 ? 128 : 0;
+    }
+    _ni = (_ni + 997) & NOISE_M;
+
+    // Balance
+    balance[0]=balance[1]=balance[2]=0;
+    for(let i = 0; i < CLUSTER_COUNT; i++) {
+        if(!calive[i]) continue;
+        balance[ccolor[i]] += csize[i];
+    }
+    const tot = balance[0]+balance[1]+balance[2] || 1;
+    const ideal = tot/3;
+    balanceMetric = 1 - (Math.abs(balance[0]-ideal)+Math.abs(balance[1]-ideal)+Math.abs(balance[2]-ideal))/(2*tot);
+    isBalanced = balanceMetric > 0.95;
+    score += balanceMetric * 0.1;
+
+    simMs = performance.now() - t0;
+}
+
+/* ================================================================ */
+/*  WEBGL SETUP                                                      */
+/* ================================================================ */
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2', { alpha: false, antialias: false, powerPreference: 'high-performance' });
+if(!gl) { showError('WebGL2 not supported'); return; }
+
+function compileShader(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        showError('Shader: ' + gl.getShaderInfoLog(s));
+        return null;
+    }
+    return s;
+}
+
+const vs = compileShader(gl.VERTEX_SHADER, VS);
+const fs = compileShader(gl.FRAGMENT_SHADER, FS);
+if(!vs || !fs) return;
+
+const prog = gl.createProgram();
+gl.attachShader(prog, vs); gl.attachShader(prog, fs);
+gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog, gl.LINK_STATUS)) { showError('Link: ' + gl.getProgramInfoLog(prog)); return; }
+
+const vao = gl.createVertexArray();
+gl.bindVertexArray(vao);
+
+// Quad
+const qvb = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, qvb);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,1,1,-1,1]), gl.STATIC_DRAW);
+const cLoc = gl.getAttribLocation(prog, 'a_corner');
+gl.enableVertexAttribArray(cLoc);
+gl.vertexAttribPointer(cLoc, 2, gl.FLOAT, false, 0, 0);
+gl.vertexAttribDivisor(cLoc, 0);
+
+const qib = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, qib);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0,1,2,0,2,3]), gl.STATIC_DRAW);
+
+// Instance: positions
+const posVBO = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, posVBO);
+gl.bufferData(gl.ARRAY_BUFFER, positions.byteLength, gl.DYNAMIC_DRAW);
+const pLoc = gl.getAttribLocation(prog, 'a_position');
+gl.enableVertexAttribArray(pLoc);
+gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 8, 0);
+gl.vertexAttribDivisor(pLoc, 1);
+
+// Instance: attribs
+const attVBO = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, attVBO);
+gl.bufferData(gl.ARRAY_BUFFER, attribs.byteLength, gl.DYNAMIC_DRAW);
+const aLoc = gl.getAttribLocation(prog, 'a_attrib');
+gl.enableVertexAttribArray(aLoc);
+gl.vertexAttribPointer(aLoc, 4, gl.UNSIGNED_BYTE, true, 4, 0);
+gl.vertexAttribDivisor(aLoc, 1);
+
+gl.bindVertexArray(null);
+
+const u_vp = gl.getUniformLocation(prog, 'u_vp');
+const u_viewport = gl.getUniformLocation(prog, 'u_viewport');
+
+/* ================================================================ */
+/*  CAMERA                                                           */
+/* ================================================================ */
+let camAz = 0;
+function getVP(w, h) {
+    camAz += 0.0003;
+    const dist = 12, elev = 0.3, fov = 55;
+    const ex = Math.sin(camAz)*dist*Math.cos(elev);
+    const ey = Math.sin(elev)*dist;
+    const ez = Math.cos(camAz)*dist*Math.cos(elev);
+
+    // lookAt
+    const zl = Math.sqrt(ex*ex+ey*ey+ez*ez);
+    const fzx=ex/zl, fzy=ey/zl, fzz=ez/zl;
+    const sx=0*fzz-1*fzy, sy=1*fzx-0*fzz, sz=0*fzy-0*fzx; // up cross fz, up=[0,1,0]
+    const sl=Math.sqrt(sx*sx+sy*sy+sz*sz);
+    const fxx=sx/sl,fxy=sy/sl,fxz=sz/sl;
+    const uxx=fzy*fxz-fzz*fxy, uxy=fzz*fxx-fzx*fxz, uxz=fzx*fxy-fzy*fxx;
+    const view = new Float32Array([
+        fxx,uxx,fzx,0, fxy,uxy,fzy,0, fxz,uxz,fzz,0,
+        -(fxx*ex+fxy*ey+fxz*ez),-(uxx*ex+uxy*ey+uxz*ez),-(fzx*ex+fzy*ey+fzz*ez),1
+    ]);
+
+    // perspective
+    const aspect = w/h;
+    const f = 1/Math.tan(fov*Math.PI/360);
+    const nf = 1/(0.1-100);
+    const proj = new Float32Array([
+        f/aspect,0,0,0, 0,f,0,0, 0,0,100.1*nf,-1, 0,0,20*nf,0
+    ]);
+
+    // VP = P * V
+    const vp = new Float32Array(16);
+    for(let r=0;r<4;r++) for(let c=0;c<4;c++) {
+        let s=0;
+        for(let k=0;k<4;k++) s += proj[r+k*4]*view[k+c*4];
+        vp[r+c*4] = s;
+    }
+    return vp;
+}
+
+/* ================================================================ */
+/*  LINE DRAWING (simple GL_LINES overlay)                           */
+/* ================================================================ */
+const lineVS = `#version 300 es
+precision highp float;
+in vec2 a_p;
+uniform mat4 u_vp2;
+void main(){gl_Position=u_vp2*vec4(a_p,0,1);}`;
+const lineFS = `#version 300 es
+precision mediump float;
+uniform vec4 u_lc;
+out vec4 o;
+void main(){o=u_lc;}`;
+
+const lvs = compileShader(gl.VERTEX_SHADER, lineVS);
+const lfs = compileShader(gl.FRAGMENT_SHADER, lineFS);
+const lprog = gl.createProgram();
+gl.attachShader(lprog,lvs); gl.attachShader(lprog,lfs); gl.linkProgram(lprog);
+const lVAO = gl.createVertexArray();
+gl.bindVertexArray(lVAO);
+const lVBO = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, lVBO);
+gl.bufferData(gl.ARRAY_BUFFER, 16, gl.DYNAMIC_DRAW);
+const lpLoc = gl.getAttribLocation(lprog,'a_p');
+gl.enableVertexAttribArray(lpLoc);
+gl.vertexAttribPointer(lpLoc,2,gl.FLOAT,false,0,0);
+gl.bindVertexArray(null);
+const u_vp2 = gl.getUniformLocation(lprog,'u_vp2');
+const u_lc = gl.getUniformLocation(lprog,'u_lc');
+
+/* ================================================================ */
+/*  INPUT                                                            */
+/* ================================================================ */
+let drawing = false, ls = null, le = null;
+function w2s(e) {
+    const r = canvas.getBoundingClientRect();
+    const px = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const py = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    const a = canvas.clientWidth / canvas.clientHeight;
+    return {
+        x: ((px/canvas.clientWidth)*2-1)*WORLD_RADIUS*a,
+        y: -((py/canvas.clientHeight)*2-1)*WORLD_RADIUS
+    };
+}
+canvas.addEventListener('mousedown', e => { e.preventDefault(); drawing=true; ls=w2s(e); le=ls; });
+canvas.addEventListener('mousemove', e => { if(drawing) { e.preventDefault(); le=w2s(e); } });
+canvas.addEventListener('mouseup', e => {
+    e.preventDefault(); drawing=false;
+    if(ls&&le) {
+        const dx=le.x-ls.x,dy=le.y-ls.y;
+        if(Math.sqrt(dx*dx+dy*dy)>0.3 && playerLines.length<MAX_LINES)
+            playerLines.push({x0:ls.x,y0:ls.y,x1:le.x,y1:le.y,t:LINE_DUR});
+    }
+    ls=le=null;
+});
+canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing=true; ls=w2s(e); le=ls; }, {passive:false});
+canvas.addEventListener('touchmove', e => { if(drawing) { e.preventDefault(); le=w2s(e); } }, {passive:false});
+canvas.addEventListener('touchend', e => {
+    e.preventDefault(); drawing=false;
+    if(ls&&le) {
+        const dx=le.x-ls.x,dy=le.y-ls.y;
+        if(Math.sqrt(dx*dx+dy*dy)>0.3 && playerLines.length<MAX_LINES)
+            playerLines.push({x0:ls.x,y0:ls.y,x1:le.x,y1:le.y,t:LINE_DUR});
+    }
+    ls=le=null;
+}, {passive:false});
+
+/* ================================================================ */
+/*  HUD                                                              */
+/* ================================================================ */
+const statsEl = document.getElementById('stats');
+const scoreEl = document.getElementById('score');
+const lineEl = document.getElementById('line-count');
+const msgEl = document.getElementById('message');
+const bars = [document.getElementById('bar-red'),document.getElementById('bar-yellow'),document.getElementById('bar-blue')];
+
+function updateHUD() {
+    statsEl.textContent = `${PARTICLE_COUNT/1000}K particles | Sim: ${simMs.toFixed(1)}ms | Captured: ${cstate.reduce((s,v)=>s+(v===1?1:0),0)}`;
+    scoreEl.textContent = 'Score: ' + Math.floor(score);
+    lineEl.textContent = 'Lines: ' + playerLines.length + ' / 3';
+    const tot = balance[0]+balance[1]+balance[2]||1;
+    bars[0].style.width = (balance[0]/tot*100)+'%';
+    bars[1].style.width = (balance[1]/tot*100)+'%';
+    bars[2].style.width = (balance[2]/tot*100)+'%';
+    if(isBalanced) { msgEl.textContent='BALANCED! You win!'; msgEl.style.opacity='1'; }
+    else { msgEl.textContent='Balance: '+(balanceMetric*100).toFixed(0)+'%'; msgEl.style.opacity='.6'; }
+}
+
+/* ================================================================ */
+/*  RENDER LOOP                                                      */
+/* ================================================================ */
+let lastT = 0, fc = 0;
+function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = lastT ? (now-lastT)/1000 : 0.016;
+    lastT = now;
+
+    // Resize
+    const dpr = Math.min(devicePixelRatio||1, 2);
+    const w = Math.floor(canvas.clientWidth*dpr);
+    const h = Math.floor(canvas.clientHeight*dpr);
+    if(canvas.width!==w||canvas.height!==h) { canvas.width=w; canvas.height=h; }
+
+    // Sim
+    stepSim(dt);
+
+    // Upload
+    gl.bindBuffer(gl.ARRAY_BUFFER, posVBO);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, positions);
+    gl.bindBuffer(gl.ARRAY_BUFFER, attVBO);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, attribs);
+
+    // Camera
+    const vp = getVP(w, h);
+
+    // Draw particles
+    gl.viewport(0,0,w,h);
+    gl.clearColor(0.02, 0.015, 0.04, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);
+
+    gl.useProgram(prog);
+    gl.bindVertexArray(vao);
+    gl.uniformMatrix4fv(u_vp, false, vp);
+    gl.uniform2f(u_viewport, w, h);
+    gl.drawElementsInstanced(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0, PARTICLE_COUNT);
+    gl.bindVertexArray(null);
+
+    // Draw lines
+    if(playerLines.length > 0 || drawing) {
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.useProgram(lprog);
+        gl.bindVertexArray(lVAO);
+        gl.uniformMatrix4fv(u_vp2, false, vp);
+        for(const L of playerLines) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, lVBO);
+            gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array([L.x0,L.y0,L.x1,L.y1]));
+            gl.uniform4f(u_lc, 1,1,1, Math.min(L.t/2,1)*0.8);
+            gl.drawArrays(gl.LINES, 0, 2);
+        }
+        if(drawing && ls && le) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, lVBO);
+            gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array([ls.x,ls.y,le.x,le.y]));
+            gl.uniform4f(u_lc, 0,1,1,0.6);
+            gl.drawArrays(gl.LINES, 0, 2);
+        }
+        gl.bindVertexArray(null);
+    }
+
+    gl.disable(gl.BLEND);
+
+    if(++fc % 6 === 0) updateHUD();
+}
+
+requestAnimationFrame(frame);
+document.getElementById('stats').textContent = `${PARTICLE_COUNT/1000}K particles | Starting...`;
+console.log('ChromaWar started: ' + PARTICLE_COUNT + ' particles, ' + CLUSTER_COUNT + ' clusters');
+
+} catch(e) { showError(e.message + '\n' + e.stack); }
+})();
+</script>
 </body>
 </html>

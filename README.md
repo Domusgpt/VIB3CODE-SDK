@@ -1,296 +1,216 @@
-# VIB3+ SDK
+# VIB3+ Hybrid Render Pipeline
 
-**General-purpose 4D rotation visualization SDK** for plugins, extensions, wearables, and agentic AI integration.
+**A compositing engine that unifies traditional mesh rendering, Gaussian splat fields, procedural 4D shaders, and holographic edge inscription into a single depth-coherent output.**
 
 [![Tests](https://img.shields.io/badge/tests-693%2B%20passing-brightgreen)](#testing)
-[![Version](https://img.shields.io/badge/version-1.9.0-blue)](#)
+[![Version](https://img.shields.io/badge/version-2.0-blue)](#)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](#license)
 
 ---
 
-## Quick Reference
+## What It Does
 
-| Metric | Value |
-|--------|-------|
-| **Active Systems** | 3 (Quantum, Faceted, Holographic) |
-| **Rotation Planes** | 6 (XY, XZ, YZ + XW, YW, ZW) |
-| **Geometries** | 24 per system (8 base × 3 cores) |
-| **Canvas Layers** | 5 per system |
-| **MCP Tools** | 14 agent-accessible tools |
+Four rendering paradigms composited per-frame with shared depth, configurable blending, and cross-layer interaction:
 
----
+```
+Layer 0  MESH           Traditional triangles → 3-MRT GBuffer
+Layer 1  SPLAT           Gaussian point-sprite splats, depth-tested against mesh
+Layer 2  PROCEDURAL      VIB3 fullscreen fragment shader (24 geometry variants)
+Layer 3  INSCRIPTION     N-layer holographic edge overlay driven by GBuffer
+         ─── COMPOSITOR ───
+         Per-layer opacity · blend modes · tone mapping · gamma
+```
 
-## Features
+Each layer is independently toggleable, its opacity and blend mode adjustable at runtime. The inscription layer reads depth/normal/objectID from the mesh GBuffer to stamp animated 4D procedural patterns onto detected edges — silhouettes, creases, and cross-object boundaries.
 
-- **3 Active Visualization Systems:** Quantum lattices, Faceted patterns, Holographic effects
-- **24 Geometry Variants:** 8 base shapes × 3 core warp types (Base, Hypersphere, Hypertetrahedron)
-- **6D Rotation:** Full control over 3D planes (XY/XZ/YZ) and 4D hyperspace planes (XW/YW/ZW)
-- **Audio Reactivity:** Real-time visualization response to audio input
-- **Agentic Integration:** MCP server with 14 tools for AI agent control
-- **Cross-Platform:** Web, WASM, Flutter support
+**[Live Demo](docs/hybrid-demo.html)** — runs in any WebGL2 browser, no build step.
 
 ---
 
-## Installation
+## Key Capabilities
+
+| Capability | What It Means |
+|-----------|--------------|
+| **Multi-object scene compositing** | Multiple meshes into a shared GBuffer with per-object inscription routing |
+| **3-MRT GBuffer** | Color + Normal/Depth + Object ID — one render pass, three textures |
+| **Morph target animation** | GPU-side vertex blending between base and deformed meshes |
+| **PBR material → splat decomposition** | Roughness, metallic, AO, emissive maps converted to oriented Gaussian distributions |
+| **N-layer batched inscription** | 1–16 procedural layers in a single draw call via uniform arrays |
+| **Semantic state system** | 6 object states (idle/active/selected/powered/damaged/destroyed) with smooth transitions |
+| **Audio-reactive 4D modulation** | Bass→XW rotation, Mid→YW, High→ZW, Energy→all planes + glow |
+| **Per-object identity** | Deterministic hash → unique inscription pattern per object (no artist config needed) |
+| **Resolution-independent edges** | DPR-aware thickness scaling — same visual weight on 1x and 3x displays |
+| **WebGPU compute path** | WGSL shared-memory edge detection + single-dispatch inscription (falls back to WebGL) |
+
+---
+
+## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# Start dev server
-npm run dev:web
-
-# Build for production
-npm run build:web
-
-# Run tests
-npm test
+npm run dev:web        # Local dev server with hot reload
 ```
 
-**Requirements:** Node.js 18.19+
+Open `demo/hybrid-demo.html` in browser. Drag to orbit, scroll to zoom. Use the Layers panel to toggle layers, adjust blend modes, switch semantic states, and simulate audio input.
 
----
-
-## Visualization Systems
-
-### Active Systems
-
-| System | Description | Geometries |
-|--------|-------------|------------|
-| **Quantum** | Complex lattice visualizations with quantum-inspired patterns | 24 |
-| **Faceted** | Clean 2D geometric patterns with 4D rotation projection | 24 |
-| **Holographic** | 5-layer audio-reactive holographic effects | 24 |
-
-### Placeholder (TBD)
-
-| System | Status | Description |
-|--------|--------|-------------|
-| **Polychora** | TBD | 4D polytopes - not production ready |
-
----
-
-## Geometry Encoding
-
-```
-geometry_index = core_index * 8 + base_index
+For the pre-built GitHub Pages version (no build step):
+```bash
+# Serve docs/ directly
+npx serve docs
 ```
 
-### Base Geometries (0-7)
-| Index | Name | Description |
-|-------|------|-------------|
-| 0 | Tetrahedron | 4-vertex lattice |
-| 1 | Hypercube | 4D cube (16 vertices, 32 edges) |
-| 2 | Sphere | Radial harmonic sphere |
-| 3 | Torus | Toroidal field |
-| 4 | Klein Bottle | Non-orientable surface |
-| 5 | Fractal | Recursive subdivision |
-| 6 | Wave | Sinusoidal interference |
-| 7 | Crystal | Octahedral structure |
+---
 
-### Core Warp Types
-| Index | Name | Geometry Range | Effect |
-|-------|------|----------------|--------|
-| 0 | Base | 0-7 | No warp |
-| 1 | Hypersphere | 8-15 | 4D sphere wrap |
-| 2 | Hypertetrahedron | 16-23 | 4D tetrahedron wrap |
+## Architecture
+
+### Render Pipeline
+
+```
+Scene Objects ──► SceneRenderer ──► Shared GBuffer (3 MRT)
+                                        │
+                  ┌─────────────────────┤
+                  │ Color (RGBA8)       │ Normal/Depth (RGBA16F)     │ ObjectID (RGBA8)
+                  └──────┬──────────────┴────────────┬───────────────┘
+                         │                           │
+                         ▼                           ▼
+                  Compositor L0             EdgeInscriptionLayer
+                                                    │
+                                           InscriptionChannel
+                                           (semantic state + audio)
+                                                    │
+                                                    ▼
+                                           Compositor L3
+
+PBR Textures ──► PBRSplatConverter ──► Splats ──► Compositor L1
+VIB3 Systems ──► Procedural Callback ─────────► Compositor L2
+```
+
+### Module Map
+
+| Module | Purpose |
+|--------|---------|
+| `HybridRenderPipeline` | Orchestrates all 4 layers, composites to canvas |
+| `MeshRenderer` | Blinn-Phong mesh with 3-MRT GBuffer, morph targets, per-object ID |
+| `SceneRenderer` | Multi-object scene into shared GBuffer with draw-order sorting |
+| `GaussianSplatRenderer` | Point-sprite Gaussian splats with depth testing |
+| `PBRSplatConverter` | PBR material maps → Gaussian splat distributions |
+| `EdgeInscriptionLayer` | Batched N-layer inscription from GBuffer edge detection |
+| `InscriptionChannel` | Semantic state → inscription parameter mapping + audio |
+| `WebGPUInscription` | WGSL compute alternative (shared memory tiling) |
+| `TextureToSplatConverter` | Diffuse texture → surface splats |
+
+### VIB3 Visualization Systems
+
+Three procedural shader systems feed Layer 2 and influence inscription patterns:
+
+| System | Style | Key Feature |
+|--------|-------|-------------|
+| **Quantum** | Complex lattice patterns | Audio-reactive field distortion |
+| **Faceted** | Clean geometric projections | Precise 4D rotation artifacts |
+| **Holographic** | 5-layer glassmorphic effects | Per-layer depth parallax |
+
+Each supports 24 geometry variants (8 base shapes × 3 core warps) and full 6D rotation.
+
+### 6D Rotation
+
+Six independent rotation planes — three in 3D space, three crossing into the 4th dimension:
+
+| Plane | Type | Effect |
+|-------|------|--------|
+| XY, XZ, YZ | 3D | Standard rotation around Z, Y, X axes |
+| XW, YW, ZW | 4D | Hyperspace rotation — produces "impossible" perspective shifts |
+
+Implemented three ways: WASM Clifford algebra rotors (exact), GLSL matrices (GPU per-pixel), WGSL matrices (compute).
 
 ---
 
-## 6D Rotation System
+## API
 
-| Plane | Type | Parameter | Range |
-|-------|------|-----------|-------|
-| XY | 3D Space | `rot4dXY` | -6.28 to 6.28 |
-| XZ | 3D Space | `rot4dXZ` | -6.28 to 6.28 |
-| YZ | 3D Space | `rot4dYZ` | -6.28 to 6.28 |
-| XW | 4D Hyperspace | `rot4dXW` | -6.28 to 6.28 |
-| YW | 4D Hyperspace | `rot4dYW` | -6.28 to 6.28 |
-| ZW | 4D Hyperspace | `rot4dZW` | -6.28 to 6.28 |
-
----
-
-## API Reference
-
-### JavaScript API
+### Pipeline Setup
 
 ```javascript
-import { VIB3Engine } from '@vib3/sdk/core';
+import { MeshRenderer, GaussianSplatRenderer, EdgeInscriptionLayer,
+         HybridRenderPipeline, SceneRenderer, InscriptionChannel } from './src/render/index.js';
 
-// Initialize engine
-const engine = new VIB3Engine();
-await engine.initialize();
+const pipeline = new HybridRenderPipeline(gl, { exposure: 1.2, gamma: 2.2 });
 
-// Switch visualization system
-await engine.switchSystem('quantum'); // 'quantum' | 'faceted' | 'holographic'
+// Layer 0: Mesh
+const mesh = new MeshRenderer(gl);
+pipeline.setMeshRenderer(mesh);
 
-// Set geometry (0-23)
-engine.setParameter('geometry', 10); // hypersphere + sphere
+// Layer 1: Splats
+const splats = new GaussianSplatRenderer(gl);
+pipeline.setSplatRenderer(splats);
 
-// Set 6D rotation
-engine.setParameter('rot4dXW', 1.57);
-engine.setParameter('rot4dYW', 0.5);
+// Layer 3: Inscription
+const inscription = new EdgeInscriptionLayer(gl, { layerCount: 4 });
+pipeline.setEdgeInscription(inscription);
 
-// Set visual parameters
-engine.setParameter('hue', 200);
-engine.setParameter('speed', 1.5);
-engine.setParameter('chaos', 0.3);
-
-// Get all parameters
-const params = engine.getAllParameters();
-
-// Randomize
-engine.randomizeAll();
-
-// Reset to defaults
-engine.resetAll();
+// Per-layer control
+pipeline.meshLayer.opacity = 1.0;
+pipeline.meshLayer.blendMode = BlendModes.ALPHA;
+pipeline.inscriptionLayer.opacity = 0.8;
+pipeline.inscriptionLayer.blendMode = BlendModes.ADDITIVE;
 ```
 
-### Parameter Reference
+### Multi-Object Scene
 
-| Parameter | Range | Default | Description |
-|-----------|-------|---------|-------------|
-| `geometry` | 0-23 | 0 | Geometry index (coreIndex * 8 + baseIndex) |
-| `rot4dXY` | -6.28 to 6.28 | 0 | XY plane rotation (radians) |
-| `rot4dXZ` | -6.28 to 6.28 | 0 | XZ plane rotation |
-| `rot4dYZ` | -6.28 to 6.28 | 0 | YZ plane rotation |
-| `rot4dXW` | -6.28 to 6.28 | 0 | XW hyperplane rotation |
-| `rot4dYW` | -6.28 to 6.28 | 0 | YW hyperplane rotation |
-| `rot4dZW` | -6.28 to 6.28 | 0 | ZW hyperplane rotation |
-| `gridDensity` | 5-100 | 15 | Grid resolution |
-| `morphFactor` | 0-2 | 1.0 | Shape morph blend |
-| `chaos` | 0-1 | 0.2 | Noise/turbulence |
-| `speed` | 0.1-3 | 1.0 | Animation speed |
-| `hue` | 0-360 | 200 | Color hue (degrees) |
-| `saturation` | 0-1 | 0.8 | Color saturation |
-| `intensity` | 0-1 | 0.5 | Brightness |
-
----
-
-## MCP Server API (Agentic Integration)
-
-The SDK includes an MCP (Model Context Protocol) server for AI agent integration.
-
-### Tools
-
-| Tool | Description |
-|------|-------------|
-| `get_sdk_context` | Get SDK overview and onboarding quiz |
-| `verify_knowledge` | Multiple choice quiz to verify understanding |
-| `create_4d_visualization` | Create new visualization scene |
-| `set_rotation` | Set 6D rotation values |
-| `set_visual_parameters` | Adjust visual properties |
-| `switch_system` | Change visualization system |
-| `change_geometry` | Change geometry type (0-23) |
-| `get_state` | Get current engine state |
-| `randomize_parameters` | Randomize all parameters |
-| `reset_parameters` | Reset to defaults |
-| `save_to_gallery` | Save to gallery slot |
-| `load_from_gallery` | Load from gallery slot |
-| `search_geometries` | Query available geometries |
-| `get_parameter_schema` | Get parameter validation schema |
-
-### Example MCP Usage
-
-```json
-// Get SDK context (call first)
-{ "tool": "get_sdk_context" }
-
-// Verify understanding
-{
-  "tool": "verify_knowledge",
-  "args": {
-    "q1_rotation_planes": "c",
-    "q2_geometry_formula": "b",
-    "q3_canvas_layers": "c",
-    "q4_active_systems": "a",
-    "q5_base_geometries": "b",
-    "q6_core_types": "b"
-  }
-}
-
-// Create visualization
-{
-  "tool": "create_4d_visualization",
-  "args": {
-    "system": "quantum",
-    "geometry_index": 10
-  }
-}
-
-// Set rotation
-{
-  "tool": "set_rotation",
-  "args": {
-    "XW": 1.57,
-    "YW": 0.5,
-    "ZW": 0.3
-  }
-}
+```javascript
+const scene = new SceneRenderer(gl);
+scene.addObject('hero', heroGeometry);
+scene.addObject('terrain', terrainGeometry);
+pipeline.setSceneRenderer(scene);
 ```
 
----
+### Semantic States
 
-## CLI API
-
-```bash
-# Start CLI in streaming mode
-echo '{"type":"ping"}' | node src/cli/index.js
-
-# Set parameter
-echo '{"type":"set_parameter","param":"hue","value":200}' | node src/cli/index.js
-
-# Get metrics
-echo '{"type":"get_metrics"}' | node src/cli/index.js
-
-# Simple text commands
-echo 'ping' | node src/cli/index.js
-echo 'status' | node src/cli/index.js
-echo 'set hue 200' | node src/cli/index.js
-echo 'geometry 10' | node src/cli/index.js
+```javascript
+const channel = new InscriptionChannel({ layerCount: 4 });
+channel.registerObject(1, 'active');
+channel.setObjectState(1, 'powered');   // smooth transition
+channel.setAudio(bass, mid, high, energy);
+channel.update(deltaTime);
+pipeline.setInscriptionChannel(channel);
 ```
 
-### CLI Commands
+### Morph Targets
 
-| Command | Description |
-|---------|-------------|
-| `ping` | Health check |
-| `status` | Get engine status |
-| `help` | List commands |
-| `set <param> <value>` | Set parameter |
-| `get <param>` | Get parameter |
-| `rotate <plane> <angle>` | Rotate on plane |
-| `geometry <index>` | Set geometry (0-23) |
-| `system <name>` | Switch system |
-| `metrics` | Get telemetry |
+```javascript
+mesh.uploadGeometry(baseGeometry);
+mesh.uploadMorphTarget(deformedPositions, deformedNormals);
+mesh.morphWeight = 0.5;  // GPU-blended
+```
 
 ---
 
 ## Project Structure
 
 ```
-├── src/                      # Core SDK
-│   ├── core/                 # Engine orchestration
-│   │   ├── VIB3Engine.js     # Main unified engine
-│   │   └── RendererContracts.js
-│   ├── quantum/              # Quantum visualization
-│   ├── faceted/              # Faceted visualization
-│   ├── holograms/            # Holographic visualization
-│   ├── geometry/             # 24-geometry system
-│   ├── math/                 # 4D math utilities
-│   ├── render/               # Rendering pipeline
-│   ├── agent/                # MCP/CLI/Telemetry
-│   │   ├── mcp/              # MCP server
-│   │   ├── cli/              # CLI interface
-│   │   └── telemetry/        # Instrumentation
-│   └── export/               # Export generators
-├── cpp/                      # C++ math core (WASM)
-├── js/                       # Client-side integration
-├── tests/                    # Test suite (693+ tests)
-├── DOCS/                     # Documentation
-│   ├── SYSTEM_INVENTORY.md   # Complete system reference
-│   ├── CLI_ONBOARDING.md     # Agent CLI setup
-│   └── CONTROL_REFERENCE.md  # UI parameters
-└── types/                    # TypeScript definitions
+src/render/                        # Hybrid pipeline core
+    HybridRenderPipeline.js        # 4-layer compositor
+    MeshRenderer.js                # 3-MRT GBuffer mesh renderer
+    SceneRenderer.js               # Multi-object scene manager
+    EdgeInscriptionLayer.js        # Batched N-layer inscription
+    InscriptionChannel.js          # Semantic state + audio mapping
+    PBRSplatConverter.js           # PBR → Gaussian splats
+    WebGPUInscription.js           # WGSL compute path
+    GaussianSplatRenderer.js       # Splat renderer
+    TextureToSplatConverter.js     # Texture → splat
+
+src/core/                          # Engine orchestration
+    VIB3Engine.js                  # Main entry point
+src/quantum/                       # Quantum visualization system
+src/faceted/                       # Faceted visualization system
+src/holograms/                     # Holographic visualization system
+src/geometry/                      # 24-geometry library + warps
+src/math/                          # Vec4, Mat4x4, Rotor4D, projections
+src/agent/                         # MCP server + CLI + telemetry
+src/export/                        # Trading card + SVG + Lottie exporters
+
+cpp/                               # C++ WASM core (Clifford algebra)
+demo/                              # Interactive demos (hybrid, showcase, PCG)
+docs/                              # GitHub Pages (pre-built demo + gallery)
+tests/                             # 693+ tests (Vitest + Playwright)
 ```
 
 ---
@@ -298,58 +218,31 @@ echo 'geometry 10' | node src/cli/index.js
 ## Testing
 
 ```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm test -- --coverage
-
-# Run specific test
-npm test -- tests/agent/AgentCLI.test.js
+npm test                # Unit tests (Vitest)
+npm run test:e2e        # Browser tests (Playwright)
+npm run test:all        # Both
+npm run bench           # Performance benchmarks
 ```
-
-**Current Status:** 693+ tests passing
 
 ---
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [`DOCS/SYSTEM_INVENTORY.md`](DOCS/SYSTEM_INVENTORY.md) | Complete technical reference |
-| [`DOCS/CLI_ONBOARDING.md`](DOCS/CLI_ONBOARDING.md) | Agent CLI setup guide |
-| [`DOCS/CONTROL_REFERENCE.md`](DOCS/CONTROL_REFERENCE.md) | UI parameter reference |
-| [`24-GEOMETRY-6D-ROTATION-SUMMARY.md`](24-GEOMETRY-6D-ROTATION-SUMMARY.md) | Geometry encoding details |
-| [`DOCS/GPU_DISPOSAL_GUIDE.md`](DOCS/GPU_DISPOSAL_GUIDE.md) | Resource management |
-
----
-
-## Agent Onboarding Quiz
-
-When connecting via MCP, agents should call `get_sdk_context` then `verify_knowledge`:
-
-```
-Q1: How many rotation planes? → c) 6
-Q2: Geometry formula? → b) core*8+base
-Q3: Canvas layers per system? → c) 5
-Q4: Active systems? → a) quantum, faceted, holographic
-Q5: Base geometries? → b) 8
-Q6: Core types? → b) base, hypersphere, hypertetrahedron
-```
+| Document | Contents |
+|----------|---------|
+| [`HYBRID_PIPELINE.md`](HYBRID_PIPELINE.md) | Full v2 pipeline technical reference — all 9 capabilities, module API, data flow |
+| [`ROADMAP.md`](ROADMAP.md) | Development tracks and expansion plan |
+| [`CLAUDE.md`](CLAUDE.md) | Codebase reference for AI-assisted development |
+| [`DOCS/SYSTEM_INVENTORY.md`](DOCS/SYSTEM_INVENTORY.md) | Complete system inventory |
 
 ---
 
 ## License
 
-**Proprietary** - © 2025 Paul Phillips - Clear Seas Solutions LLC
+**Proprietary** — © 2025 Paul Phillips — Clear Seas Solutions LLC
 
 All Rights Reserved
 
 ---
 
-## Contact
-
-- **Email:** Paul@clearseassolutions.com
-- **Website:** [Parserator.com](https://parserator.com)
-
-> *"The Revolution Will Not be in a Structured Format"*
+**Contact:** Paul@clearseassolutions.com | [Parserator.com](https://parserator.com)

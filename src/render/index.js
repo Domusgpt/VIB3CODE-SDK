@@ -104,6 +104,40 @@ export { ProceduralTraversalScheduler } from './ProceduralTraversalScheduler.js'
 export { GaussianSplatRenderer } from './GaussianSplatRenderer.js';
 export { SplatRenderPipeline } from './SplatRenderPipeline.js';
 
+// Hybrid rendering pipeline (mesh + splat + procedural + inscription)
+export { HybridRenderPipeline, BlendModes } from './HybridRenderPipeline.js';
+export { MeshRenderer } from './MeshRenderer.js';
+export { EdgeInscriptionLayer } from './EdgeInscriptionLayer.js';
+export { TextureToSplatConverter } from './TextureToSplatConverter.js';
+
+// v2: Multi-object scene management
+export { SceneRenderer, SceneObject } from './SceneRenderer.js';
+
+// v2: PBR material decomposition to Gaussian splats
+export { PBRSplatConverter } from './PBRSplatConverter.js';
+
+// v2: Semantic state → inscription mapping (per-object identity, audio-reactive)
+export { InscriptionChannel } from './InscriptionChannel.js';
+
+// v2: WebGPU compute shader inscription path (optional, falls back to WebGL)
+export { WebGPUInscription, createWebGPUInscription } from './WebGPUInscription.js';
+
+// v3: Track 1 — Pipeline Hardening
+export { ModelLoader } from './ModelLoader.js';
+export { SkeletalAnimator } from './SkeletalAnimator.js';
+export { ShadowMap } from './ShadowMap.js';
+export { FrustumCuller, LODManager } from './FrustumCuller.js';
+
+// v3: Track 2 — Visual Experience
+export { InscriptionTexture } from './InscriptionTexture.js';
+export { VolumetricInscription } from './VolumetricInscription.js';
+export { SSR } from './SSR.js';
+export { ParticleSystem } from './ParticleSystem.js';
+export { DeferredInscriptionLighting } from './DeferredInscriptionLighting.js';
+
+// v3: Track 3 — Platform Integration
+export { WebXRSession } from './WebXRSession.js';
+
 /**
  * Create a complete rendering context
  * @param {HTMLCanvasElement} canvas

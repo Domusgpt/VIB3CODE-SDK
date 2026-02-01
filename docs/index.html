@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIB3+ Algorithmic Avant-Garde Collection</title>
-    <meta name="description" content="Machine-generated 4D visualization art created via VIB3+ MCP Protocol">
+    <title>VIB3+ Hybrid Render Pipeline</title>
+    <meta name="description" content="A compositing engine unifying mesh rendering, Gaussian splats, procedural 4D shaders, and holographic edge inscription into a single depth-coherent output.">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -29,26 +29,48 @@
         }
 
         .hero {
-            padding: 80px 40px;
+            padding: 80px 40px 60px;
             text-align: center;
-            background: linear-gradient(180deg, rgba(0,255,255,0.05) 0%, transparent 100%);
+            background: linear-gradient(180deg, rgba(0,255,255,0.06) 0%, rgba(255,0,255,0.03) 50%, transparent 100%);
             border-bottom: 1px solid var(--border);
         }
 
         .hero h1 {
-            font-size: clamp(24px, 5vw, 48px);
+            font-size: clamp(24px, 5vw, 44px);
             font-weight: 300;
-            letter-spacing: 8px;
+            letter-spacing: 6px;
             color: var(--accent);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             text-transform: uppercase;
         }
 
         .hero .tagline {
             font-size: 14px;
             color: var(--dim);
-            max-width: 600px;
-            margin: 0 auto 30px;
+            max-width: 680px;
+            margin: 0 auto 32px;
+            line-height: 1.7;
+        }
+
+        .hero .launch-btn {
+            display: inline-block;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, var(--accent2), #8800cc);
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border-radius: 8px;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,0,255,0.4);
+        }
+
+        .hero .launch-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255,0,255,0.3);
+            background: linear-gradient(135deg, #ff22ff, #aa00dd);
         }
 
         .hero .meta {
@@ -57,6 +79,7 @@
             gap: 40px;
             flex-wrap: wrap;
             font-size: 11px;
+            margin-top: 36px;
         }
 
         .hero .meta-item {
@@ -66,7 +89,7 @@
         }
 
         .hero .meta-value {
-            font-size: 24px;
+            font-size: 22px;
             color: var(--green);
             font-weight: bold;
         }
@@ -75,10 +98,11 @@
             color: var(--dim);
             text-transform: uppercase;
             letter-spacing: 2px;
+            font-size: 9px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 40px;
         }
@@ -88,7 +112,7 @@
         }
 
         h2 {
-            font-size: 18px;
+            font-size: 16px;
             color: var(--accent);
             letter-spacing: 4px;
             text-transform: uppercase;
@@ -98,32 +122,105 @@
         }
 
         h3 {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--accent2);
             margin: 20px 0 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .doc-section {
+        /* Architecture diagram */
+        .arch-diagram {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .arch-diagram pre {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--fg);
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .arch-diagram .layer-label { color: var(--accent); font-weight: bold; }
+        .arch-diagram .layer-desc { color: var(--dim); }
+        .arch-diagram .separator { color: var(--accent2); }
+
+        /* Capability cards */
+        .cap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .cap-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 30px;
-            margin-bottom: 30px;
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.3s;
         }
 
-        .doc-section p {
-            color: var(--dim);
-            margin-bottom: 15px;
+        .cap-card:hover {
+            border-color: rgba(0,255,255,0.3);
         }
 
-        .doc-section code {
-            background: rgba(0,255,255,0.1);
+        .cap-card .cap-title {
+            font-size: 12px;
             color: var(--accent);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
         }
 
+        .cap-card .cap-desc {
+            font-size: 11px;
+            color: var(--dim);
+            line-height: 1.6;
+        }
+
+        /* Module table */
+        .module-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
+        .module-table th,
+        .module-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .module-table th {
+            color: var(--accent);
+            font-weight: normal;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 10px;
+        }
+
+        .module-table td:first-child {
+            font-family: monospace;
+            color: var(--green);
+            white-space: nowrap;
+        }
+
+        .module-table td:nth-child(2) {
+            color: var(--dim);
+        }
+
+        /* Code blocks */
         pre {
             background: #000;
             border: 1px solid var(--border);
@@ -132,7 +229,7 @@
             overflow-x: auto;
             font-size: 12px;
             line-height: 1.8;
-            margin: 15px 0;
+            margin: 12px 0;
         }
 
         pre .comment { color: #666; }
@@ -141,212 +238,181 @@
         pre .number { color: var(--yellow); }
         pre .function { color: var(--accent); }
 
-        .tool-flow {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            justify-content: center;
-            margin: 30px 0;
+        /* Roadmap tracks */
+        .track-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 16px;
         }
 
-        .tool-step {
-            background: linear-gradient(135deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1));
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            padding: 15px 20px;
-            text-align: center;
-            min-width: 150px;
+        .track-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 24px;
         }
 
-        .tool-step .step-num {
+        .track-card .track-num {
             font-size: 10px;
             color: var(--dim);
             text-transform: uppercase;
             letter-spacing: 2px;
         }
 
-        .tool-step .tool-name {
+        .track-card .track-title {
+            font-size: 14px;
             color: var(--accent);
-            font-weight: bold;
-            margin: 5px 0;
+            margin: 6px 0 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .tool-step .tool-desc {
-            font-size: 10px;
+        .track-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .track-card li {
+            font-size: 11px;
             color: var(--dim);
+            padding: 4px 0;
+            padding-left: 16px;
+            position: relative;
         }
 
-        .arrow {
-            color: var(--accent);
-            font-size: 24px;
+        .track-card li::before {
+            content: '\25B8';
+            position: absolute;
+            left: 0;
+            color: var(--accent2);
         }
 
+        /* Gallery section */
         .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
-        .card {
+        .gallery-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
             transition: all 0.3s ease;
         }
 
-        .card:hover {
+        .gallery-card:hover {
             border-color: var(--accent);
-            transform: translateY(-4px);
-            box-shadow: 0 10px 40px rgba(0,255,255,0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,255,255,0.08);
         }
 
-        .card-preview {
-            height: 200px;
+        .gallery-preview {
+            height: 160px;
             background: #000;
             position: relative;
             overflow: hidden;
         }
 
-        .card-preview iframe {
+        .gallery-preview iframe {
             width: 100%;
             height: 100%;
             border: none;
             pointer-events: none;
         }
 
-        .card-preview .overlay {
+        .gallery-preview .overlay {
             position: absolute;
             inset: 0;
             background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.8) 100%);
             display: flex;
             align-items: flex-end;
-            padding: 15px;
+            padding: 12px;
         }
 
-        .card-preview .pcs-badge {
+        .gallery-preview .pcs-badge {
             background: var(--yellow);
             color: #000;
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: 4px;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: bold;
         }
 
-        .card-body {
-            padding: 20px;
+        .gallery-body {
+            padding: 16px;
         }
 
-        .card-title {
-            font-size: 14px;
+        .gallery-body h4 {
+            font-size: 11px;
             color: var(--accent);
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
         }
 
-        .card-desc {
-            font-size: 11px;
-            color: var(--dim);
-            margin-bottom: 15px;
-            line-height: 1.6;
-        }
-
-        .card-params {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+        .gallery-body p {
             font-size: 10px;
-            margin-bottom: 15px;
+            color: var(--dim);
+            margin-bottom: 10px;
+            line-height: 1.5;
         }
 
-        .param {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 8px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 4px;
-        }
-
-        .param-name { color: var(--dim); }
-        .param-value { color: var(--green); font-family: monospace; }
-
-        .card-link {
+        .gallery-body a {
             display: block;
             text-align: center;
-            padding: 12px;
-            background: var(--accent);
-            color: #000;
+            padding: 8px;
+            background: rgba(0,255,255,0.1);
+            color: var(--accent);
             text-decoration: none;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 10px;
             letter-spacing: 2px;
             text-transform: uppercase;
-            border-radius: 6px;
+            border-radius: 5px;
+            border: 1px solid rgba(0,255,255,0.2);
             transition: all 0.2s;
         }
 
-        .card-link:hover {
-            background: var(--accent2);
+        .gallery-body a:hover {
+            background: rgba(0,255,255,0.2);
         }
 
-        .constants-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
-        .constants-table th,
-        .constants-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .constants-table th {
-            color: var(--accent);
-            font-weight: normal;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 10px;
-        }
-
-        .constants-table td:nth-child(2) {
-            font-family: monospace;
-            color: var(--green);
-        }
-
-        .constants-table td:nth-child(3) {
-            color: var(--dim);
-        }
-
-        .stats-grid {
+        /* Doc links */
+        .doc-links {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
         }
 
-        .stat-card {
+        .doc-link {
+            display: block;
+            padding: 16px 20px;
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 20px;
-            text-align: center;
+            text-decoration: none;
+            transition: border-color 0.3s, transform 0.2s;
         }
 
-        .stat-value {
-            font-size: 28px;
-            color: var(--green);
-            font-weight: bold;
+        .doc-link:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
         }
 
-        .stat-label {
+        .doc-link strong {
+            display: block;
+            font-size: 12px;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .doc-link span {
             font-size: 10px;
             color: var(--dim);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 5px;
         }
 
         footer {
@@ -365,428 +431,434 @@
         @media (max-width: 768px) {
             .container { padding: 20px; }
             .hero { padding: 40px 20px; }
+            .cap-grid, .track-grid { grid-template-columns: 1fr; }
             .gallery { grid-template-columns: 1fr; }
-            .tool-flow { flex-direction: column; }
-            .arrow { transform: rotate(90deg); }
         }
     </style>
 </head>
 <body>
     <header class="hero">
-        <h1>Algorithmic Avant-Garde</h1>
+        <h1>VIB3+ Hybrid Pipeline</h1>
         <p class="tagline">
-            A collection of machine-generated 4D visualizations created through the VIB3+ MCP Protocol.
-            Each piece demonstrates the tedious precision that only an AI would bother to compute.
+            A compositing engine that unifies traditional mesh rendering, Gaussian splat fields,
+            procedural 4D shaders, and holographic edge inscription into a single depth-coherent output.
+            Four rendering paradigms. One frame.
         </p>
+        <a href="hybrid-demo.html" class="launch-btn">Launch Interactive Demo</a>
         <div class="meta">
             <div class="meta-item">
-                <span class="meta-value">13</span>
-                <span class="meta-label">Visualizations</span>
+                <span class="meta-value">4</span>
+                <span class="meta-label">Render Layers</span>
             </div>
             <div class="meta-item">
-                <span class="meta-value">1000</span>
-                <span class="meta-label">Lorenz Points</span>
+                <span class="meta-value">3-MRT</span>
+                <span class="meta-label">GBuffer</span>
             </div>
             <div class="meta-item">
-                <span class="meta-value">15</span>
-                <span class="meta-label">Decimal Places</span>
+                <span class="meta-value">16</span>
+                <span class="meta-label">Inscription Layers</span>
             </div>
             <div class="meta-item">
                 <span class="meta-value">6D</span>
                 <span class="meta-label">Rotation Space</span>
             </div>
+            <div class="meta-item">
+                <span class="meta-value">693+</span>
+                <span class="meta-label">Tests Passing</span>
+            </div>
         </div>
     </header>
 
     <div class="container">
+
+        <!-- Architecture -->
         <section>
-            <h2>How This Was Made</h2>
-
-            <div class="doc-section">
-                <h3>The VIB3+ MCP Protocol</h3>
-                <p>
-                    VIB3+ exposes a <code>Model Context Protocol (MCP)</code> interface that allows AI agents to
-                    programmatically control 4D visualizations. Instead of a human manually adjusting sliders,
-                    an agent calls structured tool functions to create, configure, and export visualizations.
-                </p>
-
-                <div class="tool-flow">
-                    <div class="tool-step">
-                        <div class="step-num">Step 1</div>
-                        <div class="tool-name">list_behavior_presets</div>
-                        <div class="tool-desc">Discover available modes</div>
-                    </div>
-                    <span class="arrow">&#8594;</span>
-                    <div class="tool-step">
-                        <div class="step-num">Step 2</div>
-                        <div class="tool-name">create_4d_visualization</div>
-                        <div class="tool-desc">Initialize geometry</div>
-                    </div>
-                    <span class="arrow">&#8594;</span>
-                    <div class="tool-step">
-                        <div class="step-num">Step 3</div>
-                        <div class="tool-name">set_rotation</div>
-                        <div class="tool-desc">Apply 6D rotation</div>
-                    </div>
-                    <span class="arrow">&#8594;</span>
-                    <div class="tool-step">
-                        <div class="step-num">Step 4</div>
-                        <div class="tool-name">set_visual_parameters</div>
-                        <div class="tool-desc">Configure colors/dynamics</div>
-                    </div>
-                    <span class="arrow">&#8594;</span>
-                    <div class="tool-step">
-                        <div class="step-num">Step 5</div>
-                        <div class="tool-name">apply_behavior_preset</div>
-                        <div class="tool-desc">Set reactivity mode</div>
-                    </div>
-                    <span class="arrow">&#8594;</span>
-                    <div class="tool-step">
-                        <div class="step-num">Step 6</div>
-                        <div class="tool-name">export_package</div>
-                        <div class="tool-desc">Generate standalone HTML</div>
-                    </div>
-                </div>
+            <h2>Pipeline Architecture</h2>
+            <div class="arch-diagram">
+<pre><span class="layer-label">Layer 0  MESH</span>          <span class="layer-desc">Traditional triangles &rarr; 3-MRT GBuffer (Color + Normal/Depth + ObjectID)</span>
+<span class="layer-label">Layer 1  SPLAT</span>         <span class="layer-desc">Gaussian point-sprite splats, depth-tested against mesh</span>
+<span class="layer-label">Layer 2  PROCEDURAL</span>    <span class="layer-desc">VIB3 fullscreen fragment shader (24 geometry variants &times; 3 warps)</span>
+<span class="layer-label">Layer 3  INSCRIPTION</span>   <span class="layer-desc">N-layer holographic edge overlay driven by GBuffer normals/depth/ID</span>
+         <span class="separator">&mdash;&mdash;&mdash; COMPOSITOR &mdash;&mdash;&mdash;</span>
+         <span class="layer-desc">Per-layer opacity &middot; blend modes (alpha/additive/screen/multiply) &middot; tone mapping &middot; gamma</span></pre>
             </div>
+            <div class="arch-diagram">
+<pre><span class="layer-desc">Scene Objects</span> &rarr; <span class="layer-label">SceneRenderer</span> &rarr; <span class="layer-label">Shared GBuffer</span> (3 MRT)
+                                           &darr;
+          <span class="layer-label">Color</span> (RGBA8)   <span class="layer-label">Normal/Depth</span> (RGBA16F)   <span class="layer-label">ObjectID</span> (RGBA8)
+                &darr;                           &darr;
+         Compositor L0             <span class="layer-label">EdgeInscriptionLayer</span>
+                                              &darr;
+                                   <span class="layer-label">InscriptionChannel</span>
+                                   <span class="layer-desc">(semantic state + audio)</span>
+                                              &darr;
+                                   Compositor L3
 
-            <div class="doc-section">
-                <h3>Mathematical Foundations</h3>
-                <p>
-                    The generator uses multiple mathematical systems to create parameter distributions that
-                    no human would manually compute:
-                </p>
-
-                <table class="constants-table">
-                    <thead>
-                        <tr>
-                            <th>Constant</th>
-                            <th>Value (50 digits)</th>
-                            <th>Usage</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>&#966; (Golden Ratio)</td>
-                            <td>1.6180339887498948482045868343656381177203...</td>
-                            <td>Parameter distribution via golden angle</td>
-                        </tr>
-                        <tr>
-                            <td>&#964; (Tau)</td>
-                            <td>6.2831853071795864769252867665590057683943...</td>
-                            <td>Rotation normalization</td>
-                        </tr>
-                        <tr>
-                            <td>e (Euler's)</td>
-                            <td>2.7182818284590452353602874713526624977572...</td>
-                            <td>Decay functions</td>
-                        </tr>
-                        <tr>
-                            <td>Lorenz &#963;, &#961;, &#946;</td>
-                            <td>10, 28, 8/3</td>
-                            <td>Chaotic attractor for parameter modulation</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="doc-section">
-                <h3>The Generation Algorithm</h3>
-                <pre><code><span class="comment">// Golden angle for optimal distribution across N variations</span>
-<span class="keyword">const</span> goldenAngle = TAU / (PHI * PHI); <span class="comment">// ~137.5 degrees</span>
-
-<span class="comment">// Each variation index produces unique 6D rotation</span>
-<span class="keyword">function</span> <span class="function">generateGoldenParameters</span>(index) {
-    <span class="keyword">const</span> theta = index * goldenAngle;
-
-    <span class="keyword">return</span> {
-        XY: (theta % TAU),
-        XZ: ((theta * PHI) % TAU),
-        YZ: ((theta * PHI * PHI) % TAU),
-        XW: ((theta / PHI) % TAU),
-        YW: ((theta / (PHI * PHI)) % TAU),
-        ZW: ((theta * SQRT5) % TAU),
-
-        <span class="comment">// Fibonacci-based hue selection</span>
-        hue: (<span class="function">fibonacci</span>(index % <span class="number">20</span>) * goldenAngle * <span class="number">180</span> / Math.PI) % <span class="number">360</span>,
-
-        <span class="comment">// Geometry from prime sieve sequence</span>
-        geometry: primes[index % primes.length] % <span class="number">24</span>
-    };
-}
-
-<span class="comment">// Lorenz attractor for subtle chaos injection</span>
-<span class="keyword">const</span> trajectory = <span class="function">generateLorenzTrajectory</span>(<span class="number">1000</span>);
-params.chaos = lorenzPoint.x * <span class="number">0.3</span> + params.chaos * <span class="number">0.7</span>;</code></pre>
-            </div>
-
-            <div class="doc-section">
-                <h3>The Shader Pipeline</h3>
-                <p>
-                    Each visualization contains a complete WebGL raymarching shader that renders 4D geometry
-                    in real-time. The 6D rotation is applied via matrix multiplication in the fragment shader:
-                </p>
-                <pre><code><span class="comment">// 6D rotation applied per-pixel</span>
-mat4 rot = <span class="function">rotateXY</span>(aXY) * <span class="function">rotateXZ</span>(aXZ) * <span class="function">rotateYZ</span>(aYZ) *
-           <span class="function">rotateXW</span>(aXW) * <span class="function">rotateYW</span>(aYW) * <span class="function">rotateZW</span>(aZW);
-
-<span class="comment">// Ray march through 4D space</span>
-<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">64</span>; i++) {
-    vec4 p4 = rot * vec4(rayPos, sin(time) * MORPH);
-    <span class="keyword">float</span> d = <span class="function">sdf4D</span>(p4);  <span class="comment">// 4D signed distance field</span>
-    <span class="keyword">if</span> (d &lt; <span class="number">0.001</span>) <span class="keyword">break</span>;
-    rayPos += rayDir * d;
-}</code></pre>
+<span class="layer-desc">PBR Textures</span> &rarr; <span class="layer-label">PBRSplatConverter</span> &rarr; Splats &rarr; Compositor L1
+<span class="layer-desc">VIB3 Systems</span> &rarr; <span class="layer-label">Procedural Callback</span> &rarr; Compositor L2</pre>
             </div>
         </section>
 
+        <!-- Capabilities -->
         <section>
-            <h2>The Collection</h2>
+            <h2>Key Capabilities</h2>
+            <div class="cap-grid">
+                <div class="cap-card">
+                    <div class="cap-title">3-MRT GBuffer</div>
+                    <div class="cap-desc">Color + Normal/Depth + Object ID rendered in a single pass to three textures. Enables downstream edge detection and per-object inscription routing.</div>
+                </div>
+                <div class="cap-card">
+                    <div class="cap-title">N-Layer Batched Inscription</div>
+                    <div class="cap-desc">1&ndash;16 procedural inscription layers composited in a single draw call via uniform arrays. Each layer has independent pattern, scale, color, speed, and blend mode.</div>
+                </div>
+                <div class="cap-card">
+                    <div class="cap-title">Multi-Object Scenes</div>
+                    <div class="cap-desc">Multiple meshes rendered into a shared GBuffer with automatic ObjectID assignment and per-object inscription routing via identity hash.</div>
+                </div>
+                <div class="cap-card">
+                    <div class="cap-title">Semantic State System</div>
+                    <div class="cap-desc">6 object states (idle, active, selected, powered, damaged, destroyed) with smooth parameter transitions. State drives inscription color, intensity, and pattern.</div>
+                </div>
+                <div class="cap-card">
+                    <div class="cap-title">PBR &rarr; Splat Decomposition</div>
+                    <div class="cap-desc">Roughness, metallic, AO, and emissive PBR texture maps converted to oriented Gaussian splat distributions for hybrid rendering.</div>
+                </div>
+                <div class="cap-card">
+                    <div class="cap-title">Audio-Reactive 4D Modulation</div>
+                    <div class="cap-desc">Bass&rarr;XW rotation, Mid&rarr;YW, High&rarr;ZW, Energy&rarr;all planes + glow intensity. Sound drives 4D hyperrotation and inscription parameters.</div>
+                </div>
+                <div class="cap-card">
+                    <div class="cap-title">Morph Target Animation</div>
+                    <div class="cap-desc">GPU-side vertex blending between base and deformed meshes. Single float weight control for smooth morphing with full GBuffer participation.</div>
+                </div>
+                <div class="cap-card">
+                    <div class="cap-title">Per-Object Identity</div>
+                    <div class="cap-desc">Deterministic hash of ObjectID produces unique inscription pattern per object. No artist configuration needed &mdash; every object is visually distinct.</div>
+                </div>
+                <div class="cap-card">
+                    <div class="cap-title">WebGPU Compute Path</div>
+                    <div class="cap-desc">WGSL shared-memory edge detection + single-dispatch inscription for modern GPUs. Falls back to WebGL2 fragment shader path automatically.</div>
+                </div>
+            </div>
+        </section>
 
+        <!-- Modules -->
+        <section>
+            <h2>Module Map</h2>
+            <table class="module-table">
+                <thead>
+                    <tr><th>Module</th><th>Purpose</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>HybridRenderPipeline</td><td>Orchestrates all 4 layers, composites to canvas with tone mapping and gamma</td></tr>
+                    <tr><td>MeshRenderer</td><td>Blinn-Phong mesh with 3-MRT GBuffer output, morph targets, per-object ID</td></tr>
+                    <tr><td>SceneRenderer</td><td>Multi-object scene into shared GBuffer with draw-order sorting</td></tr>
+                    <tr><td>GaussianSplatRenderer</td><td>Point-sprite Gaussian splats with depth testing against mesh layer</td></tr>
+                    <tr><td>PBRSplatConverter</td><td>PBR material maps &rarr; Gaussian splat distributions</td></tr>
+                    <tr><td>EdgeInscriptionLayer</td><td>Batched N-layer inscription from GBuffer edge detection (Sobel/Roberts)</td></tr>
+                    <tr><td>InscriptionChannel</td><td>Semantic state &rarr; inscription parameter mapping + audio reactivity</td></tr>
+                    <tr><td>WebGPUInscription</td><td>WGSL compute alternative with shared memory tiling</td></tr>
+                    <tr><td>TextureToSplatConverter</td><td>Diffuse texture &rarr; surface splat conversion</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- API -->
+        <section>
+            <h2>API Quick Start</h2>
+
+            <h3>Pipeline Setup</h3>
+            <pre><code><span class="keyword">import</span> { MeshRenderer, GaussianSplatRenderer, EdgeInscriptionLayer,
+         HybridRenderPipeline, InscriptionChannel } <span class="keyword">from</span> <span class="string">'./src/render/index.js'</span>;
+
+<span class="keyword">const</span> pipeline = <span class="keyword">new</span> <span class="function">HybridRenderPipeline</span>(gl, { exposure: <span class="number">1.2</span>, gamma: <span class="number">2.2</span> });
+
+<span class="comment">// Layer 0: Mesh</span>
+pipeline.<span class="function">setMeshRenderer</span>(<span class="keyword">new</span> <span class="function">MeshRenderer</span>(gl));
+
+<span class="comment">// Layer 1: Splats</span>
+pipeline.<span class="function">setSplatRenderer</span>(<span class="keyword">new</span> <span class="function">GaussianSplatRenderer</span>(gl));
+
+<span class="comment">// Layer 3: Inscription (4 layers, single draw call)</span>
+pipeline.<span class="function">setEdgeInscription</span>(<span class="keyword">new</span> <span class="function">EdgeInscriptionLayer</span>(gl, { layerCount: <span class="number">4</span> }));
+
+<span class="comment">// Per-layer blend control</span>
+pipeline.meshLayer.opacity = <span class="number">1.0</span>;
+pipeline.inscriptionLayer.blendMode = BlendModes.ADDITIVE;</code></pre>
+
+            <h3>Semantic States</h3>
+            <pre><code><span class="keyword">const</span> channel = <span class="keyword">new</span> <span class="function">InscriptionChannel</span>({ layerCount: <span class="number">4</span> });
+channel.<span class="function">registerObject</span>(<span class="number">1</span>, <span class="string">'active'</span>);
+channel.<span class="function">setObjectState</span>(<span class="number">1</span>, <span class="string">'powered'</span>);   <span class="comment">// smooth transition</span>
+channel.<span class="function">setAudio</span>(bass, mid, high, energy);
+channel.<span class="function">update</span>(deltaTime);</code></pre>
+
+            <h3>Multi-Object Scene</h3>
+            <pre><code><span class="keyword">const</span> scene = <span class="keyword">new</span> <span class="function">SceneRenderer</span>(gl);
+scene.<span class="function">addObject</span>(<span class="string">'hero'</span>, heroGeometry);
+scene.<span class="function">addObject</span>(<span class="string">'terrain'</span>, terrainGeometry);
+pipeline.<span class="function">setSceneRenderer</span>(scene); <span class="comment">// shared GBuffer, per-object inscription</span></code></pre>
+        </section>
+
+        <!-- Roadmap -->
+        <section>
+            <h2>Development Roadmap</h2>
+            <div class="track-grid">
+                <div class="track-card">
+                    <div class="track-num">Track 1</div>
+                    <div class="track-title">Pipeline Hardening</div>
+                    <ul>
+                        <li>glTF / OBJ model import with auto inscription</li>
+                        <li>Skeletal animation (bone palette, joint hierarchy)</li>
+                        <li>Shadow map integration (inscription reads shadow)</li>
+                        <li>Frustum culling + LOD (50+ object scenes)</li>
+                    </ul>
+                </div>
+                <div class="track-card">
+                    <div class="track-num">Track 2</div>
+                    <div class="track-title">Visual Experience</div>
+                    <ul>
+                        <li>Inscription texturing (logos, text, masks)</li>
+                        <li>Volumetric inscription (raymarched 3D fill)</li>
+                        <li>Screen-space reflections reflecting inscription</li>
+                        <li>Particle system (splats as emitted particles)</li>
+                        <li>Deferred inscription lighting (NdotL + specular)</li>
+                    </ul>
+                </div>
+                <div class="track-card">
+                    <div class="track-num">Track 3</div>
+                    <div class="track-title">Platform &amp; Integration</div>
+                    <ul>
+                        <li>React / Three.js / R3F integration layer</li>
+                        <li>Video / GIF / sequence export</li>
+                        <li>glTF extension export (VIB3_inscription)</li>
+                        <li>MCP tool expansion (scene composition)</li>
+                        <li>WebXR immersive mode (VR/AR)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demo -->
+        <section>
+            <h2>Interactive Demo</h2>
+            <div style="background: var(--card-bg); border: 1px solid var(--accent2); border-radius: 12px; padding: 28px; display: flex; align-items: center; gap: 30px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 260px;">
+                    <h3 style="margin-top: 0; font-size: 15px;">Hybrid Render Pipeline Demo</h3>
+                    <p style="font-size: 11px; color: var(--dim); margin: 12px 0; line-height: 1.6;">
+                        Full 4-layer compositor with orbit camera, mesh switching (sphere, cube, torus, cylinder),
+                        per-layer blend controls, N-layer inscription configuration, semantic state transitions,
+                        audio simulation, morph targets, and a benchmark suite.
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 10px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(0,0,0,0.3); border-radius: 4px;"><span style="color: var(--dim);">Layers</span><span style="color: var(--green); font-family: monospace;">4</span></div>
+                        <div style="display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(0,0,0,0.3); border-radius: 4px;"><span style="color: var(--dim);">States</span><span style="color: var(--green); font-family: monospace;">6</span></div>
+                        <div style="display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(0,0,0,0.3); border-radius: 4px;"><span style="color: var(--dim);">Meshes</span><span style="color: var(--green); font-family: monospace;">4</span></div>
+                        <div style="display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(0,0,0,0.3); border-radius: 4px;"><span style="color: var(--dim);">Bench</span><span style="color: var(--green); font-family: monospace;">Yes</span></div>
+                    </div>
+                </div>
+                <a href="hybrid-demo.html" style="flex-shrink: 0; display: inline-block; padding: 16px 36px; background: var(--accent2); color: #000; text-decoration: none; font-weight: bold; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; border-radius: 8px; transition: all 0.2s;">Launch Demo</a>
+            </div>
+        </section>
+
+        <!-- Documentation -->
+        <section>
+            <h2>Documentation</h2>
+            <div class="doc-links">
+                <a class="doc-link" href="https://github.com/Domusgpt/VIB3CODE-SDK/blob/main/HYBRID_PIPELINE.md">
+                    <strong>Pipeline Reference</strong>
+                    <span>Full v2 technical reference &mdash; all 9 capabilities, module API, data flow</span>
+                </a>
+                <a class="doc-link" href="https://github.com/Domusgpt/VIB3CODE-SDK/blob/main/ROADMAP.md">
+                    <strong>Roadmap</strong>
+                    <span>3 development tracks, 15 work items, sequencing plan</span>
+                </a>
+                <a class="doc-link" href="https://github.com/Domusgpt/VIB3CODE-SDK/blob/main/CLAUDE.md">
+                    <strong>AI Development Reference</strong>
+                    <span>Codebase reference for AI-assisted development</span>
+                </a>
+                <a class="doc-link" href="https://github.com/Domusgpt/VIB3CODE-SDK">
+                    <strong>Source Repository</strong>
+                    <span>Full source code, tests, demos, and build tooling</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Gallery (preserved as secondary section) -->
+        <section>
+            <h2>Procedural Art Gallery</h2>
+            <p style="font-size: 11px; color: var(--dim); margin-bottom: 16px;">
+                Machine-generated 4D visualizations created through the VIB3+ MCP Protocol.
+                Each piece uses golden-angle parameter distribution, Lorenz attractor chaos injection,
+                and the same 6D rotation system that powers the hybrid pipeline's inscription layer.
+            </p>
             <div class="gallery">
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="01-dissolution_of_euclidean_hegemony.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.5584</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Dissolution of Euclidean Hegemony</h3>
-                        <p class="card-desc">Challenges the tyranny of orthogonal perception through recursive non-orientable manifold projections</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Klein + Hypertetra</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">280.00 deg</span></div>
-                        </div>
-                        <a href="01-dissolution_of_euclidean_hegemony.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Dissolution of Euclidean Hegemony</h4>
+                        <p>Klein + Hypertetra &middot; 280 deg</p>
+                        <a href="01-dissolution_of_euclidean_hegemony.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="02-hyperspatial_ego_death.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.5511</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Hyperspatial Ego Death</h3>
-                        <p class="card-desc">Simulates the phenomenological experience of dimensional transcendence through tesseract unfolding</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Cube + Hypersphere</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">137.51 deg</span></div>
-                        </div>
-                        <a href="02-hyperspatial_ego_death.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Hyperspatial Ego Death</h4>
+                        <p>Cube + Hypersphere &middot; 137 deg</p>
+                        <a href="02-hyperspatial_ego_death.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="03-post_cartesian_sublime.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.3658</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Post-Cartesian Sublime</h3>
-                        <p class="card-desc">Deconstructs the coordinate system as a colonial imposition on pure geometric consciousness</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Fractal + Base</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">191.46 deg</span></div>
-                        </div>
-                        <a href="03-post_cartesian_sublime.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Post-Cartesian Sublime</h4>
+                        <p>Fractal + Base &middot; 191 deg</p>
+                        <a href="03-post_cartesian_sublime.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="04-crystalline_void_meditation.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.5124</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Crystalline Void Meditation</h3>
-                        <p class="card-desc">Explores the negative space between polytope vertices as a metaphor for existential absence</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Crystal + Hypersphere</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">215.28 deg</span></div>
-                        </div>
-                        <a href="04-crystalline_void_meditation.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Crystalline Void Meditation</h4>
+                        <p>Crystal + Hypersphere &middot; 215 deg</p>
+                        <a href="04-crystalline_void_meditation.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="05-quantum_decoherence_ballet.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.5312</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Quantum Decoherence Ballet</h3>
-                        <p class="card-desc">Visualizes wavefunction collapse through stochastic geometry mutation</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Sphere + Hypertetra</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">77.51 deg</span></div>
-                        </div>
-                        <a href="05-quantum_decoherence_ballet.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Quantum Decoherence Ballet</h4>
+                        <p>Sphere + Hypertetra &middot; 77 deg</p>
+                        <a href="05-quantum_decoherence_ballet.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="06-dissolution_of_euclidean_hegemony.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.4087</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Dissolution II</h3>
-                        <p class="card-desc">Second iteration - evolved through golden angle progression</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Klein + Hypertetra</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">334.59 deg</span></div>
-                        </div>
-                        <a href="06-dissolution_of_euclidean_hegemony.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Dissolution II</h4>
+                        <p>Klein + Hypertetra &middot; 334 deg</p>
+                        <a href="06-dissolution_of_euclidean_hegemony.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="07-hyperspatial_ego_death.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.4393</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Ego Death II</h3>
-                        <p class="card-desc">Second iteration - prime harmonic temporal mode</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Cube + Hypersphere</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">20.06 deg</span></div>
-                        </div>
-                        <a href="07-hyperspatial_ego_death.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Ego Death II</h4>
+                        <p>Cube + Hypersphere &middot; 20 deg</p>
+                        <a href="07-hyperspatial_ego_death.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="08-post_cartesian_sublime.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.3902</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Post-Cartesian II</h3>
-                        <p class="card-desc">Second iteration - e-decay temporal evolution</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Fractal + Base</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">208.97 deg</span></div>
-                        </div>
-                        <a href="08-post_cartesian_sublime.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Post-Cartesian II</h4>
+                        <p>Fractal + Base &middot; 208 deg</p>
+                        <a href="08-post_cartesian_sublime.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="09-crystalline_void_meditation.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.4446</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Crystalline Void II</h3>
-                        <p class="card-desc">Second iteration - breathing temporal mode</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Crystal + Hypersphere</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">200.43 deg</span></div>
-                        </div>
-                        <a href="09-crystalline_void_meditation.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Crystalline Void II</h4>
+                        <p>Crystal + Hypersphere &middot; 200 deg</p>
+                        <a href="09-crystalline_void_meditation.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="10-quantum_decoherence_ballet.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.4401</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Decoherence Ballet II</h3>
-                        <p class="card-desc">Second iteration - quantum random temporal mode</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Sphere + Hypertetra</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">178.42 deg</span></div>
-                        </div>
-                        <a href="10-quantum_decoherence_ballet.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Decoherence Ballet II</h4>
+                        <p>Sphere + Hypertetra &middot; 178 deg</p>
+                        <a href="10-quantum_decoherence_ballet.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="11-dissolution_of_euclidean_hegemony.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.4245</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Dissolution III</h3>
-                        <p class="card-desc">Third iteration - Lorenz chaos maximized</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Klein + Hypertetra</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">280.49 deg</span></div>
-                        </div>
-                        <a href="11-dissolution_of_euclidean_hegemony.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Dissolution III</h4>
+                        <p>Klein + Hypertetra &middot; 280 deg</p>
+                        <a href="11-dissolution_of_euclidean_hegemony.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="12-hyperspatial_ego_death.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.3622</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Ego Death III</h3>
-                        <p class="card-desc">Third iteration - full trajectory integration</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Cube + Hypersphere</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">358.19 deg</span></div>
-                        </div>
-                        <a href="12-hyperspatial_ego_death.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Ego Death III</h4>
+                        <p>Cube + Hypersphere &middot; 358 deg</p>
+                        <a href="12-hyperspatial_ego_death.html">View</a>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-preview">
+                <div class="gallery-card">
+                    <div class="gallery-preview">
                         <iframe src="13-post_cartesian_sublime.html" loading="lazy"></iframe>
                         <div class="overlay"><span class="pcs-badge">PCS: 1.3545</span></div>
                     </div>
-                    <div class="card-body">
-                        <h3 class="card-title">Post-Cartesian III</h3>
-                        <p class="card-desc">Final iteration - convergence point</p>
-                        <div class="card-params">
-                            <div class="param"><span class="param-name">Geometry</span><span class="param-value">Fractal + Base</span></div>
-                            <div class="param"><span class="param-name">Hue</span><span class="param-value">180.09 deg</span></div>
-                        </div>
-                        <a href="13-post_cartesian_sublime.html" class="card-link">View Visualization</a>
+                    <div class="gallery-body">
+                        <h4>Post-Cartesian III</h4>
+                        <p>Fractal + Base &middot; 180 deg</p>
+                        <a href="13-post_cartesian_sublime.html">View</a>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <section>
-            <h2>Generation Statistics</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value">1.5584</div>
-                    <div class="stat-label">Highest PCS</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">1.4448</div>
-                    <div class="stat-label">Mean PCS</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">175 KB</div>
-                    <div class="stat-label">Total Size</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">30</div>
-                    <div class="stat-label">Fibonacci Terms</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">24</div>
-                    <div class="stat-label">Primes Used</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">&#8734;</div>
-                    <div class="stat-label">Pretentiousness</div>
                 </div>
             </div>
         </section>
     </div>
 
     <footer>
-        <p>Generated by an AI using the <a href="https://github.com/Domusgpt/Vib3-CORE-Documented01-">VIB3+ MCP Protocol</a></p>
-        <p style="margin-top: 10px;">No human would ever specify rotation to 15 decimal places.</p>
+        <p>&copy; 2025 Paul Phillips &mdash; <a href="https://clearseassolutions.com">Clear Seas Solutions LLC</a></p>
+        <p style="margin-top: 8px;">
+            <a href="https://github.com/Domusgpt/VIB3CODE-SDK">GitHub</a> &middot;
+            <a href="mailto:Paul@clearseassolutions.com">Contact</a> &middot;
+            <a href="https://parserator.com">Parserator.com</a>
+        </p>
     </footer>
 </body>
 </html>

@@ -722,10 +722,12 @@ let volProgram = null, volVao = null;
 }
 
 /* ================================================================== */
-/*  v3: PARTICLE RENDERING (as additional splats)                      */
+/*  v3: PARTICLE RENDERING (into FBO, then blit additively)            */
 /* ================================================================== */
 
 let particleSplatRenderer = null;
+let particleFBO = null;
+let particleFBOW = 0, particleFBOH = 0;
 try {
     particleSplatRenderer = new GaussianSplatRenderer(gl, {
         pointScale: canvas.height / (2 * Math.tan(Math.PI / 8)),
@@ -736,6 +738,25 @@ try {
     });
 } catch (e) {
     console.warn('Particle splat renderer init failed:', e);
+}
+
+function ensureParticleFBO(w, h) {
+    if (particleFBOW === w && particleFBOH === h && particleFBO) return;
+    if (particleFBO) { gl.deleteFramebuffer(particleFBO.framebuffer); gl.deleteTexture(particleFBO.texture); }
+    const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    const drb = gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER, drb);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, w, h);
+    const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, drb);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    particleFBO = { framebuffer: fb, texture: tex, depthRb: drb };
+    particleFBOW = w; particleFBOH = h;
 }
 
 /* ================================================================== */
@@ -946,11 +967,20 @@ function tick() {
     // Core pipeline render
     const stats = pipeline.render(time, camera.viewMatrix, camera.projectionMatrix, { viewProjection: camera.viewProjection });
 
-    // v3: Particle overlay (render additively on top)
+    // v3: Particle overlay — render into FBO, then blit additively
+    // (GaussianSplatRenderer.render() calls gl.clear(), so we must use an FBO)
     if (particlesEnabled && particleSplatRenderer && particleSystem && particleSystem.getAliveCount() > 0) {
+        ensureParticleFBO(w, h);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, particleFBO.framebuffer);
+        gl.viewport(0, 0, w, h);
+        particleSplatRenderer.render(camera.viewProjection, time);
+        // Now blit particle FBO additively onto the default framebuffer
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, w, h);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE);
-        particleSplatRenderer.render(camera.viewProjection, time);
+        gl.disable(gl.DEPTH_TEST);
+        blitTexture(particleFBO.texture, 1.0);
         gl.disable(gl.BLEND);
     }
 

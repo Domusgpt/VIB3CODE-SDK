@@ -161,19 +161,208 @@ function mat4Multiply(a, b) { const o = new Float32Array(16); for (let c = 0; c 
 function mat4Perspective(fov, aspect, near, far) { const f = 1 / Math.tan(fov * 0.5), ri = 1 / (near - far); return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * ri, -1, 0, 0, 2 * far * near * ri, 0]); }
 function mat4LookAt(eye, tgt, up) { let zx = eye[0] - tgt[0], zy = eye[1] - tgt[1], zz = eye[2] - tgt[2]; let l = Math.hypot(zx, zy, zz) || 1; zx /= l; zy /= l; zz /= l; let xx = up[1] * zz - up[2] * zy, xy = up[2] * zx - up[0] * zz, xz = up[0] * zy - up[1] * zx; l = Math.hypot(xx, xy, xz) || 1; xx /= l; xy /= l; xz /= l; const yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx; return new Float32Array([xx, yx, zx, 0, xy, yy, zy, 0, xz, yz, zz, 0, -(xx * eye[0] + xy * eye[1] + xz * eye[2]), -(yx * eye[0] + yy * eye[1] + yz * eye[2]), -(zx * eye[0] + zy * eye[1] + zz * eye[2]), 1]); }
 
-class OrbitCamera {
+class CinemaCamera {
     constructor(canvas) {
-        this.distance = 5; this.azimuth = 0.5; this.elevation = 0.35;
-        this.fov = Math.PI / 4; this.near = 0.1; this.far = 100;
-        this.target = [0, 0, 0]; this.canvas = canvas;
-        this._dragging = false; this._lastX = 0; this._lastY = 0;
-        canvas.addEventListener('pointerdown', e => { this._dragging = true; this._lastX = e.clientX; this._lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
-        canvas.addEventListener('pointermove', e => { if (!this._dragging) return; this.azimuth += (e.clientX - this._lastX) * 0.005; this.elevation += (e.clientY - this._lastY) * 0.005; this.elevation = Math.max(-1.5, Math.min(1.5, this.elevation)); this._lastX = e.clientX; this._lastY = e.clientY; });
-        canvas.addEventListener('pointerup', () => { this._dragging = false; });
-        canvas.addEventListener('wheel', e => { e.preventDefault(); this.distance *= 1 + e.deltaY * 0.001; this.distance = Math.max(1, Math.min(30, this.distance)); }, { passive: false });
+        this.azimuth = 0.5;
+        this.elevation = 0.35;
+        this.distance = 5;
+        this.fov = Math.PI / 4;
+        this.near = 0.1;
+        this.far = 100;
+        this.target = [0, 0, 0];
+        this.canvas = canvas;
+
+        // Velocity state (inertia)
+        this._vAz = 0;
+        this._vEl = 0;
+        this._vDist = 0;
+
+        // Physics tuning
+        this._friction = 0.93;
+        this._zoomFriction = 0.87;
+        this._sensitivity = 0.004;
+        this._zoomSens = 0.001;
+        this._springK = 3.5;
+        this._springDamp = 0.88;
+
+        // Auto-pilot
+        this._autopilot = true;
+        this._autoTimer = null;
+        this._tAz = 0.5;
+        this._tEl = 0.35;
+        this._tDist = 5;
+        this._orbitSpeed = 0.12;
+
+        // Choreography (per-scene sine wobble)
+        this._choroElAmp = 0.08;
+        this._choroElFreq = 0.4;
+        this._choroDistAmp = 0.3;
+        this._choroDistFreq = 0.25;
+
+        // Input tracking (multi-touch)
+        this._pointers = new Map();
+        this._pinchDist = 0;
+
+        // Elastic zoom bounds
+        this._minDist = 1.5;
+        this._maxDist = 20;
+
+        // Bind events
+        canvas.style.touchAction = 'none';
+        canvas.style.userSelect = 'none';
+        canvas.style.webkitUserSelect = 'none';
+        canvas.addEventListener('pointerdown', this._down.bind(this));
+        canvas.addEventListener('pointermove', this._move.bind(this));
+        canvas.addEventListener('pointerup', this._up.bind(this));
+        canvas.addEventListener('pointercancel', this._up.bind(this));
+        canvas.addEventListener('wheel', this._wheel.bind(this), { passive: false });
     }
-    get isDragging() { return this._dragging; }
-    get eye() { const ce = Math.cos(this.elevation), se = Math.sin(this.elevation), ca = Math.cos(this.azimuth), sa = Math.sin(this.azimuth); return [this.target[0] + this.distance * ce * sa, this.target[1] + this.distance * se, this.target[2] + this.distance * ce * ca]; }
+
+    _down(e) {
+        this.canvas.setPointerCapture(e.pointerId);
+        this._pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        this._vAz *= 0.3;
+        this._vEl *= 0.3;
+        this._autopilot = false;
+        clearTimeout(this._autoTimer);
+        if (this._pointers.size === 2) {
+            const [a, b] = [...this._pointers.values()];
+            this._pinchDist = Math.hypot(b.x - a.x, b.y - a.y);
+        }
+    }
+
+    _move(e) {
+        const p = this._pointers.get(e.pointerId);
+        if (!p) return;
+        const dx = e.clientX - p.x;
+        const dy = e.clientY - p.y;
+        p.x = e.clientX;
+        p.y = e.clientY;
+
+        if (this._pointers.size === 1) {
+            const vx = dx * this._sensitivity;
+            const vy = dy * this._sensitivity;
+            this.azimuth += vx;
+            this.elevation = Math.max(-1.4, Math.min(1.4, this.elevation + vy));
+            this._vAz = this._vAz * 0.5 + vx * 0.5;
+            this._vEl = this._vEl * 0.5 + vy * 0.5;
+        } else if (this._pointers.size === 2) {
+            const [a, b] = [...this._pointers.values()];
+            const dist = Math.hypot(b.x - a.x, b.y - a.y);
+            if (this._pinchDist > 10) {
+                const ratio = this._pinchDist / dist;
+                this.distance *= ratio;
+                this._vDist = (ratio - 1) * this.distance * 0.5;
+            }
+            this._pinchDist = dist;
+            this.azimuth += dx * this._sensitivity * 0.3;
+            this.elevation = Math.max(-1.4, Math.min(1.4, this.elevation + dy * this._sensitivity * 0.3));
+        }
+    }
+
+    _up(e) {
+        this._pointers.delete(e.pointerId);
+        this._pinchDist = 0;
+        if (this._pointers.size === 0) this._scheduleAutoResume();
+    }
+
+    _wheel(e) {
+        e.preventDefault();
+        const delta = e.deltaY * this._zoomSens;
+        this._vDist += delta * this.distance;
+        this.distance *= (1 + delta);
+        this._autopilot = false;
+        clearTimeout(this._autoTimer);
+        this._scheduleAutoResume();
+    }
+
+    _scheduleAutoResume() {
+        clearTimeout(this._autoTimer);
+        this._autoTimer = setTimeout(() => {
+            this._tAz = this.azimuth;
+            this._tEl = this.elevation;
+            this._tDist = this.distance;
+            this._autopilot = true;
+        }, 3500);
+    }
+
+    setTarget(azimuth, elevation, distance, orbitSpeed = 0.12, choreography = null) {
+        this._tAz = azimuth;
+        this._tEl = elevation;
+        this._tDist = distance;
+        this._orbitSpeed = orbitSpeed;
+        this._autopilot = true;
+        clearTimeout(this._autoTimer);
+        if (choreography) {
+            this._choroElAmp = choreography.elAmp || 0;
+            this._choroElFreq = choreography.elFreq || 0;
+            this._choroDistAmp = choreography.distAmp || 0;
+            this._choroDistFreq = choreography.distFreq || 0;
+        } else {
+            this._choroElAmp = 0;
+            this._choroElFreq = 0;
+            this._choroDistAmp = 0;
+            this._choroDistFreq = 0;
+        }
+    }
+
+    releaseAutopilot() {
+        this._autopilot = false;
+        clearTimeout(this._autoTimer);
+    }
+
+    update(dt, time) {
+        dt = Math.min(dt, 0.05);
+        const fric = Math.pow(this._friction, dt * 60);
+        const zfric = Math.pow(this._zoomFriction, dt * 60);
+
+        if (this._pointers.size === 0) {
+            if (this._autopilot) {
+                const chorEl = this._choroElAmp * Math.sin(time * this._choroElFreq);
+                const chorDist = this._choroDistAmp * Math.sin(time * this._choroDistFreq);
+                const k = this._springK * dt;
+                this._vAz += (this._tAz - this.azimuth) * k;
+                this._vEl += ((this._tEl + chorEl) - this.elevation) * k;
+                this._vDist += ((this._tDist + chorDist) - this.distance) * k;
+                this.azimuth += this._vAz;
+                this.elevation += this._vEl;
+                this.distance += this._vDist;
+                this._vAz *= this._springDamp;
+                this._vEl *= this._springDamp;
+                this._vDist *= this._springDamp;
+                this._tAz += this._orbitSpeed * dt;
+            } else {
+                this.azimuth += this._vAz;
+                this.elevation += this._vEl;
+                this.distance += this._vDist;
+                this.elevation = Math.max(-1.4, Math.min(1.4, this.elevation));
+                this._vAz *= fric;
+                this._vEl *= fric;
+                this._vDist *= zfric;
+                if (Math.abs(this._vAz) < 1e-6) this._vAz = 0;
+                if (Math.abs(this._vEl) < 1e-6) this._vEl = 0;
+                if (Math.abs(this._vDist) < 1e-5) this._vDist = 0;
+            }
+        }
+
+        // Elastic zoom bounds
+        if (this.distance < this._minDist) {
+            this.distance += (this._minDist - this.distance) * 0.12;
+            this._vDist *= 0.5;
+        } else if (this.distance > this._maxDist) {
+            this.distance += (this._maxDist - this.distance) * 0.12;
+            this._vDist *= 0.5;
+        }
+    }
+
+    get isDragging() { return this._pointers.size > 0; }
+    get eye() {
+        const ce = Math.cos(this.elevation), se = Math.sin(this.elevation);
+        const ca = Math.cos(this.azimuth), sa = Math.sin(this.azimuth);
+        return [this.target[0] + this.distance * ce * sa,
+                this.target[1] + this.distance * se,
+                this.target[2] + this.distance * ce * ca];
+    }
     get aspect() { return this.canvas.width / this.canvas.height; }
     get viewMatrix() { return mat4LookAt(this.eye, this.target, [0, 1, 0]); }
     get projectionMatrix() { return mat4Perspective(this.fov, this.aspect, this.near, this.far); }
@@ -193,7 +382,7 @@ if (!gl) { document.body.innerHTML = '<h2 style="color:#fff;text-align:center;ma
 gl.getExtension('EXT_color_buffer_half_float');
 gl.getExtension('EXT_color_buffer_float');
 
-const camera = new OrbitCamera(canvas);
+const camera = new CinemaCamera(canvas);
 window.addEventListener('resize', () => { canvas.width = window.innerWidth * devicePixelRatio; canvas.height = window.innerHeight * devicePixelRatio; });
 
 /* ================================================================== */
@@ -1231,10 +1420,8 @@ document.getElementById('runBenchmark').addEventListener('click', runBenchmark);
 /*  STATS + RENDER LOOP                                                */
 /* ================================================================== */
 
-let frameCount = 0, lastFpsTime = performance.now(), autoOrbit = true, startTime = performance.now(), lastTime = 0;
+let frameCount = 0, lastFpsTime = performance.now(), startTime = performance.now(), lastTime = 0;
 const elFps = document.getElementById('fps'), elFT = document.getElementById('frameTime'), elAL = document.getElementById('activeLayers');
-canvas.addEventListener('pointerdown', () => { autoOrbit = false; });
-canvas.addEventListener('pointerup', () => { setTimeout(() => { autoOrbit = true; }, 3000); });
 
 // Matrix utility for inverse
 function mat4Invert(m) {
@@ -1269,15 +1456,15 @@ function tick() {
     const w = gl.canvas.width, h = gl.canvas.height;
     const needsPostProcess = bloomEnabled || vignetteEnabled || chromaticEnabled;
 
-    // --- Auto-orbit with varying speed for visual interest ---
-    if (autoOrbit && !camera.isDragging) {
-        const orbitSpeed = 0.002 + 0.001 * Math.sin(time * 0.2);
-        camera.azimuth += orbitSpeed;
-        // Gentle elevation oscillation in showcase
-        if (autoShowcase) {
-            camera.elevation = 0.35 + 0.15 * Math.sin(time * 0.15);
-            camera.distance = 5 + 0.5 * Math.sin(time * 0.1);
-        }
+    // --- Physics-based camera with inertia + spring-damper autopilot ---
+    camera.update(deltaTime, time);
+
+    // In auto-showcase mode, update camera choreography targets
+    if (autoShowcase && camera._autopilot) {
+        camera._choroElAmp = 0.08;
+        camera._choroElFreq = 0.4;
+        camera._choroDistAmp = 0.3;
+        camera._choroDistFreq = 0.25;
     }
 
     // --- Dynamic 4D rotation (the "woah" factor) ---

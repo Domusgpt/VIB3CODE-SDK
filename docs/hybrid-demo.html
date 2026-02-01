@@ -3,31 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VIB3+ Hybrid Render Pipeline</title>
+  <title>VIB3+ Hybrid Render Pipeline v3</title>
   <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Inter","Segoe UI",system-ui,sans-serif; overflow: hidden; }
 #canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; cursor: grab; }
 #canvas:active { cursor: grabbing; }
 .overlay { position: fixed; z-index: 10; pointer-events: none; }
-.header-bar { top: 12px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.header-bar { top: 10px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .header-title { font: 700 15px/1 inherit; letter-spacing: -0.01em; color: #e6edf6; }
 .header-sub { font-size: 10px; color: #5e7494; letter-spacing: 0.04em; }
-.tab-bar { top: 46px; left: 50%; transform: translateX(-50%); display: flex; gap: 3px; background: rgba(6,12,28,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(88,128,190,0.25); border-radius: 10px; padding: 3px; pointer-events: auto; }
-.tab-btn { font: 500 10px/1 inherit; color: #6b84a3; background: transparent; border: none; border-radius: 7px; padding: 7px 12px; cursor: pointer; transition: color .2s, background .2s; white-space: nowrap; }
+.header-version { display: inline-block; font-size: 9px; color: #5b9cf5; background: rgba(91,156,245,0.12); border: 1px solid rgba(91,156,245,0.25); border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
+.tab-bar { top: 42px; left: 50%; transform: translateX(-50%); display: flex; gap: 3px; background: rgba(6,12,28,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(88,128,190,0.25); border-radius: 10px; padding: 3px; pointer-events: auto; }
+.tab-btn { font: 500 10px/1 inherit; color: #6b84a3; background: transparent; border: none; border-radius: 7px; padding: 7px 11px; cursor: pointer; transition: color .2s, background .2s; white-space: nowrap; }
 .tab-btn:hover { color: #c8d6e5; background: rgba(88,128,190,0.12); }
 .tab-btn.active { color: #fff; background: rgba(91,156,245,0.22); box-shadow: 0 0 10px rgba(91,156,245,0.15); }
-.mesh-bar { top: 82px; left: 50%; transform: translateX(-50%); display: flex; gap: 3px; background: rgba(6,12,28,0.65); backdrop-filter: blur(10px); border: 1px solid rgba(120,180,120,0.2); border-radius: 8px; padding: 3px; pointer-events: auto; }
+.tab-btn .v3-dot { display: inline-block; width: 5px; height: 5px; background: #a78bfa; border-radius: 50%; margin-left: 4px; vertical-align: middle; }
+.mesh-bar { top: 78px; left: 50%; transform: translateX(-50%); display: flex; gap: 3px; background: rgba(6,12,28,0.65); backdrop-filter: blur(10px); border: 1px solid rgba(120,180,120,0.2); border-radius: 8px; padding: 3px; pointer-events: auto; }
 .mesh-btn { font: 500 10px/1 inherit; color: #5a8a5a; background: transparent; border: none; border-radius: 6px; padding: 6px 11px; cursor: pointer; transition: color .2s, background .2s; white-space: nowrap; }
 .mesh-btn:hover { color: #a0d0a0; background: rgba(100,180,100,0.1); }
 .mesh-btn.active { color: #b0e8b0; background: rgba(80,200,120,0.18); box-shadow: 0 0 8px rgba(80,200,120,0.12); }
-.controls-toggle { top: 114px; left: 16px; font: 600 11px/1 inherit; color: #5b9cf5; background: rgba(6,12,28,0.82); backdrop-filter: blur(16px); border: 1px solid rgba(91,156,245,0.25); border-radius: 8px; padding: 8px 14px; cursor: pointer; pointer-events: auto; letter-spacing: 0.06em; text-transform: uppercase; transition: background .2s, border-color .2s; z-index: 11; }
+.controls-toggle { top: 110px; left: 16px; font: 600 11px/1 inherit; color: #5b9cf5; background: rgba(6,12,28,0.82); backdrop-filter: blur(16px); border: 1px solid rgba(91,156,245,0.25); border-radius: 8px; padding: 8px 14px; cursor: pointer; pointer-events: auto; letter-spacing: 0.06em; text-transform: uppercase; transition: background .2s, border-color .2s; z-index: 11; }
 .controls-toggle:hover { background: rgba(91,156,245,0.12); border-color: #5b9cf5; }
 .controls-toggle.active { background: rgba(91,156,245,0.2); border-color: #5b9cf5; }
-.controls-panel { top: 146px; left: 16px; width: 270px; max-height: calc(100vh - 180px); overflow-y: auto; background: rgba(6,12,28,0.85); backdrop-filter: blur(16px); border: 1px solid rgba(88,128,190,0.2); border-radius: 12px; padding: 14px; pointer-events: auto; transition: opacity .25s, transform .25s; }
+.controls-panel { top: 142px; left: 16px; width: 280px; max-height: calc(100vh - 180px); overflow-y: auto; background: rgba(6,12,28,0.88); backdrop-filter: blur(16px); border: 1px solid rgba(88,128,190,0.2); border-radius: 12px; padding: 14px; pointer-events: auto; transition: opacity .25s, transform .25s; }
 .controls-panel.collapsed { opacity: 0; transform: translateX(-20px); pointer-events: none; }
 .controls-title { font: 600 11px/1 inherit; text-transform: uppercase; letter-spacing: 0.08em; color: #5b9cf5; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid rgba(91,156,245,0.15); }
-.controls-subtitle { font: 600 10px/1 inherit; text-transform: uppercase; letter-spacing: 0.08em; color: #7b6cf5; margin-bottom: 10px; }
+.controls-subtitle { font: 600 10px/1 inherit; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.controls-subtitle.v3 { color: #a78bfa; }
+.controls-subtitle.v2 { color: #7b6cf5; }
 .control-group { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid rgba(88,128,190,0.08); }
 .control-group:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
 .control-desc { font-size: 9px; line-height: 1.5; color: #4a6080; margin-top: 5px; }
@@ -38,17 +42,20 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
 .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: #5e7494; border-radius: 50%; transition: transform .2s, background .2s; }
 .toggle-row input:checked + .toggle-switch { background: rgba(91,156,245,0.35); }
 .toggle-row input:checked + .toggle-switch::after { transform: translateX(16px); background: #5b9cf5; }
+.toggle-row input:checked + .toggle-switch.purple { background: rgba(167,139,250,0.35); }
+.toggle-row input:checked + .toggle-switch.purple::after { background: #a78bfa; }
 .slider-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 10px; color: #6b84a3; cursor: default; }
-.slider-row span:first-child { min-width: 52px; }
+.slider-row span:first-child { min-width: 60px; }
 .slider-row input[type="range"] { flex: 1; -webkit-appearance: none; appearance: none; height: 3px; background: rgba(88,128,190,0.2); border-radius: 2px; outline: none; }
 .slider-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #5b9cf5; cursor: pointer; border: 2px solid rgba(6,12,28,0.8); }
 .slider-val { min-width: 32px; text-align: right; font-variant-numeric: tabular-nums; color: #b7c6dd; font-weight: 600; font-size: 10px; }
 .blend-select { flex: 1; font: 500 10px/1 inherit; color: #b7c6dd; background: rgba(88,128,190,0.12); border: 1px solid rgba(88,128,190,0.2); border-radius: 5px; padding: 4px 6px; cursor: pointer; outline: none; }
 .blend-select option { background: #0a1428; color: #b7c6dd; }
-.stats-panel { bottom: 56px; right: 16px; background: rgba(6,12,28,0.85); backdrop-filter: blur(14px); border: 1px solid rgba(88,128,190,0.2); border-radius: 10px; padding: 12px 16px; min-width: 190px; }
+.stats-panel { bottom: 56px; right: 16px; background: rgba(6,12,28,0.88); backdrop-filter: blur(14px); border: 1px solid rgba(88,128,190,0.2); border-radius: 10px; padding: 12px 16px; min-width: 200px; }
 .stat-row { display: flex; justify-content: space-between; font-size: 10px; color: #5e7494; line-height: 2; }
 .stat-row strong { color: #b7c6dd; font-weight: 600; font-variant-numeric: tabular-nums; }
 .stat-row.separator { height: 1px; background: rgba(88,128,190,0.12); margin: 3px 0; }
+.stat-row.v3 strong { color: #a78bfa; }
 .benchmark-panel { top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(6,12,28,0.94); backdrop-filter: blur(20px); border: 1px solid rgba(91,156,245,0.3); border-radius: 16px; padding: 24px 30px; min-width: 400px; max-width: 520px; pointer-events: auto; z-index: 20; }
 .benchmark-panel.hidden { display: none; }
 .bench-title { font: 700 16px/1 inherit; color: #e6edf6; margin-bottom: 6px; }
@@ -64,23 +71,38 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
 .bench-row.bench-header { font-weight: 700; color: #5b9cf5; border-bottom: 1px solid rgba(91,156,245,0.2); margin-bottom: 4px; }
 .bench-row.bench-total { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(91,156,245,0.2); border-bottom: none; font-weight: 700; color: #e6edf6; }
 .bench-bar { height: 4px; background: rgba(91,156,245,0.4); border-radius: 2px; margin-top: 2px; transition: width .3s; }
-.info-panel { bottom: 14px; right: 16px; font-size: 10px; color: #3e526e; text-align: right; line-height: 1.5; }
+.export-bar { bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(6,12,28,0.78); backdrop-filter: blur(14px); border: 1px solid rgba(167,139,250,0.25); border-radius: 10px; padding: 5px 8px; pointer-events: auto; }
+.export-btn { font: 500 10px/1 inherit; color: #a78bfa; background: transparent; border: 1px solid rgba(167,139,250,0.2); border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all .2s; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+.export-btn:hover { color: #c4b5fd; background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.4); }
+.export-btn.recording { color: #f87171; border-color: rgba(248,113,113,0.4); animation: pulse-rec 1s infinite; }
+@keyframes pulse-rec { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+.export-btn .dot { width: 6px; height: 6px; border-radius: 50%; }
+.export-btn .dot.red { background: #f87171; }
+.export-btn .dot.green { background: #4ade80; }
+.info-panel { bottom: 56px; left: 16px; font-size: 10px; color: #3e526e; text-align: left; line-height: 1.5; max-width: 200px; }
+.feature-badges { top: 78px; right: 16px; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.feature-badge { font: 500 9px/1 inherit; padding: 3px 8px; border-radius: 4px; transition: all .3s; }
+.feature-badge.on { color: #c4b5fd; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); }
+.feature-badge.off { color: #3e526e; background: rgba(30,40,60,0.4); border: 1px solid rgba(60,80,120,0.15); }
 .controls-panel::-webkit-scrollbar { width: 3px; }
 .controls-panel::-webkit-scrollbar-track { background: transparent; }
 .controls-panel::-webkit-scrollbar-thumb { background: rgba(88,128,190,0.2); border-radius: 2px; }
-.back-link { position: fixed; top: 12px; left: 16px; z-index: 20; font: 500 11px/1 inherit; color: #5b9cf5; text-decoration: none; opacity: 0.7; transition: opacity .2s; pointer-events: auto; }
+.back-link { position: fixed; top: 10px; left: 16px; z-index: 20; font: 500 11px/1 inherit; color: #5b9cf5; text-decoration: none; opacity: 0.7; transition: opacity .2s; pointer-events: auto; }
 .back-link:hover { opacity: 1; }
-@media (max-width: 600px) {
-  .tab-bar { top: 40px; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 16px); }
-  .tab-btn { font-size: 9px; padding: 5px 8px; }
+@media (max-width: 700px) {
+  .tab-bar { top: 38px; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 16px); }
+  .tab-btn { font-size: 9px; padding: 5px 7px; }
   .mesh-bar { top: 74px; }
   .mesh-btn { font-size: 9px; padding: 5px 8px; }
-  .header-bar { top: 8px; }
+  .header-bar { top: 6px; }
   .header-title { font-size: 13px; }
   .controls-toggle { top: 100px; }
-  .controls-panel { top: 130px; left: 8px; width: calc(100vw - 16px); max-height: 45vh; }
-  .stats-panel { bottom: 40px; right: 8px; min-width: 150px; padding: 8px 10px; }
+  .controls-panel { top: 130px; left: 8px; width: calc(100vw - 16px); max-height: 40vh; }
+  .stats-panel { bottom: 50px; right: 8px; min-width: 150px; padding: 8px 10px; }
   .benchmark-panel { min-width: 0; width: calc(100vw - 32px); padding: 16px; }
+  .export-bar { bottom: 8px; }
+  .feature-badges { display: none; }
+  .info-panel { display: none; }
 }
   </style>
 </head>
@@ -89,16 +111,17 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
   <canvas id="canvas"></canvas>
 
   <div class="overlay header-bar">
-    <span class="header-title">Hybrid Render Pipeline</span>
-    <span class="header-sub">Mesh + Splat + Procedural + Inscription</span>
+    <span class="header-title">Hybrid Render Pipeline <span class="header-version">v3</span></span>
+    <span class="header-sub">Mesh + Splat + Procedural + Inscription + Shadows + Particles + Volumetric</span>
   </div>
 
   <div class="overlay tab-bar">
-    <button class="tab-btn active" data-tab="hybrid">Full Hybrid</button>
-    <button class="tab-btn" data-tab="mesh-inscribe">Mesh + Inscription</button>
-    <button class="tab-btn" data-tab="mesh-splat">Mesh + Splats</button>
-    <button class="tab-btn" data-tab="splat-proc">Splat + Procedural</button>
-    <button class="tab-btn" data-tab="multi-scene">Multi-Object Scene</button>
+    <button class="tab-btn active" data-tab="showcase">v3 Showcase<span class="v3-dot"></span></button>
+    <button class="tab-btn" data-tab="hybrid">Full Hybrid</button>
+    <button class="tab-btn" data-tab="shadows">Shadows<span class="v3-dot"></span></button>
+    <button class="tab-btn" data-tab="particles">Particles<span class="v3-dot"></span></button>
+    <button class="tab-btn" data-tab="volumetric">Volumetric<span class="v3-dot"></span></button>
+    <button class="tab-btn" data-tab="inscFX">Inscription FX<span class="v3-dot"></span></button>
     <button class="tab-btn" data-tab="benchmark">Benchmark</button>
   </div>
 
@@ -109,28 +132,24 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
     <button class="mesh-btn" data-mesh="knot">Trefoil Knot</button>
   </div>
 
-  <button class="overlay controls-toggle" id="controlsToggle">Layers</button>
+  <button class="overlay controls-toggle" id="controlsToggle">Controls</button>
   <div class="overlay controls-panel collapsed" id="controls">
-    <div class="controls-title">Layer Controls</div>
+    <div class="controls-title">Pipeline Controls</div>
+
+    <!-- Core Layers -->
     <div class="control-group">
       <label class="toggle-row"><span class="label-text">Mesh Layer</span><input type="checkbox" id="toggleMesh" checked><span class="toggle-switch"></span></label>
       <label class="slider-row"><span>Opacity</span><input type="range" id="sliderMeshOpacity" min="0" max="100" value="100"><span class="slider-val" id="valMeshOpacity">1.00</span></label>
-      <label class="slider-row"><span>Blend</span><select id="selectMeshBlend" class="blend-select"><option value="0" selected>Alpha</option><option value="1">Additive</option><option value="2">Multiply</option><option value="3">Screen</option></select></label>
-      <p class="control-desc">Traditional triangle mesh with Blinn-Phong lighting and GBuffer output.</p>
     </div>
     <div class="control-group">
-      <label class="toggle-row"><span class="label-text">Gaussian Splat Layer</span><input type="checkbox" id="toggleSplat" checked><span class="toggle-switch"></span></label>
+      <label class="toggle-row"><span class="label-text">Gaussian Splats</span><input type="checkbox" id="toggleSplat" checked><span class="toggle-switch"></span></label>
       <label class="slider-row"><span>Opacity</span><input type="range" id="sliderSplatOpacity" min="0" max="100" value="90"><span class="slider-val" id="valSplatOpacity">0.90</span></label>
-      <label class="slider-row"><span>Blend</span><select id="selectSplatBlend" class="blend-select"><option value="0">Alpha</option><option value="1" selected>Additive</option><option value="2">Multiply</option><option value="3">Screen</option></select></label>
       <label class="slider-row"><span>Source</span><select id="selectSplatSource" class="blend-select"><option value="texture" selected>From Texture</option><option value="galaxy">Galaxy 200K</option><option value="nebula">Nebula 150K</option></select></label>
-      <p class="control-desc">Gaussian splats depth-tested against mesh. "From Texture" converts the mesh texture into surface splats.</p>
     </div>
     <div class="control-group">
-      <label class="toggle-row"><span class="label-text">Procedural VIB3 Layer</span><input type="checkbox" id="toggleProcedural" checked><span class="toggle-switch"></span></label>
+      <label class="toggle-row"><span class="label-text">Procedural VIB3</span><input type="checkbox" id="toggleProcedural" checked><span class="toggle-switch"></span></label>
       <label class="slider-row"><span>Opacity</span><input type="range" id="sliderProcOpacity" min="0" max="100" value="35"><span class="slider-val" id="valProcOpacity">0.35</span></label>
-      <label class="slider-row"><span>Blend</span><select id="selectProcBlend" class="blend-select"><option value="0">Alpha</option><option value="1">Additive</option><option value="2">Multiply</option><option value="3" selected>Screen</option></select></label>
       <label class="slider-row"><span>Geometry</span><input type="range" id="sliderGeometry" min="0" max="23" value="3"><span class="slider-val" id="valGeometry">3</span></label>
-      <p class="control-desc">VIB3 24-variant procedural shader rendered as a background/overlay layer.</p>
     </div>
     <div class="control-group">
       <label class="toggle-row"><span class="label-text">Edge Inscription</span><input type="checkbox" id="toggleInscription" checked><span class="toggle-switch"></span></label>
@@ -138,17 +157,50 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
       <label class="slider-row"><span>Thickness</span><input type="range" id="sliderThickness" min="10" max="100" value="60"><span class="slider-val" id="valThickness">0.60</span></label>
       <label class="slider-row"><span>Pattern</span><input type="range" id="sliderPattern" min="0" max="23" value="3"><span class="slider-val" id="valPattern">3</span></label>
       <label class="slider-row"><span>Layers</span><input type="range" id="sliderLayerCount" min="1" max="6" value="4"><span class="slider-val" id="valLayerCount">4</span></label>
-      <p class="control-desc">Holographic edge inscription using GBuffer edge detection with VIB3 procedural patterns.</p>
     </div>
+
+    <!-- v3: Shadow Map -->
     <div class="control-group">
-      <div class="controls-subtitle">v2: Scene &amp; Animation</div>
+      <div class="controls-subtitle v3">v3: Shadow Mapping</div>
+      <label class="toggle-row"><span class="label-text">Shadows</span><input type="checkbox" id="toggleShadows" checked><span class="toggle-switch purple"></span></label>
+      <label class="slider-row"><span>Intensity</span><input type="range" id="sliderShadowInt" min="0" max="100" value="70"><span class="slider-val" id="valShadowInt">0.70</span></label>
+      <label class="slider-row"><span>Softness</span><input type="range" id="sliderShadowSoft" min="0" max="100" value="50"><span class="slider-val" id="valShadowSoft">0.50</span></label>
+      <p class="control-desc">PCF soft shadows from directional light with inscription shadow modulation.</p>
+    </div>
+
+    <!-- v3: Particles -->
+    <div class="control-group">
+      <div class="controls-subtitle v3">v3: Particle System</div>
+      <label class="toggle-row"><span class="label-text">Particles</span><input type="checkbox" id="toggleParticles" checked><span class="toggle-switch purple"></span></label>
+      <label class="slider-row"><span>Rate</span><input type="range" id="sliderParticleRate" min="0" max="100" value="50"><span class="slider-val" id="valParticleRate">50</span></label>
+      <label class="slider-row"><span>Size</span><input type="range" id="sliderParticleSize" min="10" max="200" value="80"><span class="slider-val" id="valParticleSize">0.80</span></label>
+      <label class="slider-row"><span>Mode</span><select id="selectParticleMode" class="blend-select"><option value="surface" selected>Surface Emit</option><option value="burst">State Burst</option><option value="trail">Trail</option></select></label>
+      <p class="control-desc">GPU-rendered surface particles with state-reactive bursts and trail support.</p>
+    </div>
+
+    <!-- v3: Volumetric Inscription -->
+    <div class="control-group">
+      <div class="controls-subtitle v3">v3: Volumetric Inscription</div>
+      <label class="toggle-row"><span class="label-text">Volumetric</span><input type="checkbox" id="toggleVolumetric"><span class="toggle-switch purple"></span></label>
+      <label class="slider-row"><span>Density</span><input type="range" id="sliderVolDensity" min="10" max="200" value="80"><span class="slider-val" id="valVolDensity">0.80</span></label>
+      <label class="slider-row"><span>Absorption</span><input type="range" id="sliderVolAbsorb" min="0" max="100" value="40"><span class="slider-val" id="valVolAbsorb">0.40</span></label>
+      <p class="control-desc">Raymarched 3D inscription field with 4D rotation and 24 geometry variants.</p>
+    </div>
+
+    <!-- v3: Deferred Inscription Lighting -->
+    <div class="control-group">
+      <div class="controls-subtitle v3">v3: Inscription Lighting</div>
+      <label class="toggle-row"><span class="label-text">Deferred Lighting</span><input type="checkbox" id="toggleDeferredLit" checked><span class="toggle-switch purple"></span></label>
+      <label class="slider-row"><span>Specular</span><input type="range" id="sliderSpecular" min="0" max="100" value="60"><span class="slider-val" id="valSpecular">0.60</span></label>
+      <label class="slider-row"><span>Fresnel</span><input type="range" id="sliderFresnel" min="0" max="100" value="40"><span class="slider-val" id="valFresnel">0.40</span></label>
+      <p class="control-desc">NdotL diffuse + anisotropic specular + Fresnel rim on inscriptions.</p>
+    </div>
+
+    <!-- Scene & Animation -->
+    <div class="control-group">
+      <div class="controls-subtitle v2">Scene &amp; Animation</div>
       <label class="slider-row"><span>State</span><select id="selectState" class="blend-select"><option value="idle">Idle</option><option value="active" selected>Active</option><option value="selected">Selected</option><option value="powered">Powered</option><option value="damaged">Damaged</option><option value="destroyed">Destroyed</option></select></label>
-      <label class="slider-row"><span>Morph</span><input type="range" id="sliderMorph" min="0" max="100" value="0"><span class="slider-val" id="valMorph">0.00</span></label>
-      <label class="slider-row"><span>Audio Sim</span><input type="range" id="sliderAudioSim" min="0" max="100" value="0"><span class="slider-val" id="valAudioSim">0.00</span></label>
-      <p class="control-desc">Semantic inscription states + morph target blending + simulated audio reactivity.</p>
-    </div>
-    <div class="control-group">
-      <div class="controls-subtitle">Post-Process</div>
+      <label class="slider-row"><span>Audio Sim</span><input type="range" id="sliderAudioSim" min="0" max="100" value="30"><span class="slider-val" id="valAudioSim">0.30</span></label>
       <label class="slider-row"><span>Exposure</span><input type="range" id="sliderExposure" min="20" max="300" value="120"><span class="slider-val" id="valExposure">1.20</span></label>
       <label class="slider-row"><span>4D XW</span><input type="range" id="slider4DXW" min="0" max="628" value="0"><span class="slider-val" id="val4DXW">0.00</span></label>
       <label class="slider-row"><span>4D YW</span><input type="range" id="slider4DYW" min="0" max="628" value="0"><span class="slider-val" id="val4DYW">0.00</span></label>
@@ -156,6 +208,16 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
     </div>
   </div>
 
+  <!-- Feature Badges -->
+  <div class="overlay feature-badges" id="featureBadges">
+    <div class="feature-badge on" id="badgeShadows">Shadows</div>
+    <div class="feature-badge on" id="badgeParticles">Particles</div>
+    <div class="feature-badge off" id="badgeVolumetric">Volumetric</div>
+    <div class="feature-badge on" id="badgeDeferredLit">Deferred Lit</div>
+    <div class="feature-badge on" id="badgeInscription">Inscription</div>
+  </div>
+
+  <!-- Stats -->
   <div class="overlay stats-panel" id="statsPanel">
     <div class="stat-row"><span>FPS</span><strong id="fps">0</strong></div>
     <div class="stat-row"><span>Frame Time</span><strong id="frameTime">0 ms</strong></div>
@@ -163,23 +225,36 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
     <div class="stat-row"><span>Mesh Tris</span><strong id="meshTris">0</strong></div>
     <div class="stat-row"><span>Splat Count</span><strong id="splatCount">0</strong></div>
     <div class="stat-row"><span>Insc. Layers</span><strong id="inscLayers">4</strong></div>
-    <div class="stat-row"><span>Scene Objects</span><strong id="sceneObjects">1</strong></div>
+    <div class="stat-row separator"></div>
+    <div class="stat-row v3"><span>Particles</span><strong id="particleCount">0</strong></div>
+    <div class="stat-row v3"><span>Shadow Res</span><strong id="shadowRes">1024</strong></div>
+    <div class="stat-row v3"><span>Vol Steps</span><strong id="volSteps">0</strong></div>
     <div class="stat-row separator"></div>
     <div class="stat-row"><span>Active Layers</span><strong id="activeLayers">4</strong></div>
     <div class="stat-row"><span>State</span><strong id="currentState">active</strong></div>
-    <div class="stat-row"><span>Compositor</span><strong id="compositorMode">Hybrid</strong></div>
+    <div class="stat-row"><span>Mode</span><strong id="compositorMode">v3 Showcase</strong></div>
   </div>
 
+  <!-- Benchmark -->
   <div class="overlay benchmark-panel hidden" id="benchmarkPanel">
-    <div class="bench-title">Layer Benchmark</div>
-    <div class="bench-desc">Measures each layer independently then combined.</div>
+    <div class="bench-title">v3 Pipeline Benchmark</div>
+    <div class="bench-desc">Measures each layer + v3 effects independently then combined.</div>
     <button class="bench-btn" id="runBenchmark">Run Benchmark</button>
     <div class="bench-results" id="benchResults"></div>
   </div>
 
+  <!-- Export Bar -->
+  <div class="overlay export-bar">
+    <button class="export-btn" id="btnScreenshot" title="Save PNG screenshot">Screenshot</button>
+    <button class="export-btn" id="btnRecord" title="Start/stop video recording"><span class="dot red"></span>Record</button>
+    <button class="export-btn" id="btnGIF" title="Capture 2-second GIF loop">GIF</button>
+  </div>
+
+  <!-- Info -->
   <div class="overlay info-panel">
     Drag to orbit &middot; Scroll to zoom<br>
-    VIB3+ Hybrid Render Pipeline Demo
+    v3: 15 features across 3 tracks<br>
+    <span style="color:#a78bfa">Purple = v3 features</span>
   </div>
 
   <script type="module" src="./hybrid-bundle.js"></script>

@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIB3+ | 4D Visualization Engine</title>
+  <meta name="description" content="VIB3+ Unified 4D Visualization Engine — Hybrid Render Pipeline with Gaussian Splats, Edge Inscription, Volumetric Fields, and 6D Rotation" />
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --c-bg: #020810;
+  --c-surface: rgba(6, 14, 32, 0.85);
+  --c-border: rgba(91, 156, 245, 0.15);
+  --c-blue: #5b9cf5;
+  --c-purple: #a78bfa;
+  --c-pink: #ec4899;
+  --c-text: #e6edf6;
+  --c-muted: #5e7494;
+  --c-dim: #2a3a52;
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  --glass: rgba(6, 14, 32, 0.72);
+  --glass-border: rgba(91, 156, 245, 0.12);
+  --glow-blue: 0 0 40px rgba(91, 156, 245, 0.15);
+  --glow-purple: 0 0 40px rgba(167, 139, 250, 0.15);
+}
+
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--c-bg); color: var(--c-text); font-family: var(--font);
+  touch-action: none;
+  overscroll-behavior: none;  /* prevent pull-to-refresh, back-swipe */
+  -webkit-overflow-scrolling: auto;
+}
+
+/* === CANVAS === */
+#canvas {
+  position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0;
+  cursor: grab;
+  touch-action: none;           /* prevent browser pan/zoom */
+  -webkit-user-select: none;    /* prevent text selection on drag */
+  user-select: none;
+  -webkit-touch-callout: none;  /* prevent iOS callout */
+  -webkit-tap-highlight-color: transparent;
+}
+#canvas:active { cursor: grabbing; }
+
+/* === OPENING OVERLAY === */
+#opening {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--c-bg);
+  transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+#opening.fade-out { opacity: 0; }
+#opening.hidden { display: none; }
+
+.logo-mark {
+  font: 900 72px/1 var(--font); letter-spacing: -0.04em;
+  background: linear-gradient(135deg, var(--c-blue), var(--c-purple), var(--c-pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0; transform: translateY(20px) scale(0.95);
+  animation: logoIn 1.2s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.logo-sub {
+  font: 300 18px/1.4 var(--font); letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--c-muted);
+  opacity: 0; transform: translateY(10px);
+  animation: fadeUp 0.8s 1s ease-out forwards;
+}
+.logo-line {
+  width: 60px; height: 1px; margin: 16px 0;
+  background: linear-gradient(90deg, transparent, var(--c-blue), transparent);
+  opacity: 0; animation: fadeIn 0.6s 1.4s ease-out forwards;
+}
+.logo-company {
+  font: 500 11px/1 var(--font); letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--c-dim);
+  opacity: 0; animation: fadeUp 0.6s 1.6s ease-out forwards;
+}
+
+@keyframes logoIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { to { opacity: 1; } }
+
+/* === NARRATIVE PANEL === */
+#narrative {
+  position: fixed; left: 32px; bottom: 100px; z-index: 20;
+  max-width: 420px; pointer-events: none;
+  opacity: 0; transform: translateX(-20px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+#narrative.visible { opacity: 1; transform: translateX(0); }
+#narrative.exit { opacity: 0; transform: translateX(20px); }
+
+.scene-counter {
+  font: 600 11px/1 var(--font); letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--c-purple); margin-bottom: 8px;
+}
+.scene-title {
+  font: 700 28px/1.2 var(--font); letter-spacing: -0.02em;
+  color: var(--c-text); margin-bottom: 10px;
+}
+.scene-desc {
+  font: 400 14px/1.6 var(--font);
+  color: var(--c-muted); margin-bottom: 14px;
+}
+.tech-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tech-tag {
+  font: 500 10px/1 var(--font); letter-spacing: 0.06em;
+  color: var(--c-blue); background: rgba(91, 156, 245, 0.08);
+  border: 1px solid rgba(91, 156, 245, 0.2);
+  border-radius: 4px; padding: 4px 10px;
+}
+.tech-tag.purple { color: var(--c-purple); background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.2); }
+
+/* === STATS PANEL === */
+#stats {
+  position: fixed; right: 24px; bottom: 80px; z-index: 20;
+  background: var(--glass); backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border); border-radius: 12px;
+  padding: 14px 18px; min-width: 170px;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+#stats.visible { opacity: 1; }
+.stat-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--c-muted); line-height: 2.2; }
+.stat-row strong { color: var(--c-text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat-row.accent strong { color: var(--c-purple); }
+.stat-divider { height: 1px; background: rgba(91,156,245,0.08); margin: 4px 0; }
+
+/* === PROGRESS BAR === */
+#progress-bar {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; align-items: center; gap: 12px;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+#progress-bar.visible { opacity: 1; }
+.progress-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--c-dim); border: 1px solid rgba(91,156,245,0.2);
+  transition: all 0.4s ease; cursor: pointer; pointer-events: auto;
+}
+.progress-dot.active {
+  background: var(--c-blue); border-color: var(--c-blue);
+  box-shadow: 0 0 12px rgba(91,156,245,0.4);
+  transform: scale(1.3);
+}
+.progress-dot.visited { background: rgba(91,156,245,0.3); border-color: rgba(91,156,245,0.4); }
+.progress-label {
+  font: 500 10px/1 var(--font); color: var(--c-dim);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-left: 8px; white-space: nowrap;
+}
+
+/* === TOP BAR === */
+#top-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px; pointer-events: none;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+#top-bar.visible { opacity: 1; }
+.top-logo {
+  font: 700 16px/1 var(--font); letter-spacing: -0.02em;
+  color: var(--c-text); display: flex; align-items: center; gap: 8px;
+}
+.top-version {
+  font: 500 9px/1 var(--font); letter-spacing: 0.06em;
+  color: var(--c-purple); background: rgba(167,139,250,0.1);
+  border: 1px solid rgba(167,139,250,0.2); border-radius: 4px;
+  padding: 3px 8px;
+}
+.top-right { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
+.top-btn {
+  font: 500 11px/1 var(--font); color: var(--c-muted);
+  background: var(--glass); backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border); border-radius: 8px;
+  padding: 8px 16px; cursor: pointer; transition: all 0.2s;
+  text-decoration: none;
+}
+.top-btn:hover { color: var(--c-text); border-color: rgba(91,156,245,0.3); background: rgba(91,156,245,0.08); }
+.top-btn.primary { color: var(--c-blue); border-color: rgba(91,156,245,0.3); }
+.top-btn.primary:hover { background: rgba(91,156,245,0.15); }
+
+/* === USE CASES STRIP === */
+#usecases {
+  position: fixed; right: 24px; top: 50%; transform: translateY(-50%); z-index: 20;
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+  opacity: 0; transition: opacity 0.6s ease;
+}
+#usecases.visible { opacity: 1; }
+.usecase-tag {
+  font: 500 9px/1 var(--font); letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--c-dim); padding: 5px 12px;
+  border-right: 2px solid transparent;
+  transition: all 0.4s ease;
+}
+.usecase-tag.highlight {
+  color: var(--c-text); border-right-color: var(--c-blue);
+}
+
+/* === CAPABILITY METRICS === */
+#capabilities {
+  position: fixed; left: 32px; top: 50%; transform: translateY(-50%); z-index: 15;
+  display: flex; flex-direction: column; gap: 20px;
+  opacity: 0; transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+#capabilities.visible { opacity: 1; }
+.cap-item { display: flex; flex-direction: column; gap: 2px; }
+.cap-value {
+  font: 700 32px/1 var(--font); letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--c-blue), var(--c-purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.cap-label { font: 500 10px/1 var(--font); color: var(--c-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* === INTERACTIVE MODE OVERLAY === */
+#interactive-cta {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 25;
+  opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
+  text-align: center;
+}
+#interactive-cta.visible { opacity: 1; pointer-events: auto; }
+.cta-btn {
+  font: 600 13px/1 var(--font); letter-spacing: 0.04em;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(91,156,245,0.3), rgba(167,139,250,0.3));
+  border: 1px solid rgba(91,156,245,0.3);
+  border-radius: 12px; padding: 14px 32px; cursor: pointer;
+  transition: all 0.3s ease; backdrop-filter: blur(12px);
+}
+.cta-btn:hover {
+  background: linear-gradient(135deg, rgba(91,156,245,0.45), rgba(167,139,250,0.45));
+  border-color: rgba(91,156,245,0.5);
+  box-shadow: var(--glow-blue);
+  transform: translateY(-1px);
+}
+.cta-hint {
+  font: 400 10px/1 var(--font); color: var(--c-dim);
+  margin-top: 8px; letter-spacing: 0.06em;
+}
+
+/* === CONTACT / INVEST PANEL === */
+#contact-panel {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(2, 8, 16, 0.92); backdrop-filter: blur(30px);
+  opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+}
+#contact-panel.visible { opacity: 1; pointer-events: auto; }
+.contact-card {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: 20px; padding: 48px 56px; max-width: 500px; text-align: center;
+}
+.contact-title { font: 700 28px/1.2 var(--font); letter-spacing: -0.02em; margin-bottom: 12px; }
+.contact-desc { font: 400 14px/1.6 var(--font); color: var(--c-muted); margin-bottom: 28px; }
+.contact-email {
+  display: inline-block; font: 600 14px/1 var(--font);
+  color: var(--c-blue); text-decoration: none;
+  background: rgba(91,156,245,0.08); border: 1px solid rgba(91,156,245,0.25);
+  border-radius: 10px; padding: 14px 32px;
+  transition: all 0.2s;
+}
+.contact-email:hover { background: rgba(91,156,245,0.15); border-color: var(--c-blue); box-shadow: var(--glow-blue); }
+.contact-meta { font: 400 11px/1.6 var(--font); color: var(--c-dim); margin-top: 20px; }
+.contact-close {
+  position: absolute; top: 24px; right: 28px;
+  font: 400 24px/1 var(--font); color: var(--c-muted); background: none; border: none;
+  cursor: pointer; transition: color 0.2s;
+}
+.contact-close:hover { color: var(--c-text); }
+
+/* === MOBILE === */
+@media (max-width: 768px) {
+  .logo-mark { font-size: 48px; }
+  .logo-sub { font-size: 14px; }
+  .scene-title { font-size: 22px; }
+  #narrative { left: 20px; bottom: 80px; max-width: 280px; }
+  #stats { right: 12px; bottom: 70px; min-width: 140px; padding: 10px 14px; }
+  .stat-row { font-size: 10px; }
+  #capabilities { display: none; }
+  #usecases { display: none; }
+  .cap-value { font-size: 24px; }
+  #top-bar { padding: 12px 16px; }
+  .top-logo { font-size: 14px; }
+  .contact-card { padding: 32px 24px; margin: 0 16px; }
+}
+
+/* === SCENE TRANSITION FLASH === */
+.scene-flash {
+  position: fixed; inset: 0; z-index: 5;
+  background: radial-gradient(ellipse at center, rgba(91,156,245,0.06), transparent 70%);
+  opacity: 0; pointer-events: none;
+  animation: flashPulse 1.5s ease-out forwards;
+}
+@keyframes flashPulse {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* === SUBTLE VIGNETTE === */
+#vignette {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(2,8,16,0.5) 100%);
+}
+
+/* === SCROLLBAR HIDE === */
+::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="vignette"></div>
+
+  <!-- OPENING ANIMATION -->
+  <div id="opening">
+    <div class="logo-mark">VIB3+</div>
+    <div class="logo-line"></div>
+    <div class="logo-sub">4D Visualization Engine</div>
+    <div class="logo-company">Clear Seas Solutions LLC</div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div id="top-bar">
+    <div class="top-logo">
+      VIB3+ <span class="top-version">v3 Pipeline</span>
+    </div>
+    <div class="top-right">
+      <button class="top-btn" id="btnReplay" title="Replay showcase">Replay</button>
+      <button class="top-btn" id="btnControls" title="Toggle interactive controls">Controls</button>
+      <button class="top-btn primary" id="btnContact">Get in Touch</button>
+    </div>
+  </div>
+
+  <!-- SCENE NARRATIVE -->
+  <div id="narrative">
+    <div class="scene-counter" id="sceneCounter">01 / 06</div>
+    <div class="scene-title" id="sceneTitle">Hybrid Render Pipeline</div>
+    <div class="scene-desc" id="sceneDesc">Four compositing layers rendering simultaneously at 60fps.</div>
+    <div class="tech-tags" id="techTags"></div>
+  </div>
+
+  <!-- CAPABILITY METRICS (left side, big numbers) -->
+  <div id="capabilities">
+    <div class="cap-item"><div class="cap-value" id="capFps">60</div><div class="cap-label">Frames/sec</div></div>
+    <div class="cap-item"><div class="cap-value" id="capLayers">4</div><div class="cap-label">Render Layers</div></div>
+    <div class="cap-item"><div class="cap-value" id="capGeometries">24</div><div class="cap-label">Geometry Variants</div></div>
+    <div class="cap-item"><div class="cap-value" id="capRotation">6D</div><div class="cap-label">Rotation System</div></div>
+  </div>
+
+  <!-- USE CASES (right side) -->
+  <div id="usecases">
+    <div class="usecase-tag" data-idx="0">Digital Twins</div>
+    <div class="usecase-tag" data-idx="1">XR / Spatial Computing</div>
+    <div class="usecase-tag" data-idx="2">Scientific Visualization</div>
+    <div class="usecase-tag" data-idx="3">Generative Art</div>
+    <div class="usecase-tag" data-idx="4">Real-Time 3D Web</div>
+    <div class="usecase-tag" data-idx="5">Game Engines</div>
+  </div>
+
+  <!-- STATS PANEL -->
+  <div id="stats">
+    <div class="stat-row"><span>FPS</span><strong id="fps">0</strong></div>
+    <div class="stat-row"><span>Frame</span><strong id="frameTime">0 ms</strong></div>
+    <div class="stat-divider"></div>
+    <div class="stat-row"><span>Triangles</span><strong id="meshTris">0</strong></div>
+    <div class="stat-row"><span>Splats</span><strong id="splatCount">0</strong></div>
+    <div class="stat-row accent"><span>Particles</span><strong id="particleCount">0</strong></div>
+    <div class="stat-divider"></div>
+    <div class="stat-row"><span>Layers</span><strong id="activeLayers">4</strong></div>
+    <div class="stat-row accent"><span>State</span><strong id="currentState">active</strong></div>
+  </div>
+
+  <!-- PROGRESS DOTS -->
+  <div id="progress-bar">
+    <div class="progress-dot active" data-scene="0"></div>
+    <div class="progress-dot" data-scene="1"></div>
+    <div class="progress-dot" data-scene="2"></div>
+    <div class="progress-dot" data-scene="3"></div>
+    <div class="progress-dot" data-scene="4"></div>
+    <div class="progress-dot" data-scene="5"></div>
+    <span class="progress-label" id="progressLabel">Scene 1 of 6</span>
+  </div>
+
+  <!-- INTERACTIVE CTA -->
+  <div id="interactive-cta">
+    <button class="cta-btn" id="btnInteractive">Take Control</button>
+    <div class="cta-hint">Drag to orbit &middot; Scroll to zoom &middot; Full interactive mode</div>
+  </div>
+
+  <!-- CONTACT PANEL -->
+  <div id="contact-panel">
+    <button class="contact-close" id="btnCloseContact">&times;</button>
+    <div class="contact-card">
+      <div class="contact-title">Let's Build the Future</div>
+      <div class="contact-desc">
+        VIB3+ is a production-grade 4D visualization engine with a hybrid render pipeline,
+        Gaussian splat rendering, volumetric inscription, and MCP agentic control.
+        Ready for licensing, partnership, or investment.
+      </div>
+      <a class="contact-email" href="mailto:Paul@clearseassolutions.com">Paul@clearseassolutions.com</a>
+      <div class="contact-meta">
+        Paul Phillips &middot; Clear Seas Solutions LLC<br>
+        <a href="https://parserator.com" style="color:var(--c-blue);text-decoration:none;">parserator.com</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./investment-bundle.js"></script>
+</body>
+</html>

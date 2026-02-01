@@ -1,11 +1,9 @@
 /**
- * VIB3+ Cyberpunk Pyramid Scene Demo
+ * VIB3+ Cyberpunk Pyramid Scene — Cinematic Demo
  *
- * 5-layer parallax composition using Gaussian splats:
- *  - Stars & nebula → moon & planets → distant pyramids → foreground → atmosphere
- *  - Translucent overlapping splats create colour mixing
- *  - Slow orbit with gentle vertical bob for parallax emphasis
- *  - Post-processing: edge glow, VIB3 inscription, tonemap
+ * 5-layer parallax composition using Gaussian splats as a painting medium.
+ * Full cinematic post-processing pipeline: bloom, edge glow, chromatic
+ * aberration, vignette, film grain, and HDR tonemap.
  */
 
 import { encodeHiFiSeeds } from '../src/render/GaussianSeedBuffer.js';
@@ -32,21 +30,21 @@ const gl = canvas.getContext('webgl2', {
 if (!gl) throw new Error('WebGL2 required');
 
 /* ------------------------------------------------------------------ */
-/*  Camera — lower angle looking up at pyramids, wide FOV              */
+/*  Camera — cinematic low angle, wide FOV                             */
 /* ------------------------------------------------------------------ */
 
 const camera = new SplatCamera({
-    fov: 60 * Math.PI / 180,   // wider than default for cinematic feel
-    distance: 6,
+    fov: 62 * Math.PI / 180,
+    distance: 6.5,
     azimuth: 0,
-    elevation: 0.15,           // slight upward look → sky visible
-    target: [0, 0.5, 0],      // slightly above origin
+    elevation: 0.12,
+    target: [0, 0.3, 0],
     aspect: canvas.width / canvas.height,
 });
 camera.attachControls(canvas);
 
 /* ------------------------------------------------------------------ */
-/*  Renderer + post-processing                                         */
+/*  Renderer + cinematic post-processing                               */
 /* ------------------------------------------------------------------ */
 
 const renderer = new HiFiSplatRenderer(gl, {
@@ -58,16 +56,40 @@ const renderer = new HiFiSplatRenderer(gl, {
 });
 
 const postProcess = new SplatPostProcess(gl, {
+    // Bloom — makes neon edges and moon glow bleed light
+    enableBloom: true,
+    bloomThreshold: 0.3,
+    bloomIntensity: 1.0,
+    bloomRadius: 3.5,
+
+    // Edge glow — cyan silhouette outlines
     enableEdges: true,
-    edgeColor: [0.0, 1.0, 1.0],     // neon cyan edges
-    edgeIntensity: 2.0,
-    edgeSensitivity: 8.0,
+    edgeColor: [0.0, 0.8, 1.0],
+    edgeIntensity: 1.8,
+    edgeSensitivity: 7.0,
+
+    // VIB3 inscription — hypercube grid pattern on edges
     enableInscription: true,
-    inscGeometry: 1,                  // hypercube grid pattern
-    inscScale: 4.0,
-    inscSpeed: 0.2,
+    inscGeometry: 1,
+    inscScale: 4.5,
+    inscSpeed: 0.15,
+
+    // Chromatic aberration — subtle RGB split at screen edges
+    enableChroma: true,
+    chromaIntensity: 0.004,
+
+    // Vignette — darken screen corners for cinematic frame
+    enableVignette: true,
+    vignetteIntensity: 0.55,
+    vignetteSoftness: 0.28,
+
+    // Film grain — subtle texture
+    enableGrain: true,
+    grainIntensity: 0.045,
+
+    // HDR tonemap
     enableTonemap: true,
-    exposure: 1.4,
+    exposure: 1.5,
     gamma: 2.2,
 });
 
@@ -110,6 +132,7 @@ function updateStats(stats) {
     if (now - lastFpsTime > 500) {
         displayFps = Math.round(frameCount / ((now - lastFpsTime) / 1000));
         elFps.textContent = displayFps;
+        elFps.className = displayFps >= 50 ? 'value good' : displayFps >= 25 ? 'value' : 'value warn';
         frameCount = 0;
         lastFpsTime = now;
     }
@@ -140,11 +163,18 @@ function wireRange(id, vid, cb) {
 wireCheckbox('ppEdges', v => postProcess.enableEdges = v);
 wireCheckbox('ppInscription', v => postProcess.enableInscription = v);
 wireCheckbox('ppTonemap', v => postProcess.enableTonemap = v);
+wireCheckbox('ppBloom', v => postProcess.enableBloom = v);
+wireCheckbox('ppChroma', v => postProcess.enableChroma = v);
+wireCheckbox('ppVignette', v => postProcess.enableVignette = v);
+wireCheckbox('ppGrain', v => postProcess.enableGrain = v);
 
 wireRange('ppSensitivity', 'ppSensitivityVal', v => postProcess.edgeSensitivity = v);
 wireRange('ppEdgeIntensity', 'ppEdgeIntensityVal', v => postProcess.edgeIntensity = v);
 wireRange('ppInscPattern', 'ppInscPatternVal', v => postProcess.inscGeometry = v);
 wireRange('ppExposure', 'ppExposureVal', v => postProcess.exposure = v);
+wireRange('ppBloomIntensity', 'ppBloomIntensityVal', v => postProcess.bloomIntensity = v);
+wireRange('ppBloomThreshold', 'ppBloomThresholdVal', v => postProcess.bloomThreshold = v);
+wireRange('ppVignetteStr', 'ppVignetteStrVal', v => postProcess.vignetteIntensity = v);
 
 /* ------------------------------------------------------------------ */
 /*  Orbit interaction                                                  */
@@ -157,7 +187,7 @@ canvas.addEventListener('pointerup', () => {
 });
 
 /* ------------------------------------------------------------------ */
-/*  Render loop                                                        */
+/*  Render loop — cinematic choreography                               */
 /* ------------------------------------------------------------------ */
 
 const startTime = performance.now();
@@ -165,23 +195,28 @@ const startTime = performance.now();
 function tick() {
     const time = (performance.now() - startTime) * 0.001;
 
-    // Slow cinematic orbit with gentle vertical bob for parallax
     if (autoOrbit) {
-        camera.azimuth += 0.0015;                         // very slow rotation
-        camera.elevation = 0.15 + Math.sin(time * 0.2) * 0.08; // gentle nod
-        camera.target[1] = 0.5 + Math.sin(time * 0.15) * 0.3; // vertical drift
+        // Slow orbit with breathing motion
+        camera.azimuth += 0.0012;
+        // Sinusoidal elevation: look up at sky, then back at pyramids
+        camera.elevation = 0.12 + Math.sin(time * 0.18) * 0.1;
+        // Gentle lateral drift for parallax emphasis
+        camera.target[0] = Math.sin(time * 0.1) * 0.4;
+        camera.target[1] = 0.3 + Math.sin(time * 0.13) * 0.35;
+        // Slow dolly breathing
+        camera.distance = 6.5 + Math.sin(time * 0.08) * 0.5;
     }
 
     const viewMatrix = camera.viewMatrix;
     const projMatrix = camera.projMatrix;
     const vp = camera.viewProjection;
 
-    // Animate 4D inscription rotation — slow, dreamy
-    postProcess.rot4dXW = time * 0.08;
-    postProcess.rot4dYW = time * 0.05;
-    postProcess.rot4dZW = time * 0.03;
+    // 4D inscription rotation — slow, dreamy
+    postProcess.rot4dXW = time * 0.06;
+    postProcess.rot4dYW = time * 0.04;
+    postProcess.rot4dZW = time * 0.025;
 
-    // Render splats → FBO → post-process → screen
+    // Render: splats → FBO → cinematic post-process → screen
     postProcess.beginCapture();
     const stats = renderer.render(viewMatrix, projMatrix, vp, time);
     postProcess.endCaptureAndComposite(time);

@@ -2,6 +2,25 @@
 
 Three development tracks running in parallel, ordered by impact and dependency.
 
+> **Status: All 15 work items implemented (v3).** See module files for full API documentation.
+
+| Track | Item | Module | Status |
+|-------|------|--------|--------|
+| 1.1 | glTF/OBJ Import | `ModelLoader.js` | Done |
+| 1.2 | Skeletal Animation | `SkeletalAnimator.js` | Done |
+| 1.3 | Shadow Maps | `ShadowMap.js` | Done |
+| 1.4 | Frustum Culling + LOD | `FrustumCuller.js` | Done |
+| 2.1 | Inscription Texturing | `InscriptionTexture.js` | Done |
+| 2.2 | Volumetric Inscription | `VolumetricInscription.js` | Done |
+| 2.3 | Screen-Space Reflections | `SSR.js` | Done |
+| 2.4 | Particle System | `ParticleSystem.js` | Done |
+| 2.5 | Inscription Lighting | `DeferredInscriptionLighting.js` | Done |
+| 3.1 | React/Three.js | `integrations/react/VIB3HybridPipeline.jsx` | Done |
+| 3.2 | Video Export | `export/VideoExporter.js` | Done |
+| 3.3 | glTF Extension | `export/GLTFInscriptionExporter.js` | Done |
+| 3.4 | MCP Pipeline Tools | `agent/mcp/PipelineTools.js` | Done |
+| 3.5 | WebXR Immersive | `WebXRSession.js` | Done |
+
 ---
 
 ## Track 1 — Pipeline Hardening

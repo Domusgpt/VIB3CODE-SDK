@@ -286,6 +286,7 @@
     "dev:web": "vite --open",
     "build:web": "vite build",
     "build:demo": "vite build --config vite.config.demo.js",
+    "build:invest": "vite build --config vite.config.invest.js",
     "lint": "eslint \"src/**/*.{js,ts}\"",
     "test": "vitest run",
     "test:e2e": "playwright test",

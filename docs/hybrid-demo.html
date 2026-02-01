@@ -112,7 +112,7 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
 
   <div class="overlay header-bar">
     <span class="header-title">Hybrid Render Pipeline <span class="header-version">v3</span></span>
-    <span class="header-sub">Mesh + Splat + Procedural + Inscription + Shadows + Particles + Volumetric</span>
+    <span class="header-sub">Mesh + Splat + Procedural + Inscription + Shadows + Particles + Bloom + SSR</span>
   </div>
 
   <div class="overlay tab-bar">
@@ -122,6 +122,7 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
     <button class="tab-btn" data-tab="particles">Particles<span class="v3-dot"></span></button>
     <button class="tab-btn" data-tab="volumetric">Volumetric<span class="v3-dot"></span></button>
     <button class="tab-btn" data-tab="inscFX">Inscription FX<span class="v3-dot"></span></button>
+    <button class="tab-btn" data-tab="cinematic">Cinematic<span class="v3-dot"></span></button>
     <button class="tab-btn" data-tab="benchmark">Benchmark</button>
   </div>
 
@@ -196,6 +197,31 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
       <p class="control-desc">NdotL diffuse + anisotropic specular + Fresnel rim on inscriptions.</p>
     </div>
 
+    <!-- v3: Bloom -->
+    <div class="control-group">
+      <div class="controls-subtitle v3">v3: Bloom</div>
+      <label class="toggle-row"><span class="label-text">Bloom</span><input type="checkbox" id="toggleBloom" checked><span class="toggle-switch purple"></span></label>
+      <label class="slider-row"><span>Threshold</span><input type="range" id="sliderBloomThreshold" min="10" max="100" value="65"><span class="slider-val" id="valBloomThreshold">0.65</span></label>
+      <label class="slider-row"><span>Intensity</span><input type="range" id="sliderBloomIntensity" min="0" max="100" value="45"><span class="slider-val" id="valBloomIntensity">0.45</span></label>
+      <p class="control-desc">HDR bright-extract + multi-pass Gaussian blur for cinematic glow.</p>
+    </div>
+
+    <!-- v3: SSR -->
+    <div class="control-group">
+      <div class="controls-subtitle v3">v3: Reflections (SSR)</div>
+      <label class="toggle-row"><span class="label-text">Screen-Space Reflections</span><input type="checkbox" id="toggleSSR" checked><span class="toggle-switch purple"></span></label>
+      <label class="slider-row"><span>Strength</span><input type="range" id="sliderSSRStrength" min="0" max="100" value="60"><span class="slider-val" id="valSSRStrength">0.60</span></label>
+      <p class="control-desc">GBuffer-based raymarched reflections of inscriptions on mesh surfaces.</p>
+    </div>
+
+    <!-- v3: Cinematic Post -->
+    <div class="control-group">
+      <div class="controls-subtitle v3">v3: Cinematic Post</div>
+      <label class="slider-row"><span>Vignette</span><input type="range" id="sliderVignette" min="0" max="100" value="35"><span class="slider-val" id="valVignette">0.35</span></label>
+      <label class="slider-row"><span>Chromatic</span><input type="range" id="sliderChromatic" min="0" max="100" value="30"><span class="slider-val" id="valChromatic">0.30</span></label>
+      <p class="control-desc">ACES filmic tonemapping, vignette, chromatic aberration, film grain.</p>
+    </div>
+
     <!-- Scene & Animation -->
     <div class="control-group">
       <div class="controls-subtitle v2">Scene &amp; Animation</div>
@@ -215,6 +241,8 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
     <div class="feature-badge off" id="badgeVolumetric">Volumetric</div>
     <div class="feature-badge on" id="badgeDeferredLit">Deferred Lit</div>
     <div class="feature-badge on" id="badgeInscription">Inscription</div>
+    <div class="feature-badge on" id="badgeBloom">Bloom</div>
+    <div class="feature-badge on" id="badgeSSR">SSR</div>
   </div>
 
   <!-- Stats -->
@@ -229,6 +257,8 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
     <div class="stat-row v3"><span>Particles</span><strong id="particleCount">0</strong></div>
     <div class="stat-row v3"><span>Shadow Res</span><strong id="shadowRes">1024</strong></div>
     <div class="stat-row v3"><span>Vol Steps</span><strong id="volSteps">0</strong></div>
+    <div class="stat-row separator"></div>
+    <div class="stat-row v3"><span>Post Passes</span><strong id="postPasses">3</strong></div>
     <div class="stat-row separator"></div>
     <div class="stat-row"><span>Active Layers</span><strong id="activeLayers">4</strong></div>
     <div class="stat-row"><span>State</span><strong id="currentState">active</strong></div>

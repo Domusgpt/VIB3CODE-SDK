@@ -26,10 +26,24 @@
   --glow-purple: 0 0 40px rgba(167, 139, 250, 0.15);
 }
 
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--c-bg); color: var(--c-text); font-family: var(--font); }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--c-bg); color: var(--c-text); font-family: var(--font);
+  touch-action: none;
+  overscroll-behavior: none;  /* prevent pull-to-refresh, back-swipe */
+  -webkit-overflow-scrolling: auto;
+}
 
 /* === CANVAS === */
-#canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; z-index: 0; }
+#canvas {
+  position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0;
+  cursor: grab;
+  touch-action: none;           /* prevent browser pan/zoom */
+  -webkit-user-select: none;    /* prevent text selection on drag */
+  user-select: none;
+  -webkit-touch-callout: none;  /* prevent iOS callout */
+  -webkit-tap-highlight-color: transparent;
+}
 #canvas:active { cursor: grabbing; }
 
 /* === OPENING OVERLAY === */

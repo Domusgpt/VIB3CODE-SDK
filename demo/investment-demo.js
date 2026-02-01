@@ -260,56 +260,245 @@ window.addEventListener('resize', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
-//  ORBIT CAMERA WITH SCRIPTABLE TARGETS
+//  PHYSICS-BASED CINEMA CAMERA
+//  Inertia, multi-touch pinch, spring-damper transitions, elastic bounds
 // ═══════════════════════════════════════════════════════════════════
 class CinemaCamera {
     constructor(canvas) {
-        this.distance = 5; this.azimuth = 0.5; this.elevation = 0.35;
-        this.fov = Math.PI / 4; this.near = 0.1; this.far = 100;
-        this.target = [0, 0, 0]; this.canvas = canvas;
-        this._dragging = false; this._userControl = false;
-        this._targetDistance = 5; this._targetAzimuth = 0.5; this._targetElevation = 0.35;
-        this._lerpSpeed = 0.03;
+        this.azimuth = 0.5;
+        this.elevation = 0.35;
+        this.distance = 5;
+        this.fov = Math.PI / 4;
+        this.near = 0.1;
+        this.far = 100;
+        this.target = [0, 0, 0];
+        this.canvas = canvas;
 
-        canvas.addEventListener('pointerdown', e => {
-            this._dragging = true; this._lastX = e.clientX; this._lastY = e.clientY;
-            canvas.setPointerCapture(e.pointerId);
-            this._userControl = true;
-        });
-        canvas.addEventListener('pointermove', e => {
-            if (!this._dragging) return;
-            this.azimuth += (e.clientX - this._lastX) * 0.005;
-            this.elevation += (e.clientY - this._lastY) * 0.005;
-            this.elevation = Math.max(-1.5, Math.min(1.5, this.elevation));
-            this._lastX = e.clientX; this._lastY = e.clientY;
-        });
-        canvas.addEventListener('pointerup', () => { this._dragging = false; });
-        canvas.addEventListener('wheel', e => {
-            e.preventDefault(); this.distance *= 1 + e.deltaY * 0.001;
-            this.distance = Math.max(1, Math.min(30, this.distance));
-            this._userControl = true;
-        }, { passive: false });
+        // ── Velocity state (inertia) ──
+        this._vAz = 0;          // azimuth velocity (rad/frame@60)
+        this._vEl = 0;          // elevation velocity
+        this._vDist = 0;        // zoom velocity
+
+        // ── Physics tuning ──
+        this._friction = 0.93;        // per-frame velocity retention (higher = longer coast)
+        this._zoomFriction = 0.87;    // zoom decays faster
+        this._sensitivity = 0.004;    // pointer-to-radian ratio
+        this._zoomSens = 0.001;       // wheel delta-to-zoom ratio
+        this._springK = 3.5;          // auto-pilot spring stiffness
+        this._springDamp = 0.88;      // auto-pilot spring damping
+
+        // ── Auto-pilot ──
+        this._autopilot = true;
+        this._autoTimer = null;
+        this._tAz = 0.5;
+        this._tEl = 0.35;
+        this._tDist = 5;
+        this._orbitSpeed = 0.12;      // rad/s base auto-orbit
+
+        // ── Choreography (per-scene sine wobble) ──
+        this._choroElAmp = 0;         // elevation wobble amplitude
+        this._choroElFreq = 0;        // elevation wobble frequency
+        this._choroDistAmp = 0;       // distance wobble amplitude
+        this._choroDistFreq = 0;      // distance wobble frequency
+
+        // ── Input tracking ──
+        this._pointers = new Map();
+        this._pinchDist = 0;
+
+        // ── Elastic zoom bounds ──
+        this._minDist = 1.5;
+        this._maxDist = 20;
+
+        // ── Bind events ──
+        canvas.style.touchAction = 'none';
+        canvas.style.userSelect = 'none';
+        canvas.style.webkitUserSelect = 'none';
+        canvas.addEventListener('pointerdown', this._down.bind(this));
+        canvas.addEventListener('pointermove', this._move.bind(this));
+        canvas.addEventListener('pointerup', this._up.bind(this));
+        canvas.addEventListener('pointercancel', this._up.bind(this));
+        canvas.addEventListener('wheel', this._wheel.bind(this), { passive: false });
     }
-    setTarget(azimuth, elevation, distance, lerpSpeed = 0.03) {
-        this._targetAzimuth = azimuth;
-        this._targetElevation = elevation;
-        this._targetDistance = distance;
-        this._lerpSpeed = lerpSpeed;
-        this._userControl = false;
-    }
-    update() {
-        if (!this._userControl && !this._dragging) {
-            this.azimuth += (this._targetAzimuth - this.azimuth) * this._lerpSpeed;
-            this.elevation += (this._targetElevation - this.elevation) * this._lerpSpeed;
-            this.distance += (this._targetDistance - this.distance) * this._lerpSpeed;
-            // Slowly orbit
-            this._targetAzimuth += 0.002;
+
+    // ── Pointer events ──────────────────────────────────────────
+    _down(e) {
+        this.canvas.setPointerCapture(e.pointerId);
+        this._pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        // Dampen existing velocity — don't kill it, just slow it.
+        // This makes "catch and redirect" feel fluid.
+        this._vAz *= 0.3;
+        this._vEl *= 0.3;
+
+        this._autopilot = false;
+        clearTimeout(this._autoTimer);
+
+        // Init pinch distance on second finger
+        if (this._pointers.size === 2) {
+            const [a, b] = [...this._pointers.values()];
+            this._pinchDist = Math.hypot(b.x - a.x, b.y - a.y);
         }
     }
+
+    _move(e) {
+        const p = this._pointers.get(e.pointerId);
+        if (!p) return;
+
+        const dx = e.clientX - p.x;
+        const dy = e.clientY - p.y;
+        p.x = e.clientX;
+        p.y = e.clientY;
+
+        if (this._pointers.size === 1) {
+            // ── Single pointer: orbit ──
+            // Apply position directly for zero-latency feel
+            const vx = dx * this._sensitivity;
+            const vy = dy * this._sensitivity;
+            this.azimuth += vx;
+            this.elevation = Math.max(-1.4, Math.min(1.4, this.elevation + vy));
+            // Blend into velocity for inertia on release (50/50 smoothing)
+            this._vAz = this._vAz * 0.5 + vx * 0.5;
+            this._vEl = this._vEl * 0.5 + vy * 0.5;
+
+        } else if (this._pointers.size === 2) {
+            // ── Pinch: zoom ──
+            const [a, b] = [...this._pointers.values()];
+            const dist = Math.hypot(b.x - a.x, b.y - a.y);
+            if (this._pinchDist > 10) {
+                const ratio = this._pinchDist / dist;
+                this.distance *= ratio;
+                this._vDist = (ratio - 1) * this.distance * 0.5;
+            }
+            this._pinchDist = dist;
+
+            // Also orbit with averaged movement (slower)
+            this.azimuth += dx * this._sensitivity * 0.3;
+            this.elevation = Math.max(-1.4, Math.min(1.4, this.elevation + dy * this._sensitivity * 0.3));
+        }
+    }
+
+    _up(e) {
+        this._pointers.delete(e.pointerId);
+        this._pinchDist = 0;
+        if (this._pointers.size === 0) {
+            this._scheduleAutoResume();
+        }
+    }
+
+    _wheel(e) {
+        e.preventDefault();
+        const delta = e.deltaY * this._zoomSens;
+        this._vDist += delta * this.distance;
+        this.distance *= (1 + delta);
+        this._autopilot = false;
+        clearTimeout(this._autoTimer);
+        this._scheduleAutoResume();
+    }
+
+    _scheduleAutoResume() {
+        clearTimeout(this._autoTimer);
+        this._autoTimer = setTimeout(() => {
+            // Seamlessly resume: sync target to wherever user left off
+            this._tAz = this.azimuth;
+            this._tEl = this.elevation;
+            this._tDist = this.distance;
+            this._autopilot = true;
+        }, 3500);
+    }
+
+    // ── Scene control ───────────────────────────────────────────
+    setTarget(azimuth, elevation, distance, orbitSpeed = 0.12, choreography = null) {
+        this._tAz = azimuth;
+        this._tEl = elevation;
+        this._tDist = distance;
+        this._orbitSpeed = orbitSpeed;
+        this._autopilot = true;
+        clearTimeout(this._autoTimer);
+
+        // Per-scene choreography (sine wobble for dynamic camera)
+        if (choreography) {
+            this._choroElAmp = choreography.elAmp || 0;
+            this._choroElFreq = choreography.elFreq || 0;
+            this._choroDistAmp = choreography.distAmp || 0;
+            this._choroDistFreq = choreography.distFreq || 0;
+        } else {
+            this._choroElAmp = 0;
+            this._choroElFreq = 0;
+            this._choroDistAmp = 0;
+            this._choroDistFreq = 0;
+        }
+    }
+
+    releaseAutopilot() {
+        this._autopilot = false;
+        clearTimeout(this._autoTimer);
+    }
+
+    // ── Physics update (call every frame with deltaTime) ────────
+    update(dt, time) {
+        dt = Math.min(dt, 0.05); // clamp for tab-switch safety
+
+        // Frame-rate independent friction: friction^(dt * 60)
+        const fric = Math.pow(this._friction, dt * 60);
+        const zfric = Math.pow(this._zoomFriction, dt * 60);
+
+        if (this._pointers.size === 0) {
+            if (this._autopilot) {
+                // ── Spring-damper toward target ──
+                // Apply sine-wave choreography to targets for scene dynamism
+                const chorEl = this._choroElAmp * Math.sin(time * this._choroElFreq);
+                const chorDist = this._choroDistAmp * Math.sin(time * this._choroDistFreq);
+
+                const k = this._springK * dt;
+                this._vAz += (this._tAz - this.azimuth) * k;
+                this._vEl += ((this._tEl + chorEl) - this.elevation) * k;
+                this._vDist += ((this._tDist + chorDist) - this.distance) * k;
+
+                this.azimuth += this._vAz;
+                this.elevation += this._vEl;
+                this.distance += this._vDist;
+
+                this._vAz *= this._springDamp;
+                this._vEl *= this._springDamp;
+                this._vDist *= this._springDamp;
+
+                // Auto-orbit
+                this._tAz += this._orbitSpeed * dt;
+
+            } else {
+                // ── Coasting (inertia from user interaction) ──
+                this.azimuth += this._vAz;
+                this.elevation += this._vEl;
+                this.distance += this._vDist;
+                this.elevation = Math.max(-1.4, Math.min(1.4, this.elevation));
+
+                this._vAz *= fric;
+                this._vEl *= fric;
+                this._vDist *= zfric;
+
+                // Kill negligible velocities to avoid micro-drift
+                if (Math.abs(this._vAz) < 1e-6) this._vAz = 0;
+                if (Math.abs(this._vEl) < 1e-6) this._vEl = 0;
+                if (Math.abs(this._vDist) < 1e-5) this._vDist = 0;
+            }
+        }
+
+        // ── Elastic zoom bounds ──
+        if (this.distance < this._minDist) {
+            this.distance += (this._minDist - this.distance) * 0.12;
+            this._vDist *= 0.5;
+        } else if (this.distance > this._maxDist) {
+            this.distance += (this._maxDist - this.distance) * 0.12;
+            this._vDist *= 0.5;
+        }
+    }
+
     get eye() {
         const ce = Math.cos(this.elevation), se = Math.sin(this.elevation);
         const ca = Math.cos(this.azimuth), sa = Math.sin(this.azimuth);
-        return [this.target[0] + this.distance * ce * sa, this.target[1] + this.distance * se, this.target[2] + this.distance * ce * ca];
+        return [this.target[0] + this.distance * ce * sa,
+                this.target[1] + this.distance * se,
+                this.target[2] + this.distance * ce * ca];
     }
     get aspect() { return this.canvas.width / this.canvas.height; }
     get viewMatrix() { return mat4LookAt(this.eye, this.target, [0, 1, 0]); }
@@ -521,6 +710,8 @@ const SCENES = [
         tags: ['WebGL 2.0', 'MRT GBuffer', '4-Layer Compositor', 'Tone Mapping'],
         mesh: 'knot',
         camera: { azimuth: 0.5, elevation: 0.35, distance: 5 },
+        orbitSpeed: 0.14,
+        choreography: { elAmp: 0.08, elFreq: 0.4, distAmp: 0.3, distFreq: 0.25 },
         layers: { mesh: true, splat: true, procedural: true, inscription: true },
         v3: { shadows: true, particles: false, volumetric: false, deferred: true },
         procGeometry: 3,
@@ -535,6 +726,8 @@ const SCENES = [
         tags: ['200K Points', 'GPU Animation', 'Chromatic Aberration', 'HDR Bloom', 'Quaternion Orientation'],
         mesh: null, // Galaxy mode
         camera: { azimuth: 1.0, elevation: 0.15, distance: 4 },
+        orbitSpeed: 0.22,
+        choreography: { elAmp: 0.12, elFreq: 0.3, distAmp: 0.5, distFreq: 0.18 },
         layers: { mesh: false, splat: true, procedural: false, inscription: false },
         v3: { shadows: false, particles: false, volumetric: false, deferred: false },
         procGeometry: 3,
@@ -549,6 +742,8 @@ const SCENES = [
         tags: ['Sobel Edge Detection', '4 Inscription Layers', '24 Geometries', '4D Rotation', 'Audio Reactive'],
         mesh: 'torus',
         camera: { azimuth: -0.5, elevation: 0.4, distance: 4.5 },
+        orbitSpeed: 0.10,
+        choreography: { elAmp: 0.15, elFreq: 0.35, distAmp: 0.4, distFreq: 0.2 },
         layers: { mesh: true, splat: false, procedural: false, inscription: true },
         v3: { shadows: true, particles: false, volumetric: false, deferred: true },
         procGeometry: 7,
@@ -563,6 +758,8 @@ const SCENES = [
         tags: ['5 Semantic States', 'Smooth Transitions', 'Priority System', 'Audio Mapping', 'Per-Object Identity'],
         mesh: 'sphere',
         camera: { azimuth: 0.2, elevation: 0.3, distance: 4.8 },
+        orbitSpeed: 0.08,
+        choreography: { elAmp: 0.06, elFreq: 0.5, distAmp: 0.2, distFreq: 0.3 },
         layers: { mesh: true, splat: true, procedural: false, inscription: true },
         v3: { shadows: true, particles: true, volumetric: false, deferred: true },
         procGeometry: 5,
@@ -577,6 +774,8 @@ const SCENES = [
         tags: ['48 Ray Steps', '4D Noise Field', 'Emission-Absorption', 'Depth Constrained', 'Volumetric Rendering'],
         mesh: 'cube',
         camera: { azimuth: 0.8, elevation: 0.25, distance: 5.5 },
+        orbitSpeed: 0.06,
+        choreography: { elAmp: 0.10, elFreq: 0.2, distAmp: 0.6, distFreq: 0.15 },
         layers: { mesh: true, splat: false, procedural: true, inscription: true },
         v3: { shadows: false, particles: false, volumetric: true, deferred: false },
         procGeometry: 1,
@@ -592,6 +791,8 @@ const SCENES = [
         tagType: 'purple',
         mesh: 'knot',
         camera: { azimuth: 0.0, elevation: 0.3, distance: 4.8 },
+        orbitSpeed: 0.18,
+        choreography: { elAmp: 0.12, elFreq: 0.45, distAmp: 0.35, distFreq: 0.22 },
         layers: { mesh: true, splat: true, procedural: true, inscription: true },
         v3: { shadows: true, particles: true, volumetric: false, deferred: true },
         procGeometry: 3,
@@ -638,8 +839,9 @@ function applyScene(index) {
     // Procedural geometry
     procGeometry = scene.procGeometry;
 
-    // Camera target
-    camera.setTarget(scene.camera.azimuth, scene.camera.elevation, scene.camera.distance, 0.02);
+    // Camera target with per-scene orbit speed + choreography
+    camera.setTarget(scene.camera.azimuth, scene.camera.elevation, scene.camera.distance,
+        scene.orbitSpeed || 0.12, scene.choreography || null);
 
     // Inscription state
     inscriptionChannel.setObjectState(1, scene.state);
@@ -749,6 +951,7 @@ document.getElementById('btnControls').addEventListener('click', () => {
     interactiveMode = !interactiveMode;
     if (interactiveMode) {
         showcaseRunning = false;
+        camera.releaseAutopilot();
         hideShowcaseUI();
         document.getElementById('interactive-cta').classList.remove('visible');
         // Enable all layers for playground
@@ -768,6 +971,7 @@ document.getElementById('btnControls').addEventListener('click', () => {
 document.getElementById('btnInteractive').addEventListener('click', () => {
     interactiveMode = true;
     showcaseRunning = false;
+    camera.releaseAutopilot();
     document.getElementById('interactive-cta').classList.remove('visible');
     hideShowcaseUI();
     pipeline.meshLayer.enabled = true;
@@ -820,8 +1024,8 @@ function tick() {
     lastTime = time;
     const w = gl.canvas.width, h = gl.canvas.height;
 
-    // Camera update (smooth lerp to targets)
-    camera.update();
+    // Camera physics update (inertia, spring-damper, choreography)
+    camera.update(deltaTime, time);
 
     // Edge inscription auto-animation
     edgeInscription.rot4dXY = time * 0.1;

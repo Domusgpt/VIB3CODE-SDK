@@ -80,6 +80,12 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
 .export-btn .dot.red { background: #f87171; }
 .export-btn .dot.green { background: #4ade80; }
 .info-panel { bottom: 56px; left: 16px; font-size: 10px; color: #3e526e; text-align: left; line-height: 1.5; max-width: 200px; }
+#dropOverlay { position: fixed; inset: 0; z-index: 50; background: rgba(91,156,245,0.12); border: 3px dashed rgba(91,156,245,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+#dropOverlay.visible { opacity: 1; }
+#dropOverlay .drop-text { font: 600 18px/1 inherit; color: #5b9cf5; background: rgba(6,12,28,0.85); padding: 16px 28px; border-radius: 12px; backdrop-filter: blur(10px); }
+.media-btn-row { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+.media-btn { font: 500 10px/1 inherit; color: #a78bfa; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25); border-radius: 5px; padding: 5px 10px; cursor: pointer; transition: all .2s; white-space: nowrap; }
+.media-btn:hover { background: rgba(167,139,250,0.2); border-color: rgba(167,139,250,0.4); }
 .feature-badges { top: 78px; right: 16px; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
 .feature-badge { font: 500 9px/1 inherit; padding: 3px 8px; border-radius: 4px; transition: all .3s; }
 .feature-badge.on { color: #c4b5fd; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); }
@@ -110,9 +116,13 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
   <a class="back-link" href="./index.html">&larr; Gallery</a>
   <canvas id="canvas"></canvas>
 
+  <!-- Drop overlay for drag-and-drop media -->
+  <div id="dropOverlay"><span class="drop-text">Drop image or video</span></div>
+  <input type="file" id="mediaFileInput" accept="image/*,video/*" style="display:none">
+
   <div class="overlay header-bar">
     <span class="header-title">Hybrid Render Pipeline <span class="header-version">v3</span></span>
-    <span class="header-sub">Mesh + Splat + Procedural + Inscription + Shadows + Particles + Bloom + SSR</span>
+    <span class="header-sub">Mesh + Splat + Procedural + Inscription + Shadows + Particles + Bloom + SSR + Media</span>
   </div>
 
   <div class="overlay tab-bar">
@@ -222,6 +232,18 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
       <p class="control-desc">ACES filmic tonemapping, vignette, chromatic aberration, film grain.</p>
     </div>
 
+    <!-- v3: Media Input -->
+    <div class="control-group">
+      <div class="controls-subtitle v3">v3: Media Input</div>
+      <div class="media-btn-row">
+        <button class="media-btn" id="btnWebcam">Webcam</button>
+        <button class="media-btn" id="btnMediaFile">Load File</button>
+        <button class="media-btn" id="btnStopMedia">Stop</button>
+      </div>
+      <label class="slider-row" style="margin-top:8px"><span>Splat Mode</span><select id="selectSplatMode" class="blend-select"><option value="surface" selected>Surface Map</option><option value="dissolve">Dissolve Cloud</option></select></label>
+      <p class="control-desc">Webcam or image/video → real-time mesh texture + splat conversion. Drag &amp; drop onto canvas.</p>
+    </div>
+
     <!-- Scene & Animation -->
     <div class="control-group">
       <div class="controls-subtitle v2">Scene &amp; Animation</div>
@@ -243,6 +265,7 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
     <div class="feature-badge on" id="badgeInscription">Inscription</div>
     <div class="feature-badge on" id="badgeBloom">Bloom</div>
     <div class="feature-badge on" id="badgeSSR">SSR</div>
+    <div class="feature-badge off" id="badgeMedia">Media In</div>
   </div>
 
   <!-- Stats -->
@@ -259,6 +282,7 @@ body { min-height: 100vh; background: #030814; color: #e6edf6; font-family: "Int
     <div class="stat-row v3"><span>Vol Steps</span><strong id="volSteps">0</strong></div>
     <div class="stat-row separator"></div>
     <div class="stat-row v3"><span>Post Passes</span><strong id="postPasses">3</strong></div>
+    <div class="stat-row v3"><span>Media Source</span><strong id="mediaSourceLabel">None</strong></div>
     <div class="stat-row separator"></div>
     <div class="stat-row"><span>Active Layers</span><strong id="activeLayers">4</strong></div>
     <div class="stat-row"><span>State</span><strong id="currentState">active</strong></div>

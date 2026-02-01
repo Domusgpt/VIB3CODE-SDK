@@ -595,6 +595,212 @@ function loadMesh(key) {
 }
 
 /* ================================================================== */
+/*  v3: MEDIA INGESTION — Webcam / Image / Video → Pipeline            */
+/* ================================================================== */
+
+let mediaSource = 'none';       // 'none' | 'webcam' | 'image' | 'video'
+let mediaVideo = null;          // HTMLVideoElement (webcam or video file)
+let mediaCanvas = null;         // offscreen canvas for pixel extraction
+let mediaCtx = null;
+let mediaStream = null;         // MediaStream for webcam
+let mediaSplatMode = 'surface'; // 'surface' (texture on mesh) | 'dissolve' (splat cloud)
+let mediaSplatUpdateInterval = 6; // update splats every N frames
+let mediaSplatFrameCounter = 0;
+let mediaActive = false;
+
+// Create offscreen canvas for pixel extraction
+mediaCanvas = document.createElement('canvas');
+mediaCanvas.width = 256;
+mediaCanvas.height = 256;
+mediaCtx = mediaCanvas.getContext('2d', { willReadFrequently: true });
+
+async function startWebcam() {
+    try {
+        if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); }
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 512 }, height: { ideal: 512 }, facingMode: 'user' }
+        });
+        if (!mediaVideo) {
+            mediaVideo = document.createElement('video');
+            mediaVideo.playsInline = true;
+            mediaVideo.muted = true;
+        }
+        mediaVideo.srcObject = mediaStream;
+        await mediaVideo.play();
+        mediaSource = 'webcam';
+        mediaActive = true;
+        updateMediaBadge();
+    } catch (e) {
+        console.warn('Webcam access denied:', e);
+        alert('Camera access denied. Check browser permissions.');
+    }
+}
+
+function stopMedia() {
+    if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+    if (mediaVideo) { mediaVideo.pause(); mediaVideo.srcObject = null; }
+    mediaSource = 'none';
+    mediaActive = false;
+    // Restore default texture
+    if (currentMesh) {
+        meshRenderer.uploadTexture(textureData);
+        textureSplats = textureConverter.convert({
+            positions: currentMesh.positions, normals: currentMesh.normals,
+            uvs: currentMesh.uvs, indices: currentMesh.indices,
+            diffusePixels: textureData.data, diffuseWidth: textureData.width, diffuseHeight: textureData.height,
+        });
+        splatRenderer.updateSeeds(encodeGaussianSeeds(textureSplats), textureSplats.length);
+        const elSC = document.getElementById('splatCount');
+        if (elSC) elSC.textContent = textureSplats.length.toLocaleString();
+    }
+    updateMediaBadge();
+}
+
+function loadMediaImage(file) {
+    const img = new Image();
+    img.onload = () => {
+        mediaCanvas.width = Math.min(img.width, 512);
+        mediaCanvas.height = Math.min(img.height, 512);
+        mediaCtx.drawImage(img, 0, 0, mediaCanvas.width, mediaCanvas.height);
+        const imageData = mediaCtx.getImageData(0, 0, mediaCanvas.width, mediaCanvas.height);
+        // Apply as mesh texture
+        meshRenderer.uploadTexture(imageData);
+        // Convert to splats
+        if (currentMesh) {
+            textureSplats = textureConverter.convert({
+                positions: currentMesh.positions, normals: currentMesh.normals,
+                uvs: currentMesh.uvs, indices: currentMesh.indices,
+                diffusePixels: imageData.data, diffuseWidth: mediaCanvas.width, diffuseHeight: mediaCanvas.height,
+            });
+            splatRenderer.updateSeeds(encodeGaussianSeeds(textureSplats), textureSplats.length);
+            const elSC = document.getElementById('splatCount');
+            if (elSC) elSC.textContent = textureSplats.length.toLocaleString();
+        }
+        mediaSource = 'image';
+        mediaActive = true;
+        updateMediaBadge();
+        URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(file);
+}
+
+function loadMediaVideo(file) {
+    if (!mediaVideo) {
+        mediaVideo = document.createElement('video');
+        mediaVideo.playsInline = true;
+        mediaVideo.muted = true;
+        mediaVideo.loop = true;
+    }
+    if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+    mediaVideo.srcObject = null;
+    mediaVideo.src = URL.createObjectURL(file);
+    mediaVideo.play();
+    mediaSource = 'video';
+    mediaActive = true;
+    updateMediaBadge();
+}
+
+function updateMediaBadge() {
+    const el = document.getElementById('badgeMedia');
+    if (el) el.className = 'feature-badge ' + (mediaActive ? 'on' : 'off');
+    const elSrc = document.getElementById('mediaSourceLabel');
+    if (elSrc) {
+        const labels = { none: 'None', webcam: 'Webcam', image: 'Image', video: 'Video' };
+        elSrc.textContent = labels[mediaSource] || 'None';
+    }
+}
+
+// Per-frame video texture update (called from render loop)
+function updateMediaTexture() {
+    if (!mediaActive || mediaSource === 'none' || mediaSource === 'image') return;
+    if (!mediaVideo || mediaVideo.readyState < 2) return;
+
+    // Update mesh diffuse texture directly from video element (GPU path)
+    const gl2 = meshRenderer.gl;
+    if (meshRenderer._diffuseTexture) {
+        gl2.bindTexture(gl2.TEXTURE_2D, meshRenderer._diffuseTexture);
+        gl2.texImage2D(gl2.TEXTURE_2D, 0, gl2.RGBA, gl2.RGBA, gl2.UNSIGNED_BYTE, mediaVideo);
+        // Skip mipmap regeneration for performance (use LINEAR instead)
+        gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MIN_FILTER, gl2.LINEAR);
+    }
+
+    // Periodically update splats from video frames
+    mediaSplatFrameCounter++;
+    if (mediaSplatFrameCounter >= mediaSplatUpdateInterval && currentMesh) {
+        mediaSplatFrameCounter = 0;
+        mediaCanvas.width = 256;
+        mediaCanvas.height = 256;
+        mediaCtx.drawImage(mediaVideo, 0, 0, 256, 256);
+        const pixels = mediaCtx.getImageData(0, 0, 256, 256);
+
+        if (mediaSplatMode === 'surface') {
+            textureSplats = textureConverter.convert({
+                positions: currentMesh.positions, normals: currentMesh.normals,
+                uvs: currentMesh.uvs, indices: currentMesh.indices,
+                diffusePixels: pixels.data, diffuseWidth: 256, diffuseHeight: 256,
+            });
+        } else {
+            // Dissolve mode: flat splat cloud
+            textureSplats = textureConverter.convertFlat(pixels.data, 256, 256, {
+                gridStep: 2, scale: 0.015, depthFromLum: 1.5,
+            });
+        }
+        splatRenderer.updateSeeds(encodeGaussianSeeds(textureSplats), textureSplats.length);
+        const elSC = document.getElementById('splatCount');
+        if (elSC) elSC.textContent = textureSplats.length.toLocaleString();
+    }
+}
+
+// Drag-and-drop handler
+function setupDragDrop() {
+    const overlay = document.getElementById('dropOverlay');
+    const cvs = document.getElementById('canvas');
+
+    cvs.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        if (overlay) overlay.classList.add('visible');
+    });
+    cvs.addEventListener('dragleave', () => {
+        if (overlay) overlay.classList.remove('visible');
+    });
+    cvs.addEventListener('drop', e => {
+        e.preventDefault();
+        if (overlay) overlay.classList.remove('visible');
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        if (file.type.startsWith('image/')) {
+            loadMediaImage(file);
+        } else if (file.type.startsWith('video/')) {
+            loadMediaVideo(file);
+        }
+    });
+}
+setupDragDrop();
+
+// Media controls wiring
+const btnWebcam = document.getElementById('btnWebcam');
+if (btnWebcam) btnWebcam.addEventListener('click', () => {
+    if (mediaSource === 'webcam') stopMedia();
+    else startWebcam();
+});
+const btnStopMedia = document.getElementById('btnStopMedia');
+if (btnStopMedia) btnStopMedia.addEventListener('click', stopMedia);
+const selSplatMode = document.getElementById('selectSplatMode');
+if (selSplatMode) selSplatMode.addEventListener('change', e => { mediaSplatMode = e.target.value; });
+const btnMediaFile = document.getElementById('btnMediaFile');
+const fileInput = document.getElementById('mediaFileInput');
+if (btnMediaFile && fileInput) {
+    btnMediaFile.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.type.startsWith('image/')) loadMediaImage(file);
+        else if (file.type.startsWith('video/')) loadMediaVideo(file);
+    });
+}
+
+/* ================================================================== */
 /*  TABS                                                               */
 /* ================================================================== */
 
@@ -1466,6 +1672,9 @@ function tick() {
         camera._choroDistAmp = 0.3;
         camera._choroDistFreq = 0.25;
     }
+
+    // --- v3: Update media texture from webcam/video ---
+    updateMediaTexture();
 
     // --- Dynamic 4D rotation (the "woah" factor) ---
     const rot4dBase = {

@@ -1,9 +1,15 @@
 /**
- * ChromaWar Demo — 200K particle emergent warfare game
+ * ChromaWar Demo — 200K particle emergent warfare game (module version)
  *
- * Three primary colour factions war across tilting planes.
+ * Three primary colour factions war across tilting planes with emergent
+ * behaviours: ant trails, squid pulses, slime merging, vine tendrils,
+ * orbital debris, and crystal fortress formation.
+ *
  * Player draws barrier lines to protect/ensnare groups.
  * Goal: balance all three colours.
+ *
+ * Requires Vite dev server or built dist — will NOT work from raw
+ * file:// or GitHub Pages (use chromawar-demo.html inline version for that).
  */
 
 import { ParticleRenderer } from '../src/render/ParticleRenderer.js';
@@ -11,11 +17,28 @@ import { ChromaSimulation } from '../src/game/ChromaSimulation.js';
 import { SplatPostProcess } from '../src/render/SplatPostProcess.js';
 
 /* ================================================================== */
-/*  Constants                                                          */
+/*  Auto-detect particle count                                         */
 /* ================================================================== */
 
-const PARTICLE_COUNT = 200000;
-const CLUSTER_COUNT  = 300;
+function detectCapacity() {
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    const cores = navigator.hardwareConcurrency || 2;
+    if (isMobile || cores <= 2) return { particles: 80000, clusters: 200 };
+    if (cores <= 4) return { particles: 150000, clusters: 250 };
+    return { particles: 200000, clusters: 300 };
+}
+
+const { particles: PARTICLE_COUNT, clusters: CLUSTER_COUNT } = detectCapacity();
+
+/* ================================================================== */
+/*  Error display                                                      */
+/* ================================================================== */
+
+function showError(msg) {
+    const el = document.getElementById('error-box');
+    if (el) { el.style.display = 'block'; el.textContent = 'ERROR: ' + msg; }
+    console.error('ChromaWar:', msg);
+}
 
 /* ================================================================== */
 /*  Globals                                                            */
@@ -30,18 +53,17 @@ let startTime;
 let isDrawing = false;
 let lineStart = null;
 let lineEnd = null;
-let pendingLine = null;
 
 // Camera
 const cam = {
     distance: 14.0,
-    elevation: 0.35,   // slight downward look
+    elevation: 0.35,
     azimuth: 0,
     fov: 55,
 };
 
 // Stats DOM
-let statsEl, balanceEls, lineCountEl, scoreEl, messageEl;
+let statsEl, modeStatsEl, balanceEls, lineCountEl, scoreEl, messageEl;
 
 /* ================================================================== */
 /*  Matrix helpers                                                     */
@@ -112,6 +134,10 @@ function initLineRenderer() {
     gl.attachShader(prog, vs);
     gl.attachShader(prog, fs);
     gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        console.warn('Line renderer link failed:', gl.getProgramInfoLog(prog));
+        return;
+    }
     lineProgram = prog;
 
     lineVAO = gl.createVertexArray();
@@ -126,6 +152,7 @@ function initLineRenderer() {
 }
 
 function drawLine(x0, y0, x1, y1, color, width = 3) {
+    if (!lineProgram) return;
     gl.useProgram(lineProgram);
     gl.bindVertexArray(lineVAO);
 
@@ -136,12 +163,13 @@ function drawLine(x0, y0, x1, y1, color, width = 3) {
     gl.uniformMatrix4fv(gl.getUniformLocation(lineProgram, 'u_projMatrix'), false, projMatrix);
     gl.uniform4fv(gl.getUniformLocation(lineProgram, 'u_color'), color);
 
-    gl.lineWidth(width); // may not be respected on all platforms
+    gl.lineWidth(width);
     gl.drawArrays(gl.LINES, 0, 2);
     gl.bindVertexArray(null);
 }
 
 function drawAllLines() {
+    if (!lineProgram) return;
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -176,7 +204,7 @@ function compileShader(type, src) {
 function getWorldPos(e) {
     const rect = canvas.getBoundingClientRect();
     let cx, cy;
-    if (e.touches) {
+    if (e.touches && e.touches.length > 0) {
         cx = e.touches[0].clientX - rect.left;
         cy = e.touches[0].clientY - rect.top;
     } else {
@@ -220,7 +248,6 @@ function onPointerUp(e) {
 /* ================================================================== */
 
 function updateCamera() {
-    // Gentle orbit
     cam.azimuth += 0.0005;
 
     const eyeX = Math.sin(cam.azimuth) * cam.distance * Math.cos(cam.elevation);
@@ -236,14 +263,25 @@ function updateCamera() {
 /*  HUD update                                                         */
 /* ================================================================== */
 
+const MODE_NAMES = ['Swarm', 'Ant', 'Squid', 'Slime', 'Vine', 'Debris'];
+
 function updateHUD() {
     if (statsEl) {
         statsEl.textContent =
-            `Particles: ${PARTICLE_COUNT.toLocaleString()} | ` +
+            `${(PARTICLE_COUNT / 1000).toFixed(0)}K particles | ` +
             `Clusters: ${sim.stats.clusterCount} | ` +
             `Sim: ${sim.stats.simTimeMs.toFixed(1)}ms | ` +
             `Crystals: ${sim.stats.crystalCount} | ` +
             `Captured: ${sim.stats.capturedCount}`;
+    }
+
+    if (modeStatsEl && sim.stats.activeModes) {
+        const m = sim.stats.activeModes;
+        const parts = [];
+        for (let i = 0; i < MODE_NAMES.length; i++) {
+            if (m[i] > 0) parts.push(`${MODE_NAMES[i]}:${m[i]}`);
+        }
+        modeStatsEl.textContent = parts.join(' · ');
     }
 
     if (balanceEls) {
@@ -337,89 +375,98 @@ function frame(now) {
 /* ================================================================== */
 
 export function init() {
-    canvas = document.getElementById('chromawar-canvas');
-    if (!canvas) {
-        console.error('ChromaWar: canvas#chromawar-canvas not found');
-        return;
-    }
-
-    gl = canvas.getContext('webgl2', {
-        alpha: false,
-        antialias: false,
-        premultipliedAlpha: false,
-        powerPreference: 'high-performance',
-    });
-    if (!gl) {
-        alert('WebGL2 required for ChromaWar');
-        return;
-    }
-
-    // Renderer
-    renderer = new ParticleRenderer(gl, PARTICLE_COUNT);
-
-    // Simulation
-    sim = new ChromaSimulation({
-        particleCount: PARTICLE_COUNT,
-        clusterCount: CLUSTER_COUNT,
-    });
-
-    // Bind simulation output directly to renderer buffers (zero-copy)
-    sim.bindBuffers(renderer.positions, renderer.attribs);
-    sim.initParticles();
-
-    // Post-processing (bloom + edges)
     try {
-        postProcess = new SplatPostProcess(gl, {
-            enableEdges: true,
-            edgeIntensity: 1.2,
-            enableBloom: true,
-            bloomIntensity: 0.8,
-            bloomThreshold: 0.3,
-            enableVignette: true,
-            vignetteIntensity: 0.4,
-            enableTonemap: true,
-            exposure: 1.3,
-            enableChroma: false,
-            enableGrain: false,
-            enableInscription: false,
+        // Find canvas — support both module HTML (chromawar-canvas) and inline (c)
+        canvas = document.getElementById('chromawar-canvas') || document.getElementById('c');
+        if (!canvas) {
+            showError('Canvas element not found (need #chromawar-canvas or #c)');
+            return;
+        }
+
+        gl = canvas.getContext('webgl2', {
+            alpha: false,
+            antialias: false,
+            premultipliedAlpha: false,
+            powerPreference: 'high-performance',
         });
+        if (!gl) {
+            showError('WebGL2 not supported by this browser');
+            return;
+        }
+
+        // Renderer
+        renderer = new ParticleRenderer(gl, PARTICLE_COUNT);
+
+        // Simulation
+        sim = new ChromaSimulation({
+            particleCount: PARTICLE_COUNT,
+            clusterCount: CLUSTER_COUNT,
+        });
+
+        // Bind simulation output directly to renderer buffers (zero-copy)
+        sim.bindBuffers(renderer.positions, renderer.attribs);
+        sim.initParticles();
+
+        // Post-processing (bloom + edges)
+        try {
+            postProcess = new SplatPostProcess(gl, {
+                enableEdges: true,
+                edgeIntensity: 1.2,
+                enableBloom: true,
+                bloomIntensity: 0.8,
+                bloomThreshold: 0.3,
+                enableVignette: true,
+                vignetteIntensity: 0.4,
+                enableTonemap: true,
+                exposure: 1.3,
+                enableChroma: false,
+                enableGrain: false,
+                enableInscription: false,
+            });
+        } catch (e) {
+            console.warn('Post-process unavailable:', e.message);
+            postProcess = null;
+        }
+
+        // Line renderer
+        initLineRenderer();
+
+        // Input
+        canvas.addEventListener('mousedown', onPointerDown);
+        canvas.addEventListener('mousemove', onPointerMove);
+        canvas.addEventListener('mouseup', onPointerUp);
+        canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+        canvas.addEventListener('touchmove', onPointerMove, { passive: false });
+        canvas.addEventListener('touchend', onPointerUp, { passive: false });
+
+        // HUD references
+        statsEl = document.getElementById('stats');
+        modeStatsEl = document.getElementById('mode-stats');
+        lineCountEl = document.getElementById('line-count');
+        scoreEl = document.getElementById('score');
+        messageEl = document.getElementById('message');
+
+        const redBar = document.getElementById('bar-red');
+        const yelBar = document.getElementById('bar-yellow');
+        const bluBar = document.getElementById('bar-blue');
+        if (redBar && yelBar && bluBar) {
+            balanceEls = [redBar, yelBar, bluBar];
+        }
+
+        // Camera init
+        updateCamera();
+
+        // Go
+        startTime = performance.now();
+        requestAnimationFrame(frame);
+
+        console.log(`ChromaWar initialized: ${PARTICLE_COUNT.toLocaleString()} particles, ${CLUSTER_COUNT} clusters`);
+        if (statsEl) {
+            statsEl.textContent = `${(PARTICLE_COUNT / 1000).toFixed(0)}K particles | Starting...`;
+        }
     } catch (e) {
-        console.warn('Post-process unavailable:', e.message);
-        postProcess = null;
+        showError(e.message + '\n' + (e.stack || ''));
     }
-
-    // Line renderer
-    initLineRenderer();
-
-    // Input
-    canvas.addEventListener('mousedown', onPointerDown);
-    canvas.addEventListener('mousemove', onPointerMove);
-    canvas.addEventListener('mouseup', onPointerUp);
-    canvas.addEventListener('touchstart', onPointerDown, { passive: false });
-    canvas.addEventListener('touchmove', onPointerMove, { passive: false });
-    canvas.addEventListener('touchend', onPointerUp, { passive: false });
-
-    // HUD references
-    statsEl = document.getElementById('stats');
-    lineCountEl = document.getElementById('line-count');
-    scoreEl = document.getElementById('score');
-    messageEl = document.getElementById('message');
-
-    const redBar = document.getElementById('bar-red');
-    const yelBar = document.getElementById('bar-yellow');
-    const bluBar = document.getElementById('bar-blue');
-    if (redBar && yelBar && bluBar) {
-        balanceEls = [redBar, yelBar, bluBar];
-    }
-
-    // Camera init
-    updateCamera();
-
-    // Go
-    startTime = performance.now();
-    requestAnimationFrame(frame);
-
-    console.log(`ChromaWar initialized: ${PARTICLE_COUNT.toLocaleString()} particles, ${CLUSTER_COUNT} clusters`);
 }
 
 // Auto-init on load

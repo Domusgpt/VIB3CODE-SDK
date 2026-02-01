@@ -42,7 +42,7 @@ out vec3 v_color;
 out float v_glow;
 out float v_state;
 
-// Color palette: Red, Yellow, Blue + captured tints
+// Color palette: Red, Yellow, Blue + captured tints + crystals + membrane
 vec3 getPalette(float idx) {
     int i = int(idx * 255.0 + 0.5);
     if (i == 0) return vec3(1.0, 0.15, 0.12);       // Red
@@ -58,11 +58,14 @@ vec3 getPalette(float idx) {
     if (i == 9)  return vec3(1.0, 0.3, 0.2);          // Red crystal
     if (i == 10) return vec3(1.0, 0.95, 0.3);         // Yellow crystal
     if (i == 11) return vec3(0.3, 0.5, 1.0);          // Blue crystal
+    // Membrane (12) — bright white/cyan shimmer
+    if (i == 12) return vec3(0.8, 0.95, 1.0);         // Membrane
     return vec3(0.5);
 }
 
 float getPlaneZ(vec2 pos, float colorIdx) {
     int i = int(colorIdx * 255.0 + 0.5);
+    if (i == 12) return 0.0;                          // Membrane: flat
     vec3 tilt;
     if (i <= 0 || i == 3 || i == 6 || i == 9)      tilt = u_planeTiltA;
     else if (i == 1 || i == 4 || i == 5 || i == 10) tilt = u_planeTiltB;
@@ -111,6 +114,8 @@ in vec3 v_color;
 in float v_glow;
 in float v_state;
 
+uniform float u_time;
+
 out vec4 fragColor;
 
 void main() {
@@ -123,8 +128,15 @@ void main() {
     // Glow boost for active/crystal particles
     float glowMult = 1.0 + v_glow * 2.0;
 
+    // Membrane particles (state ~0.78): ring shape with shimmer
+    if (v_state > 0.7 && v_state < 0.85) {
+        float r = sqrt(d);
+        alpha = smoothstep(1.0, 0.6, r) * smoothstep(0.1, 0.4, r);
+        alpha *= 0.7 + 0.3 * sin(u_time * 4.0 + r * 12.0);
+        glowMult = 2.0;
+    }
     // Crystal particles get a harder edge + sparkle
-    if (v_state > 0.9) {
+    else if (v_state > 0.9) {
         alpha = smoothstep(1.0, 0.3, sqrt(d));
         glowMult += 0.5;
     }

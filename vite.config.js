@@ -14,7 +14,8 @@ export default defineConfig({
                 'experiment': resolve(import.meta.dirname, 'demo/experiment-demo.html'),
                 'hifi': resolve(import.meta.dirname, 'demo/hifi-demo.html'),
                 'pyramid': resolve(import.meta.dirname, 'demo/pyramid-demo.html'),
-                'chromawar': resolve(import.meta.dirname, 'demo/chromawar-demo.html')
+                'chromawar': resolve(import.meta.dirname, 'demo/chromawar-demo.html'),
+                'chromawar-module': resolve(import.meta.dirname, 'demo/chromawar-module.html')
             }
         }
     }

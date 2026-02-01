@@ -1,21 +1,24 @@
 /**
- * ChromaSimulation — ChromaWar game engine
+ * ChromaSimulation — Full ChromaWar game engine
  *
- * Architecture:
- *   ~300 cluster agents with full flocking AI (separation, cohesion, alignment,
- *   chase, flee, seek-allies, barrier avoidance)
+ * Three colour factions (Red, Yellow, Blue) war across tilting planes.
+ * ~300 cluster agents with emergent behaviours:
+ *   - Ant-like trails (small fast groups leave pheromone-like attraction)
+ *   - Squid-like expansion/contraction (pulsing clusters)
+ *   - Slime mold growth (merging toward resource-rich areas)
+ *   - Vine-like tendrils (elongated cluster formations)
+ *   - Orbital debris (scattered remnants after liberation)
+ *   - Rise and fall of cities (crystal fortress formation/destruction)
  *
- *   200K particles follow cluster centroids via damped spring physics:
- *     vel = vel * 0.97 + (target - pos) * 0.08
- *
- *   Capture/liberation state machine: FREE → CAPTURED → RELEASED → FREE
- *   Crystal lattice formations at size milestones (100, 500, 1000, 5000+)
- *   3 tilting planes with mass-based physics
- *   Player barrier lines (max 3, 8s duration)
+ * 200K particles follow cluster centroids via damped spring physics.
+ * Capture/liberation with membrane formation around prisoners.
+ * Crystal lattice formations at size milestones.
+ * Player barrier lines (max 3, 8s duration).
+ * Win condition: balance all three colours.
  *
  * Colour indices:
  *   0=Red  1=Yellow  2=Blue
- *   3-8=captured tints  9-11=crystal colours
+ *   3-8=captured tints  9-11=crystal  12=membrane
  */
 
 /* ================================================================== */
@@ -26,19 +29,20 @@ const MAX_PARTICLES = 200000;
 const INITIAL_CLUSTERS = 300;
 const WORLD_RADIUS = 8.0;
 
-// Flocking weights
-const W_SEPARATION  = 1.8;
-const W_COHESION    = 0.6;
+// Flocking
+const W_SEPARATION  = 2.0;
+const W_COHESION    = 0.7;
 const W_ALIGNMENT   = 0.4;
-const W_CHASE       = 0.9;
-const W_FLEE        = 1.5;
+const W_CHASE       = 1.0;
+const W_FLEE        = 1.8;
 const W_SEEK_ALLY   = 0.5;
-const W_BARRIER     = 2.5;
-const W_CENTER      = 0.3;
+const W_BARRIER     = 3.0;
+const W_CENTER      = 0.35;
+const W_PHEROMONE   = 0.3;  // ant trail attraction
 
 // Physics
 const CLUSTER_SPEED     = 1.2;
-const CLUSTER_MAX_SPEED = 2.5;
+const CLUSTER_MAX_SPEED = 2.8;
 const PARTICLE_DAMP     = 0.97;
 const PARTICLE_SPRING   = 0.08;
 const PARTICLE_SCATTER  = 0.02;
@@ -50,12 +54,13 @@ const HASH_TABLE_SIZE = 4096;
 // Capture
 const CAPTURE_RADIUS = 0.6;
 const CAPTURE_MIN_RATIO = 1.5;
+const MEMBRANE_PARTICLES_PER_CLUSTER = 30; // ring around captured groups
 
 // Crystal milestones
-const CRYSTAL_SEED    = 100;
-const CRYSTAL_GROWING = 500;
-const CRYSTAL_FULL    = 1000;
-const CRYSTAL_FORT    = 5000;
+const CRYSTAL_SEED    = 80;
+const CRYSTAL_GROWING = 400;
+const CRYSTAL_FULL    = 800;
+const CRYSTAL_FORT    = 3000;
 
 // Player lines
 const MAX_PLAYER_LINES = 3;
@@ -63,19 +68,26 @@ const LINE_DURATION    = 8.0;
 const LINE_THICKNESS   = 0.15;
 
 // Plane tilt
-const TILT_MAX     = 0.12;
+const TILT_MAX     = 0.15;
 const TILT_DAMPING = 0.95;
-const TILT_SPRING  = 0.002;
+const TILT_SPRING  = 0.003;
 
-// Noise table (replaces Math.random in hot loops)
+// Behavioural modes
+const MODE_SWARM   = 0;  // default flocking
+const MODE_ANT     = 1;  // fast, trail-following
+const MODE_SQUID   = 2;  // pulsing expand/contract
+const MODE_SLIME   = 3;  // merging toward density
+const MODE_VINE    = 4;  // elongated tendrils
+const MODE_DEBRIS  = 5;  // scattered post-liberation
+
+// Noise table
 const NOISE_SIZE = 8192;
 const NOISE_MASK = NOISE_SIZE - 1;
 const _noise = new Float32Array(NOISE_SIZE);
 for (let i = 0; i < NOISE_SIZE; i++) _noise[i] = Math.random() - 0.5;
 let _noiseIdx = 0;
-function noise() { return _noise[(_noiseIdx++) & NOISE_MASK]; }
 
-// Capture tint map: [baseColor][captorColor] → colorIdx
+// Tint map
 const TINT_MAP = [
     [0, 3, 4],  // Red captured by [R, Y, B]
     [6, 1, 5],  // Yellow captured by [R, Y, B]
@@ -83,47 +95,33 @@ const TINT_MAP = [
 ];
 
 /* ================================================================== */
-/*  SpatialHash — O(1) neighbor queries for cluster agents             */
+/*  SpatialHash                                                        */
 /* ================================================================== */
 
 class SpatialHash {
-    constructor(cellSize = HASH_CELL_SIZE, tableSize = HASH_TABLE_SIZE) {
-        this.cellSize = cellSize;
-        this.invCell = 1.0 / cellSize;
-        this.tableSize = tableSize;
-        this.table = new Array(tableSize);
-        for (let i = 0; i < tableSize; i++) this.table[i] = [];
+    constructor() {
+        this.invCell = 1.0 / HASH_CELL_SIZE;
+        this.table = new Array(HASH_TABLE_SIZE);
+        for (let i = 0; i < HASH_TABLE_SIZE; i++) this.table[i] = [];
     }
-
-    clear() {
-        for (let i = 0; i < this.tableSize; i++) this.table[i].length = 0;
-    }
-
+    clear() { for (let i = 0; i < HASH_TABLE_SIZE; i++) this.table[i].length = 0; }
     _hash(cx, cy) {
         let h = (cx * 92837111) ^ (cy * 689287499);
-        h = ((h >> 16) ^ h) & (this.tableSize - 1);
-        return h < 0 ? h + this.tableSize : h;
+        h = ((h >> 16) ^ h) & (HASH_TABLE_SIZE - 1);
+        return h < 0 ? h + HASH_TABLE_SIZE : h;
     }
-
     insert(id, x, y) {
-        const cx = Math.floor(x * this.invCell);
-        const cy = Math.floor(y * this.invCell);
-        this.table[this._hash(cx, cy)].push(id);
+        this.table[this._hash(Math.floor(x * this.invCell), Math.floor(y * this.invCell))].push(id);
     }
-
     query(x, y, radius) {
-        const results = [];
-        const r = Math.ceil(radius * this.invCell);
-        const cx0 = Math.floor(x * this.invCell);
-        const cy0 = Math.floor(y * this.invCell);
-
-        for (let dx = -r; dx <= r; dx++) {
+        const res = [], r = Math.ceil(radius * this.invCell);
+        const cx0 = Math.floor(x * this.invCell), cy0 = Math.floor(y * this.invCell);
+        for (let dx = -r; dx <= r; dx++)
             for (let dy = -r; dy <= r; dy++) {
-                const bucket = this.table[this._hash(cx0 + dx, cy0 + dy)];
-                for (let i = 0; i < bucket.length; i++) results.push(bucket[i]);
+                const b = this.table[this._hash(cx0 + dx, cy0 + dy)];
+                for (let i = 0; i < b.length; i++) res.push(b[i]);
             }
-        }
-        return results;
+        return res;
     }
 }
 
@@ -134,49 +132,86 @@ class SpatialHash {
 function hexLattice(cx, cy, count, spacing) {
     const pts = new Float32Array(count * 2);
     const rows = Math.ceil(Math.sqrt(count));
-    let placed = 0;
-    for (let r = -rows; r <= rows && placed < count; r++) {
-        for (let c = -rows; c <= rows && placed < count; c++) {
-            pts[placed * 2]     = cx + c * spacing + (r & 1) * spacing * 0.5;
-            pts[placed * 2 + 1] = cy + r * spacing * 0.866;
-            placed++;
+    let n = 0;
+    for (let r = -rows; r <= rows && n < count; r++)
+        for (let c = -rows; c <= rows && n < count; c++) {
+            pts[n*2]   = cx + c * spacing + (r & 1) * spacing * 0.5;
+            pts[n*2+1] = cy + r * spacing * 0.866;
+            n++;
         }
-    }
     return pts;
 }
-
 function cubicLattice(cx, cy, count, spacing) {
     const pts = new Float32Array(count * 2);
     const side = Math.ceil(Math.sqrt(count));
-    let placed = 0;
-    for (let r = 0; r < side && placed < count; r++) {
-        for (let c = 0; c < side && placed < count; c++) {
-            pts[placed * 2]     = cx + (c - side * 0.5) * spacing;
-            pts[placed * 2 + 1] = cy + (r - side * 0.5) * spacing;
-            placed++;
+    let n = 0;
+    for (let r = 0; r < side && n < count; r++)
+        for (let c = 0; c < side && n < count; c++) {
+            pts[n*2]   = cx + (c - side*0.5) * spacing;
+            pts[n*2+1] = cy + (r - side*0.5) * spacing;
+            n++;
         }
-    }
     return pts;
 }
-
 function octaLattice(cx, cy, count, spacing) {
     const pts = new Float32Array(count * 2);
-    let placed = 0;
-    pts[0] = cx; pts[1] = cy; placed++;
-    for (let ring = 1; placed < count; ring++) {
-        const n = ring * 8;
-        for (let i = 0; i < n && placed < count; i++) {
-            const a = (i / n) * Math.PI * 2;
-            const r = ring * spacing;
-            pts[placed * 2]     = cx + Math.cos(a) * r;
-            pts[placed * 2 + 1] = cy + Math.sin(a) * r;
-            placed++;
+    let n = 0;
+    pts[0] = cx; pts[1] = cy; n++;
+    for (let ring = 1; n < count; ring++) {
+        const k = ring * 8;
+        for (let i = 0; i < k && n < count; i++) {
+            const a = (i / k) * Math.PI * 2;
+            pts[n*2]   = cx + Math.cos(a) * ring * spacing;
+            pts[n*2+1] = cy + Math.sin(a) * ring * spacing;
+            n++;
         }
     }
     return pts;
 }
-
 const LATTICE_FNS = [hexLattice, cubicLattice, octaLattice];
+
+/* ================================================================== */
+/*  Pheromone map (for ant-mode trail following)                       */
+/* ================================================================== */
+
+const PHERO_GRID = 64;
+const PHERO_CELL = WORLD_RADIUS * 2 / PHERO_GRID;
+const pheromones = [
+    new Float32Array(PHERO_GRID * PHERO_GRID), // Red
+    new Float32Array(PHERO_GRID * PHERO_GRID), // Yellow
+    new Float32Array(PHERO_GRID * PHERO_GRID), // Blue
+];
+
+function pheroDeposit(color, x, y, amount) {
+    const gx = Math.floor((x + WORLD_RADIUS) / PHERO_CELL);
+    const gy = Math.floor((y + WORLD_RADIUS) / PHERO_CELL);
+    if (gx >= 0 && gx < PHERO_GRID && gy >= 0 && gy < PHERO_GRID)
+        pheromones[color][gy * PHERO_GRID + gx] += amount;
+}
+
+function pheroSample(color, x, y) {
+    const gx = Math.floor((x + WORLD_RADIUS) / PHERO_CELL);
+    const gy = Math.floor((y + WORLD_RADIUS) / PHERO_CELL);
+    if (gx >= 0 && gx < PHERO_GRID && gy >= 0 && gy < PHERO_GRID)
+        return pheromones[color][gy * PHERO_GRID + gx];
+    return 0;
+}
+
+function pheroGradient(color, x, y) {
+    const s = PHERO_CELL;
+    const l = pheroSample(color, x - s, y);
+    const r = pheroSample(color, x + s, y);
+    const u = pheroSample(color, x, y - s);
+    const d = pheroSample(color, x, y + s);
+    return { x: r - l, y: d - u };
+}
+
+function pheroDecay() {
+    for (let c = 0; c < 3; c++) {
+        const p = pheromones[c];
+        for (let i = 0; i < p.length; i++) p[i] *= 0.98;
+    }
+}
 
 /* ================================================================== */
 /*  Main Simulation                                                    */
@@ -190,39 +225,41 @@ export class ChromaSimulation {
         this.particleCount = particleCount;
         this.clusterCount = clusterCount;
 
-        /* ---- Cluster agent arrays ---- */
+        // Cluster arrays
         this.cx = new Float32Array(clusterCount);
         this.cy = new Float32Array(clusterCount);
         this.cvx = new Float32Array(clusterCount);
         this.cvy = new Float32Array(clusterCount);
         this.ccolor = new Uint8Array(clusterCount);
-        this.cstate = new Uint8Array(clusterCount);
+        this.cstate = new Uint8Array(clusterCount);         // 0=free, 1=captured
         this.ccaptor = new Int32Array(clusterCount).fill(-1);
         this.csize = new Uint32Array(clusterCount);
-        this.ccrystal = new Uint8Array(clusterCount);
+        this.ccrystal = new Uint8Array(clusterCount);       // crystal level
         this.calive = new Uint8Array(clusterCount).fill(1);
+        this.cmode = new Uint8Array(clusterCount);           // behavioural mode
+        this.cpulse = new Float32Array(clusterCount);        // squid pulse phase
+        this.ctrail = new Float32Array(clusterCount);        // ant trail strength
+        this.cangle = new Float32Array(clusterCount);        // vine growth angle
+        this.cmembrane = new Uint8Array(clusterCount);       // has membrane particles
 
-        /* ---- Particle arrays (bound to renderer buffers) ---- */
-        this.px = null;
+        // Particle arrays
+        this.px = null;   // bound to renderer
         this.pa = null;
         this.pvx = new Float32Array(particleCount);
         this.pvy = new Float32Array(particleCount);
         this.pcluster = new Int32Array(particleCount).fill(-1);
+        this.pflag = new Uint8Array(particleCount);          // 0=normal, 1=membrane
 
-        /* ---- Plane tilt state ---- */
-        this.planeTilts = [
-            new Float32Array(4),
-            new Float32Array(4),
-            new Float32Array(4),
-        ];
+        // Plane tilts
+        this.planeTilts = [new Float32Array(4), new Float32Array(4), new Float32Array(4)];
 
-        /* ---- Player barrier lines ---- */
+        // Player lines
         this.playerLines = [];
 
-        /* ---- Spatial hash ---- */
+        // Spatial hash
         this.hash = new SpatialHash();
 
-        /* ---- Game state ---- */
+        // Game state
         this.time = 0;
         this.balance = [0, 0, 0];
         this.isBalanced = false;
@@ -230,40 +267,37 @@ export class ChromaSimulation {
         this.score = 0;
         this._frameCount = 0;
 
-        /* ---- Crystal tracking ---- */
-        // Per-cluster list of particle indices (rebuilt periodically)
-        this._clusterParticleCache = null;
-        this._cacheDirty = true;
-
-        /* ---- Stats ---- */
+        // Stats
         this.stats = {
             simTimeMs: 0,
             clusterCount: clusterCount,
             capturedCount: 0,
             crystalCount: 0,
             largestCluster: 0,
+            activeModes: [0, 0, 0, 0, 0, 0],
         };
 
         this._initClusters();
     }
 
     /* ============================================================== */
-    /*  Initialization                                                 */
+    /*  Init                                                           */
     /* ============================================================== */
 
     _initClusters() {
         const perColor = Math.floor(this.clusterCount / 3);
         for (let i = 0; i < this.clusterCount; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * WORLD_RADIUS * 0.8;
-            this.cx[i] = Math.cos(angle) * dist;
-            this.cy[i] = Math.sin(angle) * dist;
-            const va = Math.random() * Math.PI * 2;
-            this.cvx[i] = Math.cos(va) * 0.3;
-            this.cvy[i] = Math.sin(va) * 0.3;
-            if (i < perColor) this.ccolor[i] = 0;
-            else if (i < perColor * 2) this.ccolor[i] = 1;
-            else this.ccolor[i] = 2;
+            const a = Math.random() * Math.PI * 2;
+            const d = Math.random() * WORLD_RADIUS * 0.75;
+            this.cx[i] = Math.cos(a) * d;
+            this.cy[i] = Math.sin(a) * d;
+            this.cvx[i] = Math.cos(a + 1.5) * 0.3;
+            this.cvy[i] = Math.sin(a + 1.5) * 0.3;
+            this.ccolor[i] = i < perColor ? 0 : i < perColor * 2 ? 1 : 2;
+            // Random initial behavioural mode
+            this.cmode[i] = Math.floor(Math.random() * 5); // 0-4
+            this.cpulse[i] = Math.random() * Math.PI * 2;
+            this.cangle[i] = Math.random() * Math.PI * 2;
         }
     }
 
@@ -274,7 +308,6 @@ export class ChromaSimulation {
 
     initParticles() {
         if (!this.px || !this.pa) throw new Error('Call bindBuffers first');
-
         const perCluster = Math.floor(this.particleCount / this.clusterCount);
 
         for (let i = 0; i < this.particleCount; i++) {
@@ -282,34 +315,29 @@ export class ChromaSimulation {
             this.pcluster[i] = ci;
             this.csize[ci]++;
 
-            // Deterministic scatter using noise table
             const idx2 = i * 2;
-            const nx = noise();
-            const ny = noise();
-            this.px[idx2]     = this.cx[ci] + nx * 1.0;
-            this.px[idx2 + 1] = this.cy[ci] + ny * 1.0;
+            this.px[idx2]     = this.cx[ci] + _noise[(_noiseIdx++) & NOISE_MASK] * 0.8;
+            this.px[idx2 + 1] = this.cy[ci] + _noise[(_noiseIdx++) & NOISE_MASK] * 0.8;
 
             const idx4 = i * 4;
             this.pa[idx4]     = this.ccolor[ci];
             this.pa[idx4 + 1] = 0;
-            this.pa[idx4 + 2] = 80 + ((i * 137) & 127); // deterministic size variation
+            this.pa[idx4 + 2] = 80 + ((i * 137) & 127);
             this.pa[idx4 + 3] = 0;
         }
 
-        // Pre-set crystal levels so they don't all trigger on first step
+        // Pre-set crystal levels
         for (let i = 0; i < this.clusterCount; i++) {
-            const size = this.csize[i];
-            if (size >= CRYSTAL_FORT) this.ccrystal[i] = 4;
-            else if (size >= CRYSTAL_FULL) this.ccrystal[i] = 3;
-            else if (size >= CRYSTAL_GROWING) this.ccrystal[i] = 2;
-            else if (size >= CRYSTAL_SEED) this.ccrystal[i] = 1;
+            const s = this.csize[i];
+            if (s >= CRYSTAL_FORT) this.ccrystal[i] = 4;
+            else if (s >= CRYSTAL_FULL) this.ccrystal[i] = 3;
+            else if (s >= CRYSTAL_GROWING) this.ccrystal[i] = 2;
+            else if (s >= CRYSTAL_SEED) this.ccrystal[i] = 1;
         }
-
-        this._updateParticlesAndColors();
     }
 
     /* ============================================================== */
-    /*  Simulation step                                                */
+    /*  Step                                                           */
     /* ============================================================== */
 
     step(dt) {
@@ -318,47 +346,77 @@ export class ChromaSimulation {
         this.time += dt;
         this._frameCount++;
 
-        // 1. Build spatial hash of clusters
         this._buildHash();
-
-        // 2. Update cluster AI
+        this._updateBehaviouralModes();
         this._stepClusters(dt);
 
-        // 3. Check capture/liberation (every 3 frames to save CPU)
-        if (this._frameCount % 3 === 0) {
-            this._checkCapture();
-        }
+        if (this._frameCount % 3 === 0) this._checkCapture();
+        if (this._frameCount % 5 === 0) pheroDecay();
 
-        // 4. Update plane tilts
         this._stepPlaneTilts(dt);
-
-        // 5. Decay player lines
         this._stepPlayerLines(dt);
+        this._updateParticlesAndColors(dt);
 
-        // 6. Combined: update particles + colour attributes (single 200K loop)
-        this._updateParticlesAndColors();
+        if (this._frameCount % 30 === 0) this._stepCrystals();
+        if (this._frameCount % 10 === 0) this._updateMembranes();
 
-        // 7. Crystal formations (every 30 frames — expensive)
-        if (this._frameCount % 30 === 0) {
-            this._stepCrystals();
-        }
-
-        // 8. Calculate balance
         this._calcBalance();
-
         this.stats.simTimeMs = performance.now() - t0;
     }
-
-    /* -------------------------------------------------------------- */
-    /*  Spatial hash                                                    */
-    /* -------------------------------------------------------------- */
 
     _buildHash() {
         this.hash.clear();
         for (let i = 0; i < this.clusterCount; i++) {
-            if (!this.calive[i]) continue;
-            this.hash.insert(i, this.cx[i], this.cy[i]);
+            if (this.calive[i]) this.hash.insert(i, this.cx[i], this.cy[i]);
         }
+    }
+
+    /* -------------------------------------------------------------- */
+    /*  Behavioural mode selection                                     */
+    /* -------------------------------------------------------------- */
+
+    _updateBehaviouralModes() {
+        if (this._frameCount % 20 !== 0) return; // every 20 frames
+
+        const modeCount = [0, 0, 0, 0, 0, 0];
+
+        for (let i = 0; i < this.clusterCount; i++) {
+            if (!this.calive[i] || this.cstate[i] === 1) continue;
+
+            const size = this.csize[i];
+            const nb = this.hash.query(this.cx[i], this.cy[i], 3);
+            let enemyNear = 0, allyNear = 0;
+            for (let j = 0; j < nb.length; j++) {
+                const k = nb[j];
+                if (k === i || !this.calive[k]) continue;
+                if (this.ccolor[k] === this.ccolor[i]) allyNear++;
+                else enemyNear++;
+            }
+
+            // Mode selection based on conditions
+            if (size < 50) {
+                // Small: ant mode (fast, trail-following scouts)
+                this.cmode[i] = MODE_ANT;
+            } else if (size > 2000 && this.ccrystal[i] >= 2) {
+                // Large crystal: city mode (stationary fortress) → uses SWARM but slow
+                this.cmode[i] = MODE_SWARM;
+            } else if (enemyNear > allyNear && size < 300) {
+                // Outnumbered: squid mode (pulsing evasion)
+                this.cmode[i] = MODE_SQUID;
+            } else if (allyNear > 3 && size > 100) {
+                // Many allies: slime mode (merge toward density)
+                this.cmode[i] = MODE_SLIME;
+            } else if (size > 200 && enemyNear > 0) {
+                // Medium with enemies: vine mode (aggressive tendrils)
+                this.cmode[i] = MODE_VINE;
+            } else {
+                this.cmode[i] = MODE_SWARM;
+            }
+
+            modeCount[this.cmode[i]]++;
+        }
+
+        this.stats.activeModes = modeCount;
     }
 
     /* -------------------------------------------------------------- */
@@ -366,13 +424,12 @@ export class ChromaSimulation {
     /* -------------------------------------------------------------- */
 
     _stepClusters(dt) {
-        let capturedCount = 0;
-        let crystalCount = 0;
-        let largest = 0;
+        let capturedCount = 0, crystalCount = 0, largest = 0;
 
         for (let i = 0; i < this.clusterCount; i++) {
             if (!this.calive[i]) continue;
 
+            // Captured clusters drift toward captor
             if (this.cstate[i] === 1) {
                 capturedCount++;
                 const cap = this.ccaptor[i];
@@ -380,8 +437,7 @@ export class ChromaSimulation {
                     this.cvx[i] += (this.cx[cap] - this.cx[i]) * 0.02;
                     this.cvy[i] += (this.cy[cap] - this.cy[i]) * 0.02;
                 }
-                this.cvx[i] *= 0.98;
-                this.cvy[i] *= 0.98;
+                this.cvx[i] *= 0.98; this.cvy[i] *= 0.98;
                 this.cx[i] += this.cvx[i] * dt;
                 this.cy[i] += this.cvy[i] * dt;
                 continue;
@@ -390,57 +446,46 @@ export class ChromaSimulation {
             if (this.ccrystal[i] > 0) crystalCount++;
             if (this.csize[i] > largest) largest = this.csize[i];
 
-            const neighbors = this.hash.query(this.cx[i], this.cy[i], 3.0);
+            // Deposit pheromones (ant mode deposits more)
+            const pheroAmt = this.cmode[i] === MODE_ANT ? 0.5 : 0.1;
+            pheroDeposit(this.ccolor[i], this.cx[i], this.cy[i], pheroAmt * this.csize[i] * 0.001);
 
+            const nb = this.hash.query(this.cx[i], this.cy[i], 3);
             let sepX = 0, sepY = 0;
             let cohX = 0, cohY = 0, cohN = 0;
             let aliX = 0, aliY = 0, aliN = 0;
             let chaseX = 0, chaseY = 0;
             let fleeX = 0, fleeY = 0;
-            let allyX = 0, allyY = 0, allyN = 0;
 
-            for (let ni = 0; ni < neighbors.length; ni++) {
-                const j = neighbors[ni];
+            for (let ni = 0; ni < nb.length; ni++) {
+                const j = nb[ni];
                 if (j === i || !this.calive[j]) continue;
-
-                const dx = this.cx[j] - this.cx[i];
-                const dy = this.cy[j] - this.cy[i];
+                const dx = this.cx[j] - this.cx[i], dy = this.cy[j] - this.cy[i];
                 const d2 = dx * dx + dy * dy;
                 if (d2 < 0.001) continue;
                 const d = Math.sqrt(d2);
 
                 if (d < 1.5) {
                     const repel = 1.0 / d2;
-                    sepX -= dx * repel;
-                    sepY -= dy * repel;
+                    sepX -= dx * repel; sepY -= dy * repel;
                 }
 
-                const sameColor = this.ccolor[j] === this.ccolor[i];
-
-                if (sameColor) {
+                if (this.ccolor[j] === this.ccolor[i]) {
                     cohX += this.cx[j]; cohY += this.cy[j]; cohN++;
                     aliX += this.cvx[j]; aliY += this.cvy[j]; aliN++;
-                    if (d > 2.0) {
-                        allyX += dx / d;
-                        allyY += dy / d;
-                        allyN++;
-                    }
                 } else if (this.cstate[j] !== 1) {
-                    const mySize = this.csize[i];
-                    const theirSize = this.csize[j];
-                    if (mySize > theirSize * CAPTURE_MIN_RATIO && d < 2.5) {
-                        chaseX += dx / d;
-                        chaseY += dy / d;
-                    } else if (theirSize > mySize * CAPTURE_MIN_RATIO && d < 3.0) {
-                        const urgency = 1.0 / Math.max(d, 0.5);
-                        fleeX -= dx / d * urgency;
-                        fleeY -= dy / d * urgency;
+                    const myS = this.csize[i], thS = this.csize[j];
+                    if (myS > thS * CAPTURE_MIN_RATIO && d < 2.5) {
+                        chaseX += dx / d; chaseY += dy / d;
+                    } else if (thS > myS * CAPTURE_MIN_RATIO && d < 3.0) {
+                        const u = 1.0 / Math.max(d, 0.5);
+                        fleeX -= dx / d * u; fleeY -= dy / d * u;
                     }
                 }
             }
 
-            let fx = sepX * W_SEPARATION;
-            let fy = sepY * W_SEPARATION;
+            let fx = sepX * W_SEPARATION + chaseX * W_CHASE + fleeX * W_FLEE;
+            let fy = sepY * W_SEPARATION + chaseY * W_CHASE + fleeY * W_FLEE;
 
             if (cohN > 0) {
                 fx += ((cohX / cohN) - this.cx[i]) * W_COHESION;
@@ -451,61 +496,90 @@ export class ChromaSimulation {
                 fy += (aliY / aliN) * W_ALIGNMENT;
             }
 
-            fx += chaseX * W_CHASE + fleeX * W_FLEE;
-            fy += chaseY * W_CHASE + fleeY * W_FLEE;
+            // ---- Mode-specific behaviours ----
+            const mode = this.cmode[i];
 
-            if (allyN > 0) {
-                fx += (allyX / allyN) * W_SEEK_ALLY;
-                fy += (allyY / allyN) * W_SEEK_ALLY;
+            if (mode === MODE_ANT) {
+                // Follow pheromone gradient of own colour
+                const grad = pheroGradient(this.ccolor[i], this.cx[i], this.cy[i]);
+                fx += grad.x * W_PHEROMONE;
+                fy += grad.y * W_PHEROMONE;
+                this.ctrail[i] += dt;
+            }
+
+            if (mode === MODE_SQUID) {
+                // Pulsing: alternate between expand and contract
+                this.cpulse[i] += dt * 4.0;
+                const pulse = Math.sin(this.cpulse[i]);
+                // On expand: push away from center of allies
+                // On contract: pull toward center of allies
+                if (cohN > 0) {
+                    const toCoh = pulse * 0.8;
+                    fx += ((cohX / cohN) - this.cx[i]) * toCoh;
+                    fy += ((cohY / cohN) - this.cy[i]) * toCoh;
+                }
+            }
+
+            if (mode === MODE_SLIME) {
+                // Move toward highest density of same-colour pheromone
+                const grad = pheroGradient(this.ccolor[i], this.cx[i], this.cy[i]);
+                fx += grad.x * 0.6;
+                fy += grad.y * 0.6;
+            }
+
+            if (mode === MODE_VINE) {
+                // Grow in a consistent direction (toward nearest enemy)
+                this.cangle[i] += dt * 0.1;
+                if (chaseX !== 0 || chaseY !== 0) {
+                    this.cangle[i] = Math.atan2(chaseY, chaseX);
+                }
+                fx += Math.cos(this.cangle[i]) * 0.8;
+                fy += Math.sin(this.cangle[i]) * 0.8;
+            }
+
+            if (mode === MODE_DEBRIS) {
+                // Chaotic scatter — only happens right after liberation
+                fx += _noise[(_noiseIdx + i) & NOISE_MASK] * 3.0;
+                fy += _noise[(_noiseIdx + i + 2048) & NOISE_MASK] * 3.0;
+                // Transition back to swarm after a few seconds
+                if (this.ctrail[i] > 3.0) this.cmode[i] = MODE_SWARM;
+                this.ctrail[i] += dt;
             }
 
             // Barrier avoidance
             for (let li = 0; li < this.playerLines.length; li++) {
-                const line = this.playerLines[li];
-                if (!line.active) continue;
-                const dist = this._pointToLineDist(
-                    this.cx[i], this.cy[i],
-                    line.x0, line.y0, line.x1, line.y1
-                );
+                const L = this.playerLines[li];
+                if (!L.active) continue;
+                const dist = this._ptLineDist(this.cx[i], this.cy[i], L.x0, L.y0, L.x1, L.y1);
                 if (dist < LINE_THICKNESS * 4) {
-                    const nx = -(line.y1 - line.y0);
-                    const ny = line.x1 - line.x0;
-                    const nl = Math.sqrt(nx * nx + ny * ny) || 1;
+                    const nx = -(L.y1 - L.y0), ny = L.x1 - L.x0;
+                    const nl = Math.sqrt(nx*nx + ny*ny) || 1;
                     const force = W_BARRIER / Math.max(dist, 0.1);
-                    const side = (this.cx[i] - line.x0) * nx + (this.cy[i] - line.y0) * ny;
-                    const sign = side >= 0 ? 1 : -1;
-                    fx += (nx / nl) * force * sign;
-                    fy += (ny / nl) * force * sign;
+                    const side = (this.cx[i] - L.x0) * nx + (this.cy[i] - L.y0) * ny >= 0 ? 1 : -1;
+                    fx += (nx / nl) * force * side;
+                    fy += (ny / nl) * force * side;
                 }
             }
 
             // Soft boundary
-            const distC = Math.sqrt(this.cx[i] * this.cx[i] + this.cy[i] * this.cy[i]);
-            if (distC > WORLD_RADIUS * 0.7) {
-                const pull = (distC - WORLD_RADIUS * 0.7) * W_CENTER;
-                fx -= (this.cx[i] / distC) * pull;
-                fy -= (this.cy[i] / distC) * pull;
+            const dc = Math.sqrt(this.cx[i] * this.cx[i] + this.cy[i] * this.cy[i]);
+            if (dc > WORLD_RADIUS * 0.7) {
+                const pull = (dc - WORLD_RADIUS * 0.7) * W_CENTER;
+                fx -= (this.cx[i] / dc) * pull;
+                fy -= (this.cy[i] / dc) * pull;
             }
 
-            // Speed based on cluster size (smaller = faster)
-            const speedMult = 1.0 / (1.0 + Math.log2(Math.max(this.csize[i], 1)) * 0.3);
+            // Speed: smaller = faster, ant mode is fastest
+            let speedMult = 1.0 / (1.0 + Math.log2(Math.max(this.csize[i], 1)) * 0.3);
+            if (mode === MODE_ANT) speedMult *= 1.5;
+            if (this.ccrystal[i] >= 3) speedMult *= 0.4; // crystal fortress = slow
 
             this.cvx[i] += fx * dt;
             this.cvy[i] += fy * dt;
 
-            // Clamp speed
             const spd = Math.sqrt(this.cvx[i] * this.cvx[i] + this.cvy[i] * this.cvy[i]);
             const maxSpd = CLUSTER_MAX_SPEED * speedMult;
-            if (spd > maxSpd) {
-                const s = maxSpd / spd;
-                this.cvx[i] *= s;
-                this.cvy[i] *= s;
-            }
-
-            if (this.ccrystal[i] >= 3) {
-                this.cvx[i] *= 0.92;
-                this.cvy[i] *= 0.92;
-            }
+            if (spd > maxSpd) { const s = maxSpd / spd; this.cvx[i] *= s; this.cvy[i] *= s; }
 
             this.cx[i] += this.cvx[i] * dt * CLUSTER_SPEED;
             this.cy[i] += this.cvy[i] * dt * CLUSTER_SPEED;
@@ -536,40 +610,33 @@ export class ChromaSimulation {
     _checkCapture() {
         for (let i = 0; i < this.clusterCount; i++) {
             if (!this.calive[i] || this.cstate[i] === 1) continue;
+            const nb = this.hash.query(this.cx[i], this.cy[i], CAPTURE_RADIUS * 2);
+            for (let ni = 0; ni < nb.length; ni++) {
+                const j = nb[ni];
+                if (j === i || !this.calive[j] || this.ccolor[j] === this.ccolor[i]) continue;
+                const dx = this.cx[j]-this.cx[i], dy = this.cy[j]-this.cy[i];
+                if (dx*dx + dy*dy > CAPTURE_RADIUS * CAPTURE_RADIUS) continue;
 
-            const neighbors = this.hash.query(this.cx[i], this.cy[i], CAPTURE_RADIUS * 2);
-
-            for (let ni = 0; ni < neighbors.length; ni++) {
-                const j = neighbors[ni];
-                if (j === i || !this.calive[j]) continue;
-                if (this.ccolor[j] === this.ccolor[i]) continue;
-
-                const dx = this.cx[j] - this.cx[i];
-                const dy = this.cy[j] - this.cy[i];
-                if (dx * dx + dy * dy > CAPTURE_RADIUS * CAPTURE_RADIUS) continue;
-
-                const mySize = this.csize[i];
-                const theirSize = this.csize[j];
-
-                if (mySize > theirSize * CAPTURE_MIN_RATIO && this.cstate[j] !== 1) {
-                    this._captureCluster(i, j);
-                } else if (theirSize > mySize * CAPTURE_MIN_RATIO && this.cstate[i] !== 1) {
-                    this._captureCluster(j, i);
-                    break;
+                if (this.csize[i] > this.csize[j] * CAPTURE_MIN_RATIO && this.cstate[j] !== 1) {
+                    this._capture(i, j);
+                } else if (this.csize[j] > this.csize[i] * CAPTURE_MIN_RATIO && this.cstate[i] !== 1) {
+                    this._capture(j, i); break;
                 }
             }
         }
     }
 
-    _captureCluster(captorIdx, victimIdx) {
+    _capture(captorIdx, victimIdx) {
         this.cstate[victimIdx] = 1;
         this.ccaptor[victimIdx] = captorIdx;
         this.csize[captorIdx] += this.csize[victimIdx];
+        this.cmembrane[victimIdx] = 1; // membrane forms around prisoner
 
+        // Liberate prisoners of victim that match captor's colour
         for (let k = 0; k < this.clusterCount; k++) {
             if (this.ccaptor[k] === victimIdx && this.cstate[k] === 1) {
                 if (this.ccolor[k] === this.ccolor[captorIdx]) {
-                    this._liberateCluster(k);
+                    this._liberate(k);
                 } else {
                     this.ccaptor[k] = captorIdx;
                 }
@@ -577,200 +644,209 @@ export class ChromaSimulation {
         }
     }
 
-    _liberateCluster(idx) {
+    _liberate(idx) {
         this.cstate[idx] = 0;
         this.ccaptor[idx] = -1;
-        const angle = noise() * Math.PI * 4;
-        this.cvx[idx] = Math.cos(angle) * 3.0;
-        this.cvy[idx] = Math.sin(angle) * 3.0;
+        this.cmembrane[idx] = 0;
+        this.cmode[idx] = MODE_DEBRIS; // scatter mode after liberation
+        this.ctrail[idx] = 0; // reset debris timer
+        const a = _noise[(_noiseIdx++) & NOISE_MASK] * Math.PI * 4;
+        this.cvx[idx] = Math.cos(a) * 3.5;
+        this.cvy[idx] = Math.sin(a) * 3.5;
     }
 
     /* -------------------------------------------------------------- */
-    /*  Combined: particle physics + colour mapping (single 200K loop) */
+    /*  Membrane formation                                             */
     /* -------------------------------------------------------------- */
 
-    _updateParticlesAndColors() {
-        if (!this.px || !this.pa) return;
+    _updateMembranes() {
+        if (!this.pa) return;
 
-        const px = this.px;
-        const pa = this.pa;
-        const pvx = this.pvx;
-        const pvy = this.pvy;
-        const pcluster = this.pcluster;
-        const cx = this.cx;
-        const cy = this.cy;
-        const ccolor = this.ccolor;
-        const cstate = this.cstate;
-        const ccaptor = this.ccaptor;
-        const ccrystal = this.ccrystal;
-        const calive = this.calive;
-        const count = this.particleCount;
+        // Reset membrane flags
+        for (let i = 0; i < this.particleCount; i++) this.pflag[i] = 0;
 
-        for (let i = 0; i < count; i++) {
-            const ci = pcluster[i];
-            if (ci < 0 || !calive[ci]) continue;
+        for (let ci = 0; ci < this.clusterCount; ci++) {
+            if (!this.calive[ci] || this.cstate[ci] !== 1 || !this.cmembrane[ci]) continue;
 
-            const idx2 = i * 2;
-            const idx4 = i * 4;
+            // Find particles of this cluster and mark edge ones as membrane
+            const perCluster = Math.floor(this.particleCount / this.clusterCount);
+            const start = ci * perCluster;
+            const end = Math.min(start + perCluster * 2, this.particleCount);
 
-            // ---- Spring physics ----
-            const dx = cx[ci] - px[idx2];
-            const dy = cy[ci] - px[idx2 + 1];
+            let marked = 0;
+            const maxMembrane = Math.min(MEMBRANE_PARTICLES_PER_CLUSTER, this.csize[ci]);
+            const centerX = this.cx[ci], centerY = this.cy[ci];
 
-            pvx[i] = pvx[i] * PARTICLE_DAMP + dx * PARTICLE_SPRING;
-            pvy[i] = pvy[i] * PARTICLE_DAMP + dy * PARTICLE_SPRING;
-
-            // Deterministic scatter (noise table, no Math.random)
-            pvx[i] += _noise[(i + _noiseIdx) & NOISE_MASK] * PARTICLE_SCATTER;
-            pvy[i] += _noise[(i + _noiseIdx + 4091) & NOISE_MASK] * PARTICLE_SCATTER;
-
-            px[idx2]     += pvx[i];
-            px[idx2 + 1] += pvy[i];
-
-            // ---- Colour mapping ----
-            const baseColor = ccolor[ci];
-            const state = cstate[ci];
-            const crystal = ccrystal[ci];
-
-            let colorIdx = baseColor;
-            let stateVal = 0;
-
-            if (state === 1 && ccaptor[ci] >= 0) {
-                colorIdx = TINT_MAP[baseColor][ccolor[ccaptor[ci]]];
-                stateVal = 128;
-            } else if (crystal >= 2 && pa[idx4 + 1] === 255) {
-                // Already marked as crystal particle — keep crystal color
-                colorIdx = 9 + baseColor;
-                stateVal = 255;
-            }
-
-            pa[idx4] = colorIdx;
-            if (stateVal !== 255 || pa[idx4 + 1] !== 255) {
-                pa[idx4 + 1] = stateVal;
-            }
-        }
-
-        // Advance noise offset each frame
-        _noiseIdx = (_noiseIdx + 997) & NOISE_MASK;
-    }
-
-    /* -------------------------------------------------------------- */
-    /*  Crystal formations (runs every ~30 frames)                     */
-    /* -------------------------------------------------------------- */
-
-    _stepCrystals() {
-        for (let i = 0; i < this.clusterCount; i++) {
-            if (!this.calive[i] || this.cstate[i] === 1) continue;
-
-            const size = this.csize[i];
-            let level = 0;
-            if (size >= CRYSTAL_FORT) level = 4;
-            else if (size >= CRYSTAL_FULL) level = 3;
-            else if (size >= CRYSTAL_GROWING) level = 2;
-            else if (size >= CRYSTAL_SEED) level = 1;
-
-            if (level > this.ccrystal[i]) {
-                this.ccrystal[i] = level;
-                if (level >= 2) {
-                    this._arrangeCrystalFast(i);
+            // Find farthest particles from center → those become the membrane ring
+            for (let i = start; i < end && marked < maxMembrane; i++) {
+                if (this.pcluster[i] !== ci) continue;
+                const dx = this.px[i*2] - centerX, dy = this.px[i*2+1] - centerY;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d > 0.2) { // only particles away from center
+                    this.pflag[i] = 1;
+                    // Push membrane particles outward to form ring
+                    const targetR = 0.5 + this.csize[ci] * 0.0002;
+                    const nx = dx / (d || 1), ny = dy / (d || 1);
+                    this.pvx[i] += (nx * targetR - dx) * 0.05;
+                    this.pvy[i] += (ny * targetR - dy) * 0.05;
+                    marked++;
                 }
             }
         }
     }
 
-    _arrangeCrystalFast(clusterIdx) {
-        const color = this.ccolor[clusterIdx];
+    /* -------------------------------------------------------------- */
+    /*  Particles + colours (single 200K loop)                         */
+    /* -------------------------------------------------------------- */
+
+    _updateParticlesAndColors(dt) {
+        if (!this.px || !this.pa) return;
+
+        const px = this.px, pa = this.pa, pvx = this.pvx, pvy = this.pvy;
+        const pcluster = this.pcluster, pflag = this.pflag;
+        const cx = this.cx, cy = this.cy;
+        const ccolor = this.ccolor, cstate = this.cstate, ccaptor = this.ccaptor;
+        const ccrystal = this.ccrystal, calive = this.calive, cmode = this.cmode;
+        const cpulse = this.cpulse;
+
+        for (let i = 0; i < this.particleCount; i++) {
+            const ci = pcluster[i];
+            if (ci < 0 || !calive[ci]) continue;
+            const i2 = i * 2, i4 = i * 4;
+
+            // Target position (cluster center, with mode-specific offset)
+            let tx = cx[ci], ty = cy[ci];
+
+            // Squid mode: particles expand/contract with the pulse
+            if (cmode[ci] === MODE_SQUID) {
+                const pulse = Math.sin(cpulse[ci]) * 0.5 + 0.5;
+                const dx = px[i2] - tx, dy = px[i2+1] - ty;
+                const d = Math.sqrt(dx*dx + dy*dy) || 0.01;
+                const targetD = 0.2 + pulse * 0.8;
+                tx = tx + (dx / d) * targetD * 0.3;
+                ty = ty + (dy / d) * targetD * 0.3;
+            }
+
+            // Spring toward target
+            const dx = tx - px[i2], dy = ty - px[i2+1];
+            pvx[i] = pvx[i] * PARTICLE_DAMP + dx * PARTICLE_SPRING;
+            pvy[i] = pvy[i] * PARTICLE_DAMP + dy * PARTICLE_SPRING;
+
+            // Scatter
+            pvx[i] += _noise[(i + _noiseIdx) & NOISE_MASK] * PARTICLE_SCATTER;
+            pvy[i] += _noise[(i + _noiseIdx + 4091) & NOISE_MASK] * PARTICLE_SCATTER;
+
+            px[i2] += pvx[i];
+            px[i2+1] += pvy[i];
+
+            // Colour mapping
+            const bc = ccolor[ci];
+            let colorIdx = bc, stateVal = 0;
+
+            if (pflag[i] === 1) {
+                // Membrane particle — white/bright
+                colorIdx = 12;
+                stateVal = 200;
+                pa[i4 + 3] = 255; // max glow
+            } else if (cstate[ci] === 1 && ccaptor[ci] >= 0) {
+                colorIdx = TINT_MAP[bc][ccolor[ccaptor[ci]]];
+                stateVal = 128;
+            } else if (ccrystal[ci] >= 2 && pa[i4+1] === 255) {
+                colorIdx = 9 + bc;
+                stateVal = 255;
+            }
+
+            pa[i4] = colorIdx;
+            if (stateVal !== 255 || pa[i4+1] !== 255) pa[i4+1] = stateVal;
+        }
+
+        _noiseIdx = (_noiseIdx + 997) & NOISE_MASK;
+    }
+
+    /* -------------------------------------------------------------- */
+    /*  Crystal formations                                             */
+    /* -------------------------------------------------------------- */
+
+    _stepCrystals() {
+        for (let i = 0; i < this.clusterCount; i++) {
+            if (!this.calive[i] || this.cstate[i] === 1) continue;
+            const s = this.csize[i];
+            let level = 0;
+            if (s >= CRYSTAL_FORT) level = 4;
+            else if (s >= CRYSTAL_FULL) level = 3;
+            else if (s >= CRYSTAL_GROWING) level = 2;
+            else if (s >= CRYSTAL_SEED) level = 1;
+
+            if (level > this.ccrystal[i]) {
+                this.ccrystal[i] = level;
+                if (level >= 2) this._arrangeCrystal(i);
+            }
+        }
+    }
+
+    _arrangeCrystal(ci) {
+        const color = this.ccolor[ci];
         const latticeFn = LATTICE_FNS[color] || hexLattice;
-        const level = this.ccrystal[clusterIdx];
+        const level = this.ccrystal[ci];
         const spacing = level >= 3 ? 0.03 : 0.05;
-        const maxArrange = Math.min(
-            this.csize[clusterIdx],
-            level >= 4 ? 2000 : level >= 3 ? 500 : 200
-        );
+        const max = Math.min(this.csize[ci], level >= 4 ? 2000 : level >= 3 ? 500 : 200);
+        const lattice = latticeFn(this.cx[ci], this.cy[ci], max, spacing);
 
-        const lattice = latticeFn(this.cx[clusterIdx], this.cy[clusterIdx], maxArrange, spacing);
-
-        // Instead of scanning all 200K, use stride-based sampling
-        // Particles for cluster ci are roughly at indices [ci*perCluster .. (ci+1)*perCluster]
-        const perCluster = Math.floor(this.particleCount / this.clusterCount);
-        const startIdx = clusterIdx * perCluster;
-        const endIdx = Math.min(startIdx + perCluster * 2, this.particleCount);
-
-        let arranged = 0;
-        for (let i = startIdx; i < endIdx && arranged < maxArrange; i++) {
-            if (this.pcluster[i] !== clusterIdx) continue;
-
-            const li = arranged * 2;
+        const perC = Math.floor(this.particleCount / this.clusterCount);
+        const start = ci * perC, end = Math.min(start + perC * 2, this.particleCount);
+        let n = 0;
+        for (let i = start; i < end && n < max; i++) {
+            if (this.pcluster[i] !== ci) continue;
+            const li = n * 2;
             if (li + 1 >= lattice.length) break;
-
-            this.pvx[i] += (lattice[li] - this.px[i * 2]) * 0.03;
-            this.pvy[i] += (lattice[li + 1] - this.px[i * 2 + 1]) * 0.03;
-
-            const idx4 = i * 4;
-            this.pa[idx4 + 1] = 255;
-            this.pa[idx4 + 3] = 180 + ((i * 53) & 75);
-
-            arranged++;
+            this.pvx[i] += (lattice[li] - this.px[i*2]) * 0.03;
+            this.pvy[i] += (lattice[li+1] - this.px[i*2+1]) * 0.03;
+            this.pa[i*4+1] = 255;
+            this.pa[i*4+3] = 180 + ((i * 53) & 75);
+            n++;
         }
     }
 
     /* -------------------------------------------------------------- */
-    /*  Plane tilt physics                                             */
+    /*  Plane tilts                                                    */
     /* -------------------------------------------------------------- */
 
     _stepPlaneTilts(dt) {
-        const massX = [0, 0, 0];
-        const massY = [0, 0, 0];
-        const massN = [0, 0, 0];
-
+        const mX = [0,0,0], mY = [0,0,0], mN = [0,0,0];
         for (let i = 0; i < this.clusterCount; i++) {
             if (!this.calive[i]) continue;
-            const c = this.ccolor[i];
-            const w = this.csize[i];
-            massX[c] += this.cx[i] * w;
-            massY[c] += this.cy[i] * w;
-            massN[c] += w;
+            const c = this.ccolor[i], w = this.csize[i];
+            mX[c] += this.cx[i] * w; mY[c] += this.cy[i] * w; mN[c] += w;
         }
-
         for (let c = 0; c < 3; c++) {
-            const tilt = this.planeTilts[c];
-            if (massN[c] > 0) {
-                const targetX = (massX[c] / massN[c] / WORLD_RADIUS) * TILT_MAX;
-                const targetY = (massY[c] / massN[c] / WORLD_RADIUS) * TILT_MAX;
-                tilt[2] += (targetX - tilt[0]) * TILT_SPRING;
-                tilt[3] += (targetY - tilt[1]) * TILT_SPRING;
+            const t = this.planeTilts[c];
+            if (mN[c] > 0) {
+                t[2] += ((mX[c]/mN[c]/WORLD_RADIUS)*TILT_MAX - t[0]) * TILT_SPRING;
+                t[3] += ((mY[c]/mN[c]/WORLD_RADIUS)*TILT_MAX - t[1]) * TILT_SPRING;
             }
-            tilt[2] *= TILT_DAMPING;
-            tilt[3] *= TILT_DAMPING;
-            tilt[0] += tilt[2];
-            tilt[1] += tilt[3];
+            t[2] *= TILT_DAMPING; t[3] *= TILT_DAMPING;
+            t[0] += t[2]; t[1] += t[3];
         }
     }
 
     getPlaneTilts() {
         const out = new Float32Array(9);
         for (let c = 0; c < 3; c++) {
-            const tilt = this.planeTilts[c];
-            const ang = Math.sqrt(tilt[0] * tilt[0] + tilt[1] * tilt[1]);
-            if (ang > 0.0001) {
-                out[c * 3]     = tilt[0] / ang;
-                out[c * 3 + 1] = tilt[1] / ang;
-                out[c * 3 + 2] = ang;
-            }
+            const t = this.planeTilts[c];
+            const a = Math.sqrt(t[0]*t[0]+t[1]*t[1]);
+            if (a > 0.0001) { out[c*3]=t[0]/a; out[c*3+1]=t[1]/a; out[c*3+2]=a; }
         }
         return out;
     }
 
     /* -------------------------------------------------------------- */
-    /*  Player barrier lines                                           */
+    /*  Player lines                                                   */
     /* -------------------------------------------------------------- */
 
     _stepPlayerLines(dt) {
         for (let i = this.playerLines.length - 1; i >= 0; i--) {
             this.playerLines[i].timeLeft -= dt;
-            if (this.playerLines[i].timeLeft <= 0) {
-                this.playerLines.splice(i, 1);
-            }
+            if (this.playerLines[i].timeLeft <= 0) this.playerLines.splice(i, 1);
         }
     }
 
@@ -780,58 +856,41 @@ export class ChromaSimulation {
         return true;
     }
 
-    _pointToLineDist(px, py, x0, y0, x1, y1) {
-        const dx = x1 - x0, dy = y1 - y0;
-        const len2 = dx * dx + dy * dy;
-        if (len2 < 0.001) return Math.sqrt((px-x0)*(px-x0) + (py-y0)*(py-y0));
-        let t = ((px - x0) * dx + (py - y0) * dy) / len2;
-        t = Math.max(0, Math.min(1, t));
-        const cx = x0 + t * dx, cy = y0 + t * dy;
-        return Math.sqrt((px-cx)*(px-cx) + (py-cy)*(py-cy));
+    _ptLineDist(px, py, x0, y0, x1, y1) {
+        const dx = x1-x0, dy = y1-y0, l2 = dx*dx+dy*dy;
+        if (l2 < 0.001) return Math.sqrt((px-x0)*(px-x0)+(py-y0)*(py-y0));
+        let t = Math.max(0, Math.min(1, ((px-x0)*dx+(py-y0)*dy)/l2));
+        const cx = x0+t*dx, cy = y0+t*dy;
+        return Math.sqrt((px-cx)*(px-cx)+(py-cy)*(py-cy));
     }
 
     /* -------------------------------------------------------------- */
-    /*  Balance calculation                                            */
+    /*  Balance                                                        */
     /* -------------------------------------------------------------- */
 
     _calcBalance() {
         this.balance[0] = this.balance[1] = this.balance[2] = 0;
-
         for (let i = 0; i < this.clusterCount; i++) {
-            if (!this.calive[i]) continue;
-            this.balance[this.ccolor[i]] += this.csize[i];
+            if (this.calive[i]) this.balance[this.ccolor[i]] += this.csize[i];
         }
-
-        const total = this.balance[0] + this.balance[1] + this.balance[2];
-        if (total === 0) { this.balanceMetric = 0; return; }
-
-        const ideal = total / 3;
-        const dev = (
-            Math.abs(this.balance[0] - ideal) +
-            Math.abs(this.balance[1] - ideal) +
-            Math.abs(this.balance[2] - ideal)
-        ) / (2 * total);
-
-        this.balanceMetric = 1.0 - dev;
+        const tot = this.balance[0]+this.balance[1]+this.balance[2];
+        if (!tot) { this.balanceMetric = 0; return; }
+        const id = tot/3;
+        this.balanceMetric = 1 - (Math.abs(this.balance[0]-id)+Math.abs(this.balance[1]-id)+Math.abs(this.balance[2]-id))/(2*tot);
         this.isBalanced = this.balanceMetric > 0.95;
         this.score += this.balanceMetric * 0.1;
     }
 
     /* -------------------------------------------------------------- */
-    /*  Public queries                                                  */
+    /*  Queries                                                        */
     /* -------------------------------------------------------------- */
 
     screenToWorld(sx, sy, cw, ch) {
-        const aspect = cw / ch;
-        return {
-            x: ((sx / cw) * 2 - 1) * WORLD_RADIUS * aspect,
-            y: -((sy / ch) * 2 - 1) * WORLD_RADIUS,
-        };
+        const a = cw / ch;
+        return { x: ((sx/cw)*2-1)*WORLD_RADIUS*a, y: -((sy/ch)*2-1)*WORLD_RADIUS };
     }
 
-    getActiveLineCount() {
-        return this.playerLines.length;
-    }
+    getActiveLineCount() { return this.playerLines.length; }
 }
 
 export default ChromaSimulation;

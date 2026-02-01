@@ -107,7 +107,7 @@ void main() {
 `;
 
 const PARTICLE_FRAGMENT = `#version 300 es
-precision mediump float;
+precision highp float;
 
 in vec2 v_uv;
 in vec3 v_color;

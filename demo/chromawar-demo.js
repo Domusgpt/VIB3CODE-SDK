@@ -294,7 +294,6 @@ function frame(now) {
     if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
-        if (postProcess) postProcess.resize(w, h);
     }
 
     // Simulation step
@@ -311,7 +310,7 @@ function frame(now) {
 
     // ---- Render ----
     if (postProcess) {
-        postProcess.beginSplatPass();
+        postProcess.beginCapture();
     }
 
     // Clear
@@ -326,8 +325,7 @@ function frame(now) {
     drawAllLines();
 
     if (postProcess) {
-        postProcess.endSplatPass();
-        postProcess.compose();
+        postProcess.endCaptureAndComposite(elapsed);
     }
 
     // HUD (every 6 frames to save CPU)
@@ -371,18 +369,20 @@ export function init() {
 
     // Post-processing (bloom + edges)
     try {
-        postProcess = new SplatPostProcess(gl, canvas.width, canvas.height);
-        postProcess.enableEdges = true;
-        postProcess.edgeIntensity = 1.2;
-        postProcess.enableBloom = true;
-        postProcess.bloomIntensity = 0.8;
-        postProcess.bloomThreshold = 0.3;
-        postProcess.enableVignette = true;
-        postProcess.vignetteStrength = 0.4;
-        postProcess.enableTonemap = true;
-        postProcess.tonemapExposure = 1.3;
-        postProcess.enableChromatic = false;
-        postProcess.enableGrain = false;
+        postProcess = new SplatPostProcess(gl, {
+            enableEdges: true,
+            edgeIntensity: 1.2,
+            enableBloom: true,
+            bloomIntensity: 0.8,
+            bloomThreshold: 0.3,
+            enableVignette: true,
+            vignetteIntensity: 0.4,
+            enableTonemap: true,
+            exposure: 1.3,
+            enableChroma: false,
+            enableGrain: false,
+            enableInscription: false,
+        });
     } catch (e) {
         console.warn('Post-process unavailable:', e.message);
         postProcess = null;

@@ -84,13 +84,14 @@ void main() {
     // View-space position
     vec4 viewPos = u_viewMatrix * worldPos;
 
-    // Billboard size in pixels (2-8px based on size attribute + crystal boost)
-    float pixelSize = mix(1.5, 5.0, size) + step(0.9, state) * 3.0;
+    // Billboard size in pixels (3-10px based on size attribute + crystal boost)
+    float pixelSize = mix(3.0, 10.0, size) + step(0.9, state) * 5.0;
 
     // Perspective scaling
     vec4 clipPos = u_projMatrix * viewPos;
     float w = max(clipPos.w, 0.001);
-    vec2 screenOffset = a_corner * pixelSize / u_viewport;
+    // NDC range is [-1,1] = 2 units wide, so pixel→NDC = pixel * 2 / viewport
+    vec2 screenOffset = a_corner * pixelSize * 2.0 / u_viewport;
 
     gl_Position = clipPos / w + vec4(screenOffset, 0.0, 0.0);
     gl_Position.w = 1.0;

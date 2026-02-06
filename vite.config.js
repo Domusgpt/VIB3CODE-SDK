@@ -16,6 +16,7 @@ export default defineConfig({
                 plasticCosmos: resolve(__dirname, 'demo/plastic-cosmos.html'),
                 neutronDescent: resolve(__dirname, 'demo/neutron-descent.html'),
                 emergenceStorm: resolve(__dirname, 'demo/emergence-storm.html'),
+                hyperGenesis: resolve(__dirname, 'demo/hyper-genesis.html'),
             }
         }
     },

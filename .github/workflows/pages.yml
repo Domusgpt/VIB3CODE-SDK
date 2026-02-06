@@ -2,7 +2,8 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, master, 'claude/**']
+    branches:
+      - "**"
   workflow_dispatch:
 
 permissions:
@@ -21,19 +22,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.4.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Create pages directory
+      - name: Build site
+        env:
+          PAGES_BASE_PATH: ${{ github.event.repository.name }}
+        run: pnpm build:web -- --base=/${PAGES_BASE_PATH}/
+
+      - name: Include demo and docs assets
         run: |
-          # Deploy the VIB3+ SDK
-          mkdir -p _site
-          cp -r sdk/* _site/
+          cp -r demo dist/demo
+          cp -r docs dist/docs
+          cp -r src dist/src
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: dist
 
   deploy:
     environment:

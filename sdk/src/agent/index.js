@@ -69,5 +69,3 @@ export {
 } from './cli/index.js';
 
 // Default exports
-export { telemetry } from './telemetry/index.js';
-export { mcpServer } from './mcp/index.js';

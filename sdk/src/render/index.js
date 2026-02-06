@@ -84,6 +84,15 @@ export {
     createWebGLBackend
 } from './backends/WebGLBackend.js';
 
+// Procedural streams
+export { ProceduralGaussianStream } from './ProceduralGaussianStream.js';
+export { createProceduralGaussianStreamFromPCG } from './ProceduralCompactGraphStream.js';
+export { encodeGaussianSeeds, GAUSSIAN_SEED_LAYOUT, GAUSSIAN_SEED_STRIDE } from './GaussianSeedBuffer.js';
+export { FoveatedTraversalPolicy } from './FoveatedTraversalPolicy.js';
+export { ProceduralTraversalScheduler } from './ProceduralTraversalScheduler.js';
+export { GaussianSplatRenderer } from './GaussianSplatRenderer.js';
+export { ProceduralRenderLoop } from './ProceduralRenderLoop.js';
+
 /**
  * Create a complete rendering context
  * @param {HTMLCanvasElement} canvas

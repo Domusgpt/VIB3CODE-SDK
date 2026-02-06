@@ -59,6 +59,26 @@ export {
     clamp, lerp, smoothstep, smootherstep
 } from './constants.js';
 
+// Plastic Ratio mathematics (for Phillips Renderer)
+export {
+    PLASTIC_CONSTANT,
+    PLASTIC_CONSTANT_INV,
+    PLASTIC_CONSTANT_SQ,
+    PLASTIC_CONSTANT_CUBE,
+    PLASTIC_ALPHA_1,
+    PLASTIC_ALPHA_2,
+    getPadovanSequence,
+    getPadovanNumber,
+    getPlasticSamplingPoint,
+    getPlasticSamplingPoint3D,
+    generatePlasticSamplingGrid,
+    getPlasticPower,
+    getPlasticScaleFactor,
+    packRGB565,
+    unpackRGB565,
+    hasSufficientCoverage
+} from './Plastic.js';
+
 // Default export for convenience
 export default {
     Vec4: (await import('./Vec4.js')).Vec4,

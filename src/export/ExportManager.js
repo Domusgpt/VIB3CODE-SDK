@@ -3,6 +3,9 @@
  * Handles all export and import functionality for configurations and media
  */
 
+import { PhillipsRenderer } from '../systems/PhillipsRenderer.js';
+import { generatePlasticSamplingGrid, packRGB565 } from '../math/Plastic.js';
+
 export class ExportManager {
     constructor(engine) {
         this.engine = engine;
@@ -555,6 +558,132 @@ window.addEventListener('load', () => {
         return customIndex;
     }
     
+    /**
+     * Create a Phillips Renderer for Gaussian Flat rendering
+     *
+     * @param {string|HTMLCanvasElement} canvas - Canvas element or ID
+     * @param {Object} [options={}] - Renderer options
+     * @returns {PhillipsRenderer} The created renderer instance
+     */
+    createPhillipsRenderer(canvas, options = {}) {
+        return new PhillipsRenderer(canvas, options);
+    }
+
+    /**
+     * Export visualization using Phillips Renderer (Gaussian Flat)
+     * Creates deterministic, albedo-only "Canonical Views" for AI analysis
+     *
+     * @param {Object} [options={}] - Export options
+     * @param {number} [options.width=800] - Canvas width
+     * @param {number} [options.height=600] - Canvas height
+     * @param {number} [options.pointCount=1000] - Number of splats to generate
+     * @param {number} [options.plasticScale=1.0] - Global Plastic scale factor
+     * @returns {Object} Export result with dataUrl and packedData
+     */
+    exportPhillipsFrame(options = {}) {
+        const width = options.width || 800;
+        const height = options.height || 600;
+        const pointCount = options.pointCount || 1000;
+        const plasticScale = options.plasticScale || 1.0;
+
+        // Create offscreen canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        try {
+            // Create renderer
+            const renderer = new PhillipsRenderer(canvas, {
+                plasticScale,
+                blendMode: 'alpha'
+            });
+
+            // Generate points using Plastic sampling for uniform distribution
+            const samplingPoints = generatePlasticSamplingGrid(pointCount);
+            const params = this.engine.parameterManager.getAllParameters();
+
+            // Convert to renderer point format
+            const points = samplingPoints.map((sp, i) => {
+                // Map sampling point to 3D space
+                const x = (sp.x - 0.5) * 4;
+                const y = (sp.y - 0.5) * 4;
+                const z = Math.sin(sp.x * 6.28 + sp.y * 6.28) * 0.5;
+
+                // Calculate scale based on parameters
+                const baseScale = 0.1 + (params.morphFactor || 0) * 0.05;
+
+                // Color based on hue parameter
+                const hue = ((params.hue || 0) + i * 3) % 360;
+                const rgb = this.hslToRgb(hue / 360, 0.8, 0.5);
+
+                return {
+                    x, y, z,
+                    scale: baseScale,
+                    color: { r: rgb.r, g: rgb.g, b: rgb.b }
+                };
+            });
+
+            // Set points and render
+            renderer.setPoints(points);
+            renderer.setCamera(5.0, 60);
+            renderer.render();
+
+            // Get outputs
+            const dataUrl = renderer.exportFrame();
+            const packedData = renderer.getPackedData();
+
+            // Cleanup
+            renderer.dispose();
+
+            this.engine.statusManager.success('Phillips Renderer export complete');
+
+            return {
+                dataUrl,
+                packedData,
+                pointCount,
+                bytesPerSplat: 17,
+                totalBytes: packedData.byteLength
+            };
+
+        } catch (error) {
+            this.engine.statusManager.error('Phillips Renderer export failed: ' + error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Convert HSL to RGB
+     * @private
+     */
+    hslToRgb(h, s, l) {
+        let r, g, b;
+
+        if (s === 0) {
+            r = g = b = l;
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+
+        return {
+            r: Math.round(r * 255),
+            g: Math.round(g * 255),
+            b: Math.round(b * 255)
+        };
+    }
+
     /**
      * Download file helper
      */

@@ -3,1274 +3,707 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EMERGENCE STORM - Exponential Chaos Engine</title>
+    <title>EMERGENCE STORM - Voice Crystal Engine</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --void: #000008;
-            --hot: #ff2266;
-            --warm: #ff6600;
-            --gold: #ffcc00;
-            --cool: #00ff88;
-            --cold: #00ccff;
-            --purple: #aa33ff;
-            --magenta: #ff00ff;
-        }
-
         html, body {
             width: 100%; height: 100%;
             overflow: hidden;
-            background: var(--void);
+            background: #000;
             font-family: 'Courier New', monospace;
             color: #fff;
             touch-action: none;
-            cursor: crosshair;
         }
-
         canvas {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
         }
-
-        #bgLayer { z-index: 1; }
-        #trailLayer { z-index: 2; }
-        #mainLayer { z-index: 3; }
-        #connectionLayer { z-index: 4; }
-        #fxLayer { z-index: 5; }
-
-        /* Minimal HUD */
         .hud {
             position: fixed;
             z-index: 100;
             pointer-events: none;
             font-size: 10px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-
-        .hud-tl { top: 20px; left: 20px; }
-        .hud-tr { top: 20px; right: 20px; text-align: right; }
-        .hud-br { bottom: 20px; right: 20px; text-align: right; }
-        .hud-bc { bottom: 20px; left: 50%; transform: translateX(-50%); text-align: center; }
-
-        .mode-display {
+        .hud-tl { top: 15px; left: 15px; }
+        .hud-tr { top: 15px; right: 15px; text-align: right; }
+        .hud-bc { bottom: 15px; left: 50%; transform: translateX(-50%); text-align: center; }
+        .pitch-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0ff;
+            text-shadow: 0 0 20px #0ff;
+        }
+        .pattern-name {
             font-size: 14px;
-            color: var(--gold);
-            margin-bottom: 5px;
-        }
-
-        .sub-mode {
-            font-size: 10px;
-            color: var(--cool);
+            color: #f0f;
             margin-top: 5px;
+            text-shadow: 0 0 10px #f0f;
         }
-
-        .charge-bar {
-            width: 200px;
-            height: 4px;
+        .mic-status {
+            font-size: 11px;
+            color: #0f0;
+            animation: pulse 1s infinite;
+        }
+        .mic-status.off { color: #f00; animation: none; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .volume-bar {
+            width: 100px;
+            height: 6px;
             background: rgba(255,255,255,0.1);
-            border-radius: 2px;
+            border-radius: 3px;
+            margin-top: 8px;
             overflow: hidden;
-            margin-top: 10px;
         }
-
-        .charge-fill {
+        .volume-fill {
             height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--cold), var(--magenta), var(--hot));
+            background: linear-gradient(90deg, #0f0, #ff0, #f00);
             transition: width 0.05s;
         }
-
-        .controls-hint {
+        .hint {
             color: rgba(255,255,255,0.4);
             font-size: 9px;
-            line-height: 1.6;
         }
-
-        .stats {
-            color: rgba(255,255,255,0.5);
-        }
-
-        .stats span {
-            color: var(--cold);
-        }
-
-        .species-indicator {
-            display: flex;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .species-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .species-normal { background: var(--cold); }
-        .species-predator { background: var(--hot); }
-        .species-attractor { background: var(--gold); }
-
-        /* Intro */
-        .intro {
+        .start-overlay {
             position: fixed;
             inset: 0;
-            background: var(--void);
-            z-index: 1000;
+            background: #000;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.8s, visibility 0.8s;
+            z-index: 1000;
+            transition: opacity 0.5s;
         }
-
-        .intro.hidden {
+        .start-overlay.hidden {
             opacity: 0;
-            visibility: hidden;
+            pointer-events: none;
         }
-
-        .intro h1 {
-            font-size: 42px;
-            font-weight: bold;
-            letter-spacing: 12px;
-            background: linear-gradient(135deg, var(--hot), var(--gold), var(--cold), var(--magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 30px;
+        .start-overlay h1 {
+            font-size: 28px;
+            letter-spacing: 8px;
+            color: #0ff;
+            margin-bottom: 20px;
         }
-
-        .intro .subtitle {
+        .start-overlay p {
+            color: #888;
             font-size: 12px;
-            letter-spacing: 8px;
-            color: var(--purple);
-            margin-bottom: 30px;
+            margin: 5px 0;
+            text-align: center;
+            max-width: 280px;
         }
-
-        .intro p {
-            color: rgba(255,255,255,0.6);
-            margin: 6px 0;
-            font-size: 11px;
-        }
-
-        .intro strong {
-            color: var(--gold);
-        }
-
-        .intro .section {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .intro .section-title {
-            color: var(--cool);
-            font-size: 10px;
-            letter-spacing: 4px;
-            margin-bottom: 10px;
-        }
-
-        .intro button {
-            margin-top: 40px;
-            padding: 20px 60px;
+        .start-btn {
+            margin-top: 30px;
+            padding: 20px 50px;
             font-size: 16px;
-            letter-spacing: 8px;
-            border: 2px solid var(--magenta);
-            background: transparent;
-            color: var(--magenta);
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-
-        .intro button:hover {
-            background: var(--magenta);
+            letter-spacing: 5px;
+            background: #0ff;
+            border: none;
             color: #000;
-            box-shadow: 0 0 60px var(--magenta);
-        }
-
-        /* Shockwave effect */
-        .shockwave {
-            position: fixed;
-            border-radius: 50%;
-            border: 2px solid;
-            pointer-events: none;
-            animation: shockwave 0.6s ease-out forwards;
-        }
-
-        @keyframes shockwave {
-            0% { transform: scale(0); opacity: 1; }
-            100% { transform: scale(3); opacity: 0; }
-        }
-
-        /* Gravity well indicator */
-        .gravity-well {
-            position: fixed;
-            border-radius: 50%;
-            border: 1px dashed var(--purple);
-            pointer-events: none;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.2); opacity: 0.8; }
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <canvas id="bgLayer"></canvas>
-    <canvas id="trailLayer"></canvas>
-    <canvas id="mainLayer"></canvas>
-    <canvas id="connectionLayer"></canvas>
-    <canvas id="fxLayer"></canvas>
+    <canvas id="canvas"></canvas>
 
-    <!-- Minimal HUD -->
     <div class="hud hud-tl">
-        <div class="mode-display" id="modeDisplay">LORENZ</div>
-        <div class="sub-mode" id="subMode">FLOCKING: OFF | TRAILS: OFF | WEB: OFF</div>
-        <div class="charge-bar"><div class="charge-fill" id="chargeFill"></div></div>
-        <div class="species-indicator">
-            <div class="species-dot species-normal" title="Normal"></div>
-            <div class="species-dot species-predator" title="Predator"></div>
-            <div class="species-dot species-attractor" title="Attractor"></div>
-        </div>
+        <div class="mic-status" id="micStatus">● MIC ACTIVE</div>
+        <div class="volume-bar"><div class="volume-fill" id="volumeFill" style="width: 0%"></div></div>
     </div>
 
     <div class="hud hud-tr">
-        <div class="stats">
-            <span id="fps">0</span> FPS<br>
-            <span id="particles">0</span> PARTICLES<br>
-            <span id="wells">0</span> GRAVITY WELLS<br>
-            <span id="connections">0</span> CONNECTIONS
-        </div>
-    </div>
-
-    <div class="hud hud-br">
-        <div class="controls-hint">
-            [F] FLOCKING<br>
-            [T] TRAILS<br>
-            [C] CONNECTIONS<br>
-            [G] DROP WELL<br>
-            [R] CHAIN REACT<br>
-            [A] AUDIO
-        </div>
+        <div class="pitch-display" id="pitchDisplay">--</div>
+        <div class="pattern-name" id="patternName">WAITING</div>
     </div>
 
     <div class="hud hud-bc">
-        <div class="controls-hint">CLICK EXPLODE | HOLD CHARGE | DRAG PULL | [1-5] ATTRACTOR | [SPACE] CHAOS</div>
+        <div class="hint">HUM OR WHISTLE TO CONTROL • TAP TO BURST</div>
     </div>
 
-    <!-- Intro -->
-    <div class="intro" id="intro">
-        <h1>EMERGENCE STORM</h1>
-        <div class="subtitle">EXPONENTIAL CHAOS ENGINE</div>
-
-        <p><strong>CLICK</strong> spawn explosions</p>
-        <p><strong>HOLD + RELEASE</strong> charged burst</p>
-        <p><strong>DRAG</strong> gravitational pull</p>
-
-        <div class="section">
-            <div class="section-title">ATTRACTORS</div>
-            <p><strong>1-5</strong> Lorenz / Rossler / Thomas / Aizawa / Halvorsen</p>
-            <p><strong>SPACE</strong> chaos mode</p>
-        </div>
-
-        <div class="section">
-            <div class="section-title">EMERGENT SYSTEMS</div>
-            <p><strong>F</strong> toggle flocking (boids behavior)</p>
-            <p><strong>T</strong> toggle motion trails</p>
-            <p><strong>C</strong> toggle neural connection web</p>
-            <p><strong>G</strong> drop permanent gravity well</p>
-            <p><strong>R</strong> toggle chain reaction explosions</p>
-            <p><strong>A</strong> toggle audio synthesis</p>
-        </div>
-
-        <button onclick="beginStorm()">ENTER THE STORM</button>
+    <div class="start-overlay" id="startOverlay">
+        <h1>VOICE CRYSTALS</h1>
+        <p>Hum low for spirals</p>
+        <p>Whistle high for crystals</p>
+        <p>Hold steady for complexity</p>
+        <p>Tap screen to explode</p>
+        <button class="start-btn" id="startBtn">START</button>
     </div>
 
-    <script type="module">
-        import { PhillipsRenderer } from '../src/systems/PhillipsRenderer.js';
-        import {
-            PLASTIC_CONSTANT,
-            PLASTIC_ALPHA_1,
-            getPlasticPower,
-            getPlasticSamplingPoint3D,
-            lorenzStep,
-            rosslerStep,
-            thomasStep,
-            aizawaStep,
-            halvorsenStep
-        } from '../src/math/Plastic.js';
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
 
-        // ═══════════════════════════════════════════════════════════════════
-        // PARTICLE SPECIES TYPES
-        // ═══════════════════════════════════════════════════════════════════
-        const SPECIES = {
-            NORMAL: 0,      // Cyan - follows attractor, flocks
-            PREDATOR: 1,    // Red - chases other particles
-            ATTRACTOR: 2    // Gold - attracts nearby particles
-        };
-
-        // ═══════════════════════════════════════════════════════════════════
-        // STATE
-        // ═══════════════════════════════════════════════════════════════════
-
-        const State = {
-            running: false,
+        // State
+        const S = {
+            w: 0, h: 0, cx: 0, cy: 0,
             time: 0,
-
-            // Renderer
-            phillipsRenderer: null,
-
-            // Particles
+            pitch: 0,
+            volume: 0,
+            sustain: 0,
+            pattern: 0,
+            targetPattern: 0,
+            complexity: 1,
             particles: [],
-            maxParticles: 25000,
-
-            // Attractor
-            attractorType: 0,
-            attractorNames: ['LORENZ', 'ROSSLER', 'THOMAS', 'AIZAWA', 'HALVORSEN'],
-            attractorFuncs: [lorenzStep, rosslerStep, thomasStep, aizawaStep, halvorsenStep],
-            attractorState: { x: 1, y: 1, z: 1 },
-
-            // Gravity wells (permanent attractors)
-            gravityWells: [],
-            maxWells: 10,
-
-            // User input
-            mouse: { x: 0, y: 0, down: false, charge: 0 },
-            chaosMode: false,
-
-            // Emergent system toggles
-            flockingEnabled: false,
-            trailsEnabled: false,
-            connectionsEnabled: false,
-            chainReactionEnabled: false,
-            audioEnabled: false,
-
-            // Audio
-            audioCtx: null,
-            oscillators: [],
-            gainNode: null,
-
-            // Connection web cache
-            connectionCount: 0,
-
-            // Chain reaction queue
-            pendingExplosions: [],
-
-            // Effects
-            shockwaves: [],
-            explosions: [],
-
-            // Stats
-            fps: 0,
-            frameCount: 0,
-            lastFpsTime: 0
+            crystals: [],
+            running: false
         };
 
-        let ctxBg, ctxTrail, ctxConnection, ctxFx;
-        const W = () => window.innerWidth;
-        const H = () => window.innerHeight;
+        // Audio
+        let audioCtx, analyser, micStream;
+        const fftSize = 2048;
+        let audioData, audioBuffer;
 
-        // ═══════════════════════════════════════════════════════════════════
-        // ENHANCED PARTICLE CLASS WITH SPECIES & BOIDS
-        // ═══════════════════════════════════════════════════════════════════
+        // Pattern names
+        const PATTERNS = [
+            'VOID', 'SPIRAL', 'HELIX', 'FLOWER', 'STAR',
+            'CRYSTAL', 'FRACTAL', 'MANDALA', 'INFINITY', 'NOVA'
+        ];
 
-        class Particle {
-            constructor(x, y, z, vx = 0, vy = 0, vz = 0) {
-                this.x = x;
-                this.y = y;
-                this.z = z;
-                this.vx = vx;
-                this.vy = vy;
-                this.vz = vz;
+        // Resize
+        function resize() {
+            const dpr = Math.min(window.devicePixelRatio, 2);
+            S.w = window.innerWidth;
+            S.h = window.innerHeight;
+            S.cx = S.w / 2;
+            S.cy = S.h / 2;
+            canvas.width = S.w * dpr;
+            canvas.height = S.h * dpr;
+            canvas.style.width = S.w + 'px';
+            canvas.style.height = S.h + 'px';
+            ctx.scale(dpr, dpr);
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
-                // Previous position for trails
-                this.px = x;
-                this.py = y;
-                this.pz = z;
+        // Start mic
+        async function startMic() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = fftSize;
+                analyser.smoothingTimeConstant = 0.8;
 
-                // Life and appearance
-                this.life = 1;
-                this.decay = 0.002 + Math.random() * 0.003;
-                this.size = 0.02 + Math.random() * 0.04;
-                this.baseHue = Math.random() * 360;
-                this.hue = this.baseHue;
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    }
+                });
 
-                // Species determination
-                const r = Math.random();
-                if (r < 0.03) {
-                    this.species = SPECIES.PREDATOR;
-                    this.hue = 0; // Red
-                    this.size *= 1.5;
-                    this.decay *= 0.5; // Lives longer
-                } else if (r < 0.08) {
-                    this.species = SPECIES.ATTRACTOR;
-                    this.hue = 45; // Gold
-                    this.size *= 1.3;
-                    this.decay *= 0.7;
-                } else {
-                    this.species = SPECIES.NORMAL;
+                const source = audioCtx.createMediaStreamSource(micStream);
+                source.connect(analyser);
+
+                audioData = new Float32Array(analyser.fftSize);
+                audioBuffer = new Uint8Array(analyser.frequencyBinCount);
+
+                document.getElementById('micStatus').textContent = '● MIC ACTIVE';
+                document.getElementById('micStatus').classList.remove('off');
+                return true;
+            } catch (e) {
+                document.getElementById('micStatus').textContent = '● MIC OFF';
+                document.getElementById('micStatus').classList.add('off');
+                return false;
+            }
+        }
+
+        // Pitch detection (autocorrelation)
+        function detectPitch() {
+            if (!analyser) return 0;
+
+            analyser.getFloatTimeDomainData(audioData);
+
+            // RMS volume
+            let rms = 0;
+            for (let i = 0; i < audioData.length; i++) {
+                rms += audioData[i] * audioData[i];
+            }
+            rms = Math.sqrt(rms / audioData.length);
+            S.volume = Math.min(1, rms * 10);
+
+            if (rms < 0.01) return 0;
+
+            // Autocorrelation
+            const size = Math.floor(audioData.length / 2);
+            let maxCorr = 0;
+            let maxLag = 0;
+
+            for (let lag = 20; lag < size; lag++) {
+                let corr = 0;
+                for (let i = 0; i < size; i++) {
+                    corr += audioData[i] * audioData[i + lag];
                 }
-
-                // Explosion energy for chain reactions
-                this.energy = 0;
+                if (corr > maxCorr) {
+                    maxCorr = corr;
+                    maxLag = lag;
+                }
             }
 
-            update(dt, attractor, mouseInfluence, particles, gravityWells) {
-                // Store previous position
-                this.px = this.x;
-                this.py = this.y;
-                this.pz = this.z;
+            if (maxCorr < 0.01) return 0;
 
-                // Base attractor influence
-                const attractorStrength = 0.015;
-                const ax = (attractor.x * 0.05 - this.x) * attractorStrength;
-                const ay = (attractor.y * 0.05 - this.y) * attractorStrength;
-                const az = (attractor.z * 0.05 - this.z) * attractorStrength;
+            const freq = audioCtx.sampleRate / maxLag;
+            return freq > 50 && freq < 2000 ? freq : 0;
+        }
 
-                this.vx += ax * dt * 60;
-                this.vy += ay * dt * 60;
-                this.vz += az * dt * 60;
+        // Map pitch to pattern (0-9)
+        function pitchToPattern(freq) {
+            if (freq < 80) return 0;      // Very low - void
+            if (freq < 120) return 1;     // Low hum - spiral
+            if (freq < 180) return 2;     // Low-mid - helix
+            if (freq < 260) return 3;     // Mid - flower
+            if (freq < 350) return 4;     // Mid-high - star
+            if (freq < 500) return 5;     // High - crystal
+            if (freq < 700) return 6;     // Higher - fractal
+            if (freq < 1000) return 7;    // Whistle low - mandala
+            if (freq < 1400) return 8;    // Whistle mid - infinity
+            return 9;                      // Whistle high - nova
+        }
 
-                // Gravity wells influence
-                for (const well of gravityWells) {
-                    const dx = well.x - this.x;
-                    const dy = well.y - this.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy) + 0.1;
-                    const force = well.strength / (dist * dist) * 0.3;
-                    this.vx += (dx / dist) * force * dt * 60;
-                    this.vy += (dy / dist) * force * dt * 60;
-                }
+        // Crystal particle
+        class Crystal {
+            constructor(x, y, angle, speed, size, hue) {
+                this.x = x;
+                this.y = y;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.size = size;
+                this.hue = hue;
+                this.life = 1;
+                this.decay = 0.005 + Math.random() * 0.01;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotSpeed = (Math.random() - 0.5) * 0.1;
+                this.sides = 3 + Math.floor(Math.random() * 4);
+            }
 
-                // Mouse gravitational pull
-                if (mouseInfluence.active) {
-                    const mx = mouseInfluence.x - this.x;
-                    const my = mouseInfluence.y - this.y;
-                    const dist = Math.sqrt(mx * mx + my * my) + 0.1;
-                    const force = mouseInfluence.strength / (dist * dist) * 0.5;
-                    this.vx += (mx / dist) * force * dt * 60;
-                    this.vy += (my / dist) * force * dt * 60;
-                }
-
-                // Species-specific behavior
-                if (State.flockingEnabled && particles.length > 0) {
-                    this.applyFlocking(dt, particles);
-                }
-
-                this.applySpeciesBehavior(dt, particles);
-
-                // Apply velocity
-                const speedMult = 1 + (State.chaosMode ? 0.5 : 0);
-                this.x += this.vx * dt * 60 * speedMult;
-                this.y += this.vy * dt * 60 * speedMult;
-                this.z += this.vz * dt * 60 * speedMult;
-
-                // Damping
-                const damping = 0.985;
-                this.vx *= damping;
-                this.vy *= damping;
-                this.vz *= damping;
-
-                // Age
-                this.life -= this.decay * (State.chaosMode ? 1.5 : 1);
-
-                // Hue cycling based on species
-                if (this.species === SPECIES.NORMAL) {
-                    this.hue = (this.baseHue + State.time * 30) % 360;
-                } else if (this.species === SPECIES.PREDATOR) {
-                    this.hue = (350 + Math.sin(State.time * 5) * 20) % 360;
-                } else if (this.species === SPECIES.ATTRACTOR) {
-                    this.hue = (40 + Math.sin(State.time * 3) * 15) % 360;
-                }
-
-                // Energy decay
-                this.energy *= 0.95;
-
-                // Chain reaction check
-                if (State.chainReactionEnabled && this.energy > 0.8 && this.life < 0.3) {
-                    State.pendingExplosions.push({
-                        x: this.x,
-                        y: this.y,
-                        charge: this.energy * 0.3,
-                        delay: Math.random() * 0.1
-                    });
-                    this.energy = 0;
-                }
-
+            update(dt) {
+                this.x += this.vx * dt * 60;
+                this.y += this.vy * dt * 60;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.rotation += this.rotSpeed;
+                this.life -= this.decay;
                 return this.life > 0;
             }
 
-            applyFlocking(dt, particles) {
-                // Boids algorithm - separation, alignment, cohesion
-                let sepX = 0, sepY = 0;
-                let alignX = 0, alignY = 0;
-                let cohX = 0, cohY = 0;
-                let neighbors = 0;
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
 
-                const perceptionRadius = 0.5;
-                const perceptionRadiusSq = perceptionRadius * perceptionRadius;
+                const alpha = this.life;
+                const s = this.size * this.life;
 
-                // Sample nearby particles (not all, for performance)
-                const sampleSize = Math.min(50, particles.length);
-                const step = Math.max(1, Math.floor(particles.length / sampleSize));
+                ctx.strokeStyle = `hsla(${this.hue}, 100%, 70%, ${alpha})`;
+                ctx.fillStyle = `hsla(${this.hue}, 80%, 50%, ${alpha * 0.3})`;
+                ctx.lineWidth = 1.5;
 
-                for (let i = 0; i < particles.length; i += step) {
-                    const other = particles[i];
-                    if (other === this) continue;
-
-                    const dx = other.x - this.x;
-                    const dy = other.y - this.y;
-                    const distSq = dx * dx + dy * dy;
-
-                    if (distSq < perceptionRadiusSq && distSq > 0.0001) {
-                        const dist = Math.sqrt(distSq);
-
-                        // Separation - steer away from close neighbors
-                        if (dist < 0.15) {
-                            sepX -= dx / dist;
-                            sepY -= dy / dist;
-                        }
-
-                        // Alignment - match velocity of neighbors
-                        alignX += other.vx;
-                        alignY += other.vy;
-
-                        // Cohesion - steer toward center of neighbors
-                        cohX += other.x;
-                        cohY += other.y;
-
-                        neighbors++;
-                    }
+                ctx.beginPath();
+                for (let i = 0; i <= this.sides; i++) {
+                    const a = (i / this.sides) * Math.PI * 2;
+                    const r = s * (1 + Math.sin(a * 3 + S.time * 2) * 0.2);
+                    const px = Math.cos(a) * r;
+                    const py = Math.sin(a) * r;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
                 }
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
 
-                if (neighbors > 0) {
-                    // Average and apply forces
-                    const sepForce = 0.05;
-                    const alignForce = 0.02;
-                    const cohForce = 0.01;
-
-                    this.vx += sepX * sepForce * dt * 60;
-                    this.vy += sepY * sepForce * dt * 60;
-
-                    alignX /= neighbors;
-                    alignY /= neighbors;
-                    this.vx += (alignX - this.vx) * alignForce * dt * 60;
-                    this.vy += (alignY - this.vy) * alignForce * dt * 60;
-
-                    cohX = cohX / neighbors - this.x;
-                    cohY = cohY / neighbors - this.y;
-                    this.vx += cohX * cohForce * dt * 60;
-                    this.vy += cohY * cohForce * dt * 60;
-                }
-            }
-
-            applySpeciesBehavior(dt, particles) {
-                if (this.species === SPECIES.PREDATOR) {
-                    // Chase nearest normal particle
-                    let nearestDist = Infinity;
-                    let nearestX = 0, nearestY = 0;
-
-                    const sampleSize = Math.min(30, particles.length);
-                    const step = Math.max(1, Math.floor(particles.length / sampleSize));
-
-                    for (let i = 0; i < particles.length; i += step) {
-                        const other = particles[i];
-                        if (other.species === SPECIES.NORMAL) {
-                            const dx = other.x - this.x;
-                            const dy = other.y - this.y;
-                            const dist = dx * dx + dy * dy;
-                            if (dist < nearestDist && dist > 0.01) {
-                                nearestDist = dist;
-                                nearestX = dx;
-                                nearestY = dy;
-                            }
-                        }
-                    }
-
-                    if (nearestDist < 4) {
-                        const dist = Math.sqrt(nearestDist);
-                        this.vx += (nearestX / dist) * 0.03 * dt * 60;
-                        this.vy += (nearestY / dist) * 0.03 * dt * 60;
-                    }
-                } else if (this.species === SPECIES.ATTRACTOR) {
-                    // Attractors pulse and draw in nearby normal particles
-                    // (This effect is handled by normal particles checking for attractors)
-                } else if (this.species === SPECIES.NORMAL) {
-                    // Normal particles are attracted to ATTRACTOR species
-                    const sampleSize = Math.min(20, particles.length);
-                    const step = Math.max(1, Math.floor(particles.length / sampleSize));
-
-                    for (let i = 0; i < particles.length; i += step) {
-                        const other = particles[i];
-                        if (other.species === SPECIES.ATTRACTOR) {
-                            const dx = other.x - this.x;
-                            const dy = other.y - this.y;
-                            const dist = Math.sqrt(dx * dx + dy * dy);
-                            if (dist < 1.5 && dist > 0.05) {
-                                this.vx += (dx / dist) * 0.02 * dt * 60;
-                                this.vy += (dy / dist) * 0.02 * dt * 60;
-                            }
-                        }
-                    }
-                }
-            }
-
-            toPoint() {
-                const brightness = Math.min(1, this.life * 1.5);
-                const energyBoost = this.energy * 0.3;
-                return {
-                    x: this.x,
-                    y: this.y,
-                    z: this.z,
-                    scale: this.size * this.life * (1 + energyBoost),
-                    color: hslToRgb(this.hue % 360, 0.9, 0.3 + brightness * 0.4 + energyBoost)
-                };
+                ctx.restore();
             }
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        // AUDIO SYNTHESIS
-        // ═══════════════════════════════════════════════════════════════════
+        // Draw patterns based on voice
+        function drawPattern() {
+            const p = S.pattern;
+            const c = S.complexity;
+            const t = S.time;
+            const hue = (t * 30 + p * 36) % 360;
 
-        function initAudio() {
-            if (State.audioCtx) return;
+            ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.8)`;
+            ctx.fillStyle = `hsla(${hue}, 80%, 50%, 0.1)`;
+            ctx.lineWidth = 2;
 
-            State.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            State.gainNode = State.audioCtx.createGain();
-            State.gainNode.gain.value = 0.1;
-            State.gainNode.connect(State.audioCtx.destination);
+            const baseSize = Math.min(S.w, S.h) * 0.3 * (0.5 + c * 0.5);
+            const arms = Math.floor(3 + p * 1.5);
 
-            // Create oscillators based on plastic ratio harmonics
-            const baseFreq = 110; // A2
+            ctx.save();
+            ctx.translate(S.cx, S.cy);
+
+            switch (p) {
+                case 0: // Void - pulsing circle
+                    drawVoid(baseSize, c, t, hue);
+                    break;
+                case 1: // Spiral
+                    drawSpiral(baseSize, c, t, arms, hue);
+                    break;
+                case 2: // Helix
+                    drawHelix(baseSize, c, t, hue);
+                    break;
+                case 3: // Flower
+                    drawFlower(baseSize, c, t, arms, hue);
+                    break;
+                case 4: // Star
+                    drawStar(baseSize, c, t, arms + 2, hue);
+                    break;
+                case 5: // Crystal
+                    drawCrystal(baseSize, c, t, hue);
+                    break;
+                case 6: // Fractal
+                    drawFractal(baseSize, c, t, hue, 0, 4);
+                    break;
+                case 7: // Mandala
+                    drawMandala(baseSize, c, t, arms * 2, hue);
+                    break;
+                case 8: // Infinity
+                    drawInfinity(baseSize, c, t, hue);
+                    break;
+                case 9: // Nova
+                    drawNova(baseSize, c, t, hue);
+                    break;
+            }
+
+            ctx.restore();
+        }
+
+        function drawVoid(size, c, t, hue) {
             for (let i = 0; i < 5; i++) {
-                const osc = State.audioCtx.createOscillator();
-                const oscGain = State.audioCtx.createGain();
-
-                osc.type = ['sine', 'triangle', 'sawtooth', 'sine', 'triangle'][i];
-                osc.frequency.value = baseFreq * Math.pow(PLASTIC_CONSTANT, i);
-
-                oscGain.gain.value = 0;
-                osc.connect(oscGain);
-                oscGain.connect(State.gainNode);
-                osc.start();
-
-                State.oscillators.push({ osc, gain: oscGain });
+                const r = size * (0.3 + i * 0.15) * (1 + Math.sin(t * 2 + i) * 0.1 * c);
+                ctx.strokeStyle = `hsla(${hue + i * 20}, 100%, 70%, ${0.5 - i * 0.08})`;
+                ctx.beginPath();
+                ctx.arc(0, 0, r, 0, Math.PI * 2);
+                ctx.stroke();
             }
         }
 
-        function updateAudio() {
-            if (!State.audioEnabled || !State.audioCtx) return;
-
-            // Modulate oscillators based on particle distribution
-            const centerX = State.particles.reduce((s, p) => s + p.x, 0) / Math.max(1, State.particles.length);
-            const centerY = State.particles.reduce((s, p) => s + p.y, 0) / Math.max(1, State.particles.length);
-            const spread = State.particles.reduce((s, p) => {
-                return s + Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2);
-            }, 0) / Math.max(1, State.particles.length);
-
-            // Species counts affect different oscillators
-            const normalCount = State.particles.filter(p => p.species === SPECIES.NORMAL).length;
-            const predatorCount = State.particles.filter(p => p.species === SPECIES.PREDATOR).length;
-            const attractorCount = State.particles.filter(p => p.species === SPECIES.ATTRACTOR).length;
-
-            const now = State.audioCtx.currentTime;
-            const smoothing = 0.1;
-
-            // Modulate each oscillator
-            State.oscillators.forEach((o, i) => {
-                let targetGain = 0;
-                let freqMod = 1;
-
-                switch (i) {
-                    case 0: // Base - attractor influence
-                        targetGain = Math.min(0.3, State.attractorState.x * 0.01 + 0.05);
-                        freqMod = 1 + State.attractorState.y * 0.01;
-                        break;
-                    case 1: // Spread indicator
-                        targetGain = Math.min(0.2, spread * 0.1);
-                        break;
-                    case 2: // Predator activity
-                        targetGain = Math.min(0.25, predatorCount * 0.02);
-                        freqMod = 1 + (State.chaosMode ? 0.2 : 0);
-                        break;
-                    case 3: // Attractor species resonance
-                        targetGain = Math.min(0.2, attractorCount * 0.03);
-                        break;
-                    case 4: // Chaos indicator
-                        targetGain = State.chaosMode ? 0.15 : 0;
-                        freqMod = 1 + Math.sin(State.time * 3) * 0.1;
-                        break;
+        function drawSpiral(size, c, t, arms, hue) {
+            const points = Math.floor(100 * c);
+            for (let a = 0; a < arms; a++) {
+                ctx.beginPath();
+                for (let i = 0; i < points; i++) {
+                    const angle = (i / points) * Math.PI * 4 + (a / arms) * Math.PI * 2 + t;
+                    const r = (i / points) * size;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
                 }
-
-                o.gain.gain.linearRampToValueAtTime(targetGain, now + smoothing);
-                o.osc.frequency.linearRampToValueAtTime(
-                    110 * Math.pow(PLASTIC_CONSTANT, i) * freqMod,
-                    now + smoothing
-                );
-            });
-        }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // INITIALIZATION
-        // ═══════════════════════════════════════════════════════════════════
-
-        function init() {
-            const canvasBg = document.getElementById('bgLayer');
-            const canvasTrail = document.getElementById('trailLayer');
-            const canvasMain = document.getElementById('mainLayer');
-            const canvasConnection = document.getElementById('connectionLayer');
-            const canvasFx = document.getElementById('fxLayer');
-
-            ctxBg = canvasBg.getContext('2d');
-            ctxTrail = canvasTrail.getContext('2d');
-            ctxConnection = canvasConnection.getContext('2d');
-            ctxFx = canvasFx.getContext('2d');
-
-            resize();
-            window.addEventListener('resize', resize);
-
-            // Phillips Renderer
-            State.phillipsRenderer = new PhillipsRenderer(canvasMain, {
-                plasticScale: 1.5,
-                blendMode: 'additive'
-            });
-            State.phillipsRenderer.setCamera(4, 60);
-
-            // Controls
-            setupControls();
-
-            // Spawn initial particles
-            for (let i = 0; i < 5000; i++) {
-                const sample = getPlasticSamplingPoint3D(i, 0.5);
-                State.particles.push(new Particle(
-                    (sample.x - 0.5) * 4,
-                    (sample.y - 0.5) * 4,
-                    (sample.z - 0.5) * 4
-                ));
-            }
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        function resize() {
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
-            ['bgLayer', 'trailLayer', 'mainLayer', 'connectionLayer', 'fxLayer'].forEach(id => {
-                const c = document.getElementById(id);
-                c.width = W() * dpr;
-                c.height = H() * dpr;
-                c.style.width = W() + 'px';
-                c.style.height = H() + 'px';
-                if (id !== 'mainLayer') {
-                    c.getContext('2d').scale(dpr, dpr);
-                }
-            });
-        }
-
-        function setupControls() {
-            // Mouse/touch position
-            const updateMouse = (x, y) => {
-                State.mouse.x = (x / W()) * 2 - 1;
-                State.mouse.y = (y / H()) * 2 - 1;
-            };
-
-            document.addEventListener('mousemove', e => updateMouse(e.clientX, e.clientY));
-            document.addEventListener('touchmove', e => {
-                e.preventDefault();
-                updateMouse(e.touches[0].clientX, e.touches[0].clientY);
-            }, { passive: false });
-
-            // Mouse/touch down
-            const onDown = (x, y) => {
-                State.mouse.down = true;
-                State.mouse.charge = 0;
-                updateMouse(x, y);
-            };
-
-            document.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
-            document.addEventListener('touchstart', e => onDown(e.touches[0].clientX, e.touches[0].clientY));
-
-            // Mouse/touch up - EXPLODE!
-            const onUp = () => {
-                if (State.mouse.down && State.running) {
-                    explode(State.mouse.x * 2, State.mouse.y * 2, State.mouse.charge);
-                }
-                State.mouse.down = false;
-                State.mouse.charge = 0;
-                document.getElementById('chargeFill').style.width = '0%';
-            };
-
-            document.addEventListener('mouseup', onUp);
-            document.addEventListener('touchend', onUp);
-
-            // Keyboard
-            document.addEventListener('keydown', e => {
-                if (!State.running) return;
-
-                // 1-5 for attractors
-                if (e.key >= '1' && e.key <= '5') {
-                    State.attractorType = parseInt(e.key) - 1;
-                    updateModeDisplay();
-                    State.attractorState = { x: 1, y: 1, z: 1 };
-                }
-
-                // Space for chaos mode
-                if (e.code === 'Space') {
-                    e.preventDefault();
-                    State.chaosMode = !State.chaosMode;
-                    updateModeDisplay();
-                    if (State.chaosMode) {
-                        for (let i = 0; i < 10; i++) {
-                            setTimeout(() => {
-                                explode((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, 0.5 + Math.random() * 0.5);
-                            }, i * 50);
-                        }
-                    }
-                }
-
-                // F for flocking
-                if (e.key === 'f' || e.key === 'F') {
-                    State.flockingEnabled = !State.flockingEnabled;
-                    updateSubModeDisplay();
-                }
-
-                // T for trails
-                if (e.key === 't' || e.key === 'T') {
-                    State.trailsEnabled = !State.trailsEnabled;
-                    if (!State.trailsEnabled) {
-                        ctxTrail.clearRect(0, 0, W(), H());
-                    }
-                    updateSubModeDisplay();
-                }
-
-                // C for connections
-                if (e.key === 'c' || e.key === 'C') {
-                    State.connectionsEnabled = !State.connectionsEnabled;
-                    updateSubModeDisplay();
-                }
-
-                // G for gravity well
-                if (e.key === 'g' || e.key === 'G') {
-                    if (State.gravityWells.length < State.maxWells) {
-                        const x = State.mouse.x * 2;
-                        const y = State.mouse.y * 2;
-                        const well = {
-                            x, y,
-                            strength: 0.5 + Math.random() * 0.5,
-                            hue: (State.time * 50) % 360
-                        };
-                        State.gravityWells.push(well);
-                        createWellIndicator(x, y, well.hue);
-                    }
-                }
-
-                // R for chain reaction
-                if (e.key === 'r' || e.key === 'R') {
-                    State.chainReactionEnabled = !State.chainReactionEnabled;
-                    updateSubModeDisplay();
-                }
-
-                // A for audio
-                if (e.key === 'a' || e.key === 'A') {
-                    State.audioEnabled = !State.audioEnabled;
-                    if (State.audioEnabled) {
-                        initAudio();
-                        if (State.audioCtx.state === 'suspended') {
-                            State.audioCtx.resume();
-                        }
-                    }
-                    updateSubModeDisplay();
-                }
-            });
-        }
-
-        function updateModeDisplay() {
-            document.getElementById('modeDisplay').textContent =
-                State.chaosMode ? 'CHAOS MODE' : State.attractorNames[State.attractorType];
-        }
-
-        function updateSubModeDisplay() {
-            const parts = [];
-            if (State.flockingEnabled) parts.push('FLOCK');
-            if (State.trailsEnabled) parts.push('TRAIL');
-            if (State.connectionsEnabled) parts.push('WEB');
-            if (State.chainReactionEnabled) parts.push('CHAIN');
-            if (State.audioEnabled) parts.push('AUDIO');
-
-            document.getElementById('subMode').textContent =
-                parts.length > 0 ? parts.join(' | ') : 'NO SYSTEMS ACTIVE';
-        }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // EXPLOSION SYSTEM
-        // ═══════════════════════════════════════════════════════════════════
-
-        function explode(x, y, charge) {
-            const power = 0.3 + charge * 2;
-            const count = Math.floor(100 + charge * 400);
-
-            // Spawn particles
-            for (let i = 0; i < count && State.particles.length < State.maxParticles; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const phi = (Math.random() - 0.5) * Math.PI;
-                const speed = (0.5 + Math.random()) * power;
-
-                const vx = Math.cos(angle) * Math.cos(phi) * speed;
-                const vy = Math.sin(angle) * Math.cos(phi) * speed;
-                const vz = Math.sin(phi) * speed;
-
-                const p = new Particle(x, y, 0, vx, vy, vz);
-                p.hue = (State.time * 50 + Math.random() * 60) % 360;
-                p.size = 0.03 + charge * 0.05;
-                p.energy = charge; // Chain reaction energy
-                State.particles.push(p);
-            }
-
-            // Visual shockwave
-            createShockwave(
-                (x / 2 + 0.5) * W(),
-                (y / 2 + 0.5) * H(),
-                power
-            );
-
-            // Record explosion
-            State.explosions.push({
-                x, y,
-                power,
-                time: State.time,
-                hue: (State.time * 50) % 360
-            });
-
-            if (State.explosions.length > 20) {
-                State.explosions.shift();
-            }
-
-            // Audio burst
-            if (State.audioEnabled && State.audioCtx) {
-                const now = State.audioCtx.currentTime;
-                State.gainNode.gain.setValueAtTime(0.3 + charge * 0.2, now);
-                State.gainNode.gain.linearRampToValueAtTime(0.1, now + 0.3);
+                ctx.strokeStyle = `hsla(${hue + a * 30}, 100%, 70%, 0.7)`;
+                ctx.stroke();
             }
         }
 
-        function createShockwave(x, y, power) {
-            const wave = document.createElement('div');
-            wave.className = 'shockwave';
-            wave.style.left = x + 'px';
-            wave.style.top = y + 'px';
-            wave.style.width = wave.style.height = (100 + power * 200) + 'px';
-            wave.style.marginLeft = wave.style.marginTop = -(50 + power * 100) + 'px';
-            wave.style.borderColor = `hsl(${(State.time * 50) % 360}, 100%, 60%)`;
-            document.body.appendChild(wave);
-            setTimeout(() => wave.remove(), 600);
-        }
-
-        function createWellIndicator(x, y, hue) {
-            const well = document.createElement('div');
-            well.className = 'gravity-well';
-            const screenX = (x / 2 + 0.5) * W();
-            const screenY = (y / 2 + 0.5) * H();
-            well.style.left = screenX + 'px';
-            well.style.top = screenY + 'px';
-            well.style.width = well.style.height = '60px';
-            well.style.marginLeft = well.style.marginTop = '-30px';
-            well.style.borderColor = `hsl(${hue}, 80%, 50%)`;
-            document.body.appendChild(well);
-        }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // UPDATE
-        // ═══════════════════════════════════════════════════════════════════
-
-        function update(dt) {
-            State.time += dt;
-
-            // Update attractor
-            const attractorFunc = State.attractorFuncs[State.attractorType];
-            const attractorDt = State.chaosMode ? 0.02 : 0.008;
-            State.attractorState = attractorFunc(State.attractorState, attractorDt);
-
-            // Charge while holding
-            if (State.mouse.down) {
-                State.mouse.charge = Math.min(1, State.mouse.charge + dt * 0.8);
-                document.getElementById('chargeFill').style.width = (State.mouse.charge * 100) + '%';
-            }
-
-            // Chaos mode: random explosions
-            if (State.chaosMode && Math.random() < dt * 3) {
-                explode(
-                    (Math.random() - 0.5) * 4,
-                    (Math.random() - 0.5) * 4,
-                    0.2 + Math.random() * 0.3
-                );
-            }
-
-            // Process pending chain reaction explosions
-            State.pendingExplosions = State.pendingExplosions.filter(pe => {
-                pe.delay -= dt;
-                if (pe.delay <= 0) {
-                    explode(pe.x, pe.y, pe.charge);
-                    return false;
+        function drawHelix(size, c, t, hue) {
+            const points = Math.floor(80 * c);
+            for (let h = 0; h < 2; h++) {
+                ctx.beginPath();
+                for (let i = 0; i < points; i++) {
+                    const p = i / points;
+                    const y = (p - 0.5) * size * 2;
+                    const angle = p * Math.PI * 6 + t * 2 + h * Math.PI;
+                    const x = Math.cos(angle) * size * 0.4;
+                    const z = Math.sin(angle) * size * 0.2;
+                    if (i === 0) ctx.moveTo(x, y + z);
+                    else ctx.lineTo(x, y + z);
                 }
-                return true;
-            });
-
-            // Mouse influence
-            const mouseInfluence = {
-                active: State.mouse.down,
-                x: State.mouse.x * 2,
-                y: State.mouse.y * 2,
-                strength: 0.1 + State.mouse.charge * 0.5
-            };
-
-            // Update particles
-            State.particles = State.particles.filter(p =>
-                p.update(dt, State.attractorState, mouseInfluence, State.particles, State.gravityWells)
-            );
-
-            // Auto-spawn to maintain particle count
-            const targetCount = State.chaosMode ? 12000 : 6000;
-            while (State.particles.length < targetCount) {
-                const sample = getPlasticSamplingPoint3D(State.particles.length + State.time * 100, 0.5);
-                const p = new Particle(
-                    State.attractorState.x * 0.1 + (sample.x - 0.5) * 0.5,
-                    State.attractorState.y * 0.1 + (sample.y - 0.5) * 0.5,
-                    State.attractorState.z * 0.1 + (sample.z - 0.5) * 0.5
-                );
-                p.hue = (State.time * 30 + sample.x * 180) % 360;
-                p.decay = 0.001;
-                State.particles.push(p);
+                ctx.strokeStyle = `hsla(${hue + h * 60}, 100%, 70%, 0.8)`;
+                ctx.stroke();
             }
-
-            // Modulate renderer
-            const scale = 1.2 + (State.chaosMode ? 0.5 : 0) + State.mouse.charge * 0.5;
-            State.phillipsRenderer.setPlasticScale(scale);
-
-            // Audio update
-            updateAudio();
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        // RENDER
-        // ═══════════════════════════════════════════════════════════════════
+        function drawFlower(size, c, t, petals, hue) {
+            for (let p = 0; p < petals; p++) {
+                const angle = (p / petals) * Math.PI * 2 + t * 0.5;
+                ctx.save();
+                ctx.rotate(angle);
 
-        function render() {
-            const hue = (State.time * 20) % 360;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
 
-            // Background
-            const gradient = ctxBg.createRadialGradient(
-                W() / 2 + State.attractorState.x * 50,
-                H() / 2 + State.attractorState.y * 50,
-                0, W() / 2, H() / 2, Math.max(W(), H())
-            );
+                const petalSize = size * (0.8 + Math.sin(t * 3 + p) * 0.1 * c);
+                for (let i = 0; i <= 20; i++) {
+                    const a = (i / 20) * Math.PI;
+                    const r = Math.sin(a) * petalSize;
+                    const x = Math.cos(a) * r * 0.3;
+                    const y = Math.sin(a) * r;
+                    ctx.lineTo(x, y);
+                }
 
-            const intensity = State.chaosMode ? 0.12 : 0.06;
-            gradient.addColorStop(0, `hsla(${hue}, 80%, ${intensity * 100}%, 1)`);
-            gradient.addColorStop(0.5, `hsla(${hue + 40}, 60%, ${intensity * 50}%, 1)`);
-            gradient.addColorStop(1, '#000008');
+                ctx.strokeStyle = `hsla(${hue + p * 15}, 100%, 70%, 0.7)`;
+                ctx.fillStyle = `hsla(${hue + p * 15}, 80%, 50%, 0.1)`;
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
 
-            ctxBg.fillStyle = gradient;
-            ctxBg.fillRect(0, 0, W(), H());
+        function drawStar(size, c, t, points, hue) {
+            const inner = size * 0.4;
+            const outer = size * (1 + Math.sin(t * 2) * 0.1 * c);
 
-            // Trails layer
-            if (State.trailsEnabled) {
-                // Fade previous trails
-                ctxTrail.fillStyle = 'rgba(0, 0, 8, 0.05)';
-                ctxTrail.fillRect(0, 0, W(), H());
+            ctx.beginPath();
+            for (let i = 0; i <= points * 2; i++) {
+                const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2 + t * 0.3;
+                const r = i % 2 === 0 ? outer : inner;
+                const x = Math.cos(angle) * r;
+                const y = Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = `hsla(${hue}, 80%, 50%, 0.2)`;
+            ctx.fill();
+            ctx.stroke();
 
-                // Draw motion trails
-                ctxTrail.lineWidth = 1;
-                for (const p of State.particles) {
-                    const x1 = (p.px / 2 + 0.5) * W();
-                    const y1 = (p.py / 2 + 0.5) * H();
-                    const x2 = (p.x / 2 + 0.5) * W();
-                    const y2 = (p.y / 2 + 0.5) * H();
+            // Inner star
+            ctx.beginPath();
+            for (let i = 0; i <= points * 2; i++) {
+                const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2 - t * 0.5;
+                const r = i % 2 === 0 ? inner : inner * 0.4;
+                const x = Math.cos(angle) * r;
+                const y = Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = `hsla(${hue + 60}, 100%, 80%, 0.9)`;
+            ctx.stroke();
+        }
 
-                    const speed = Math.sqrt((p.vx ** 2) + (p.vy ** 2));
-                    if (speed > 0.01) {
-                        ctxTrail.strokeStyle = `hsla(${p.hue}, 80%, 50%, ${Math.min(0.5, speed * 2) * p.life})`;
-                        ctxTrail.beginPath();
-                        ctxTrail.moveTo(x1, y1);
-                        ctxTrail.lineTo(x2, y2);
-                        ctxTrail.stroke();
-                    }
+        function drawCrystal(size, c, t, hue) {
+            const facets = Math.floor(6 + c * 4);
+
+            for (let layer = 0; layer < 3; layer++) {
+                const layerSize = size * (1 - layer * 0.25);
+                const rotation = t * (0.5 - layer * 0.2);
+
+                ctx.beginPath();
+                for (let i = 0; i <= facets; i++) {
+                    const angle = (i / facets) * Math.PI * 2 + rotation;
+                    const variance = 1 + Math.sin(angle * 3 + t * 2) * 0.15 * c;
+                    const r = layerSize * variance;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+
+                ctx.strokeStyle = `hsla(${hue + layer * 40}, 100%, ${80 - layer * 10}%, ${0.9 - layer * 0.2})`;
+                ctx.fillStyle = `hsla(${hue + layer * 40}, 80%, 50%, ${0.1 - layer * 0.02})`;
+                ctx.fill();
+                ctx.stroke();
+
+                // Radial lines
+                for (let i = 0; i < facets; i++) {
+                    const angle = (i / facets) * Math.PI * 2 + rotation;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(angle) * layerSize, Math.sin(angle) * layerSize);
+                    ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.3)`;
+                    ctx.stroke();
                 }
             }
+        }
 
-            // Phillips Renderer - particles
-            const points = State.particles.map(p => p.toPoint());
-            State.phillipsRenderer.setPoints(points);
-            State.phillipsRenderer.render();
+        function drawFractal(size, c, t, hue, depth, maxDepth) {
+            if (depth >= maxDepth || size < 5) return;
 
-            // Connection web layer
-            if (State.connectionsEnabled) {
-                ctxConnection.clearRect(0, 0, W(), H());
-                renderConnections();
-            } else {
-                ctxConnection.clearRect(0, 0, W(), H());
-                State.connectionCount = 0;
+            const sides = 3;
+            ctx.beginPath();
+            for (let i = 0; i <= sides; i++) {
+                const angle = (i / sides) * Math.PI * 2 - Math.PI / 2 + t * 0.2 * (depth + 1);
+                const x = Math.cos(angle) * size;
+                const y = Math.sin(angle) * size;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
             }
+            ctx.closePath();
+            ctx.strokeStyle = `hsla(${hue + depth * 30}, 100%, ${70 - depth * 10}%, ${0.8 - depth * 0.15})`;
+            ctx.stroke();
 
-            // FX layer
-            ctxFx.clearRect(0, 0, W(), H());
-
-            // Draw attractor trajectory hint
-            if (!State.chaosMode) {
-                ctxFx.strokeStyle = `hsla(${hue}, 100%, 50%, 0.1)`;
-                ctxFx.lineWidth = 2;
-                ctxFx.beginPath();
-                ctxFx.arc(
-                    W() / 2 + State.attractorState.x * 30,
-                    H() / 2 + State.attractorState.y * 30,
-                    5 + Math.abs(State.attractorState.z) * 2,
-                    0, Math.PI * 2
-                );
-                ctxFx.stroke();
-            }
-
-            // Draw charge indicator
-            if (State.mouse.down && State.mouse.charge > 0.1) {
-                const mx = (State.mouse.x / 2 + 0.5) * W();
-                const my = (State.mouse.y / 2 + 0.5) * H();
-                const radius = 20 + State.mouse.charge * 80;
-
-                ctxFx.strokeStyle = `hsla(${(State.time * 100) % 360}, 100%, 60%, ${State.mouse.charge})`;
-                ctxFx.lineWidth = 2 + State.mouse.charge * 4;
-                ctxFx.beginPath();
-                ctxFx.arc(mx, my, radius, 0, Math.PI * 2);
-                ctxFx.stroke();
-
-                ctxFx.beginPath();
-                ctxFx.arc(mx, my, radius * 0.5, 0, Math.PI * 2 * State.mouse.charge);
-                ctxFx.stroke();
+            // Recurse
+            const nextSize = size * 0.5;
+            for (let i = 0; i < sides; i++) {
+                const angle = (i / sides) * Math.PI * 2 - Math.PI / 2 + t * 0.2 * (depth + 1);
+                const x = Math.cos(angle) * size * 0.6;
+                const y = Math.sin(angle) * size * 0.6;
+                ctx.save();
+                ctx.translate(x, y);
+                drawFractal(nextSize, c, t, hue, depth + 1, maxDepth);
+                ctx.restore();
             }
         }
 
-        function renderConnections() {
-            // Draw neural-network style connections between nearby particles
-            const maxConnections = 500;
-            const connectionDist = 0.3;
-            const connectionDistSq = connectionDist * connectionDist;
-            let connectionCount = 0;
+        function drawMandala(size, c, t, segments, hue) {
+            for (let ring = 0; ring < 4; ring++) {
+                const ringSize = size * (0.3 + ring * 0.25);
+                const ringSegments = segments + ring * 2;
 
-            ctxConnection.lineWidth = 0.5;
+                for (let i = 0; i < ringSegments; i++) {
+                    const angle = (i / ringSegments) * Math.PI * 2 + t * (0.3 - ring * 0.1);
 
-            // Sample particles for connections
-            const sampleSize = Math.min(200, State.particles.length);
-            const step = Math.max(1, Math.floor(State.particles.length / sampleSize));
+                    ctx.save();
+                    ctx.rotate(angle);
+                    ctx.translate(ringSize, 0);
 
-            for (let i = 0; i < State.particles.length && connectionCount < maxConnections; i += step) {
-                const p1 = State.particles[i];
-                const x1 = (p1.x / 2 + 0.5) * W();
-                const y1 = (p1.y / 2 + 0.5) * H();
+                    // Draw petal/element
+                    const elemSize = size * 0.1 * (1 + Math.sin(t * 2 + i + ring) * 0.3 * c);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, elemSize, 0, Math.PI * 2);
+                    ctx.strokeStyle = `hsla(${hue + ring * 25 + i * 5}, 100%, 70%, 0.7)`;
+                    ctx.stroke();
 
-                for (let j = i + step; j < State.particles.length && connectionCount < maxConnections; j += step) {
-                    const p2 = State.particles[j];
-
-                    const dx = p2.x - p1.x;
-                    const dy = p2.y - p1.y;
-                    const distSq = dx * dx + dy * dy;
-
-                    if (distSq < connectionDistSq) {
-                        const x2 = (p2.x / 2 + 0.5) * W();
-                        const y2 = (p2.y / 2 + 0.5) * H();
-
-                        const dist = Math.sqrt(distSq);
-                        const alpha = (1 - dist / connectionDist) * 0.5 * Math.min(p1.life, p2.life);
-
-                        // Color based on species interaction
-                        let hue = (p1.hue + p2.hue) / 2;
-                        if (p1.species !== p2.species) {
-                            hue = (hue + 180) % 360; // Complementary for different species
-                        }
-
-                        ctxConnection.strokeStyle = `hsla(${hue}, 70%, 50%, ${alpha})`;
-                        ctxConnection.beginPath();
-                        ctxConnection.moveTo(x1, y1);
-                        ctxConnection.lineTo(x2, y2);
-                        ctxConnection.stroke();
-
-                        connectionCount++;
-                    }
+                    ctx.restore();
                 }
             }
-
-            State.connectionCount = connectionCount;
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        // GAME LOOP
-        // ═══════════════════════════════════════════════════════════════════
+        function drawInfinity(size, c, t, hue) {
+            const points = Math.floor(100 * c);
 
+            ctx.beginPath();
+            for (let i = 0; i <= points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                const scale = Math.sin(angle) * size;
+                const x = scale * Math.cos(t * 0.5);
+                const y = Math.sin(angle * 2) * size * 0.5;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.8)`;
+            ctx.stroke();
+
+            // Second loop
+            ctx.beginPath();
+            for (let i = 0; i <= points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                const scale = Math.sin(angle) * size * 0.6;
+                const x = scale * Math.cos(t * 0.5 + Math.PI);
+                const y = Math.sin(angle * 2 + Math.PI) * size * 0.3;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = `hsla(${hue + 60}, 100%, 70%, 0.6)`;
+            ctx.stroke();
+        }
+
+        function drawNova(size, c, t, hue) {
+            const rays = Math.floor(12 + c * 12);
+
+            for (let i = 0; i < rays; i++) {
+                const angle = (i / rays) * Math.PI * 2 + t;
+                const length = size * (0.5 + Math.sin(t * 5 + i * 0.5) * 0.5 * c);
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(angle) * length, Math.sin(angle) * length);
+                ctx.strokeStyle = `hsla(${hue + i * 5}, 100%, ${60 + Math.sin(t * 3 + i) * 20}%, 0.8)`;
+                ctx.lineWidth = 2 + Math.sin(t * 4 + i) * 1;
+                ctx.stroke();
+            }
+
+            // Core
+            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 0.3);
+            gradient.addColorStop(0, `hsla(${hue}, 100%, 90%, 0.8)`);
+            gradient.addColorStop(0.5, `hsla(${hue + 30}, 100%, 60%, 0.3)`);
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Explosion
+        function explode(x, y) {
+            const count = 30 + Math.floor(S.complexity * 30);
+            const hue = (S.time * 30 + S.pattern * 36) % 360;
+
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2 + Math.random() * 0.5;
+                const speed = 3 + Math.random() * 8;
+                const size = 5 + Math.random() * 15;
+                S.crystals.push(new Crystal(x, y, angle, speed, size, hue + Math.random() * 60));
+            }
+        }
+
+        // Input
+        function handleInput(x, y) {
+            explode(x, y);
+        }
+
+        canvas.addEventListener('click', e => handleInput(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            handleInput(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        // Main loop
         let lastTime = 0;
 
-        function gameLoop(timestamp) {
-            requestAnimationFrame(gameLoop);
+        function loop(timestamp) {
+            requestAnimationFrame(loop);
 
             const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
             lastTime = timestamp;
 
-            if (!State.running) return;
+            if (!S.running) return;
 
-            update(dt);
-            render();
+            S.time += dt;
 
-            // Stats update
-            State.frameCount++;
-            if (timestamp - State.lastFpsTime >= 1000) {
-                State.fps = State.frameCount;
-                State.frameCount = 0;
-                State.lastFpsTime = timestamp;
-                document.getElementById('fps').textContent = State.fps;
-                document.getElementById('particles').textContent = State.particles.length.toLocaleString();
-                document.getElementById('wells').textContent = State.gravityWells.length;
-                document.getElementById('connections').textContent = State.connectionCount;
-            }
-        }
-
-        // ═══════════════════════════════════════════════════════════════════
-        // UTILITIES
-        // ═══════════════════════════════════════════════════════════════════
-
-        function hslToRgb(h, s, l) {
-            h /= 360;
-            let r, g, b;
-            if (s === 0) {
-                r = g = b = l;
+            // Audio processing
+            const pitch = detectPitch();
+            if (pitch > 0) {
+                S.pitch = S.pitch * 0.8 + pitch * 0.2;
+                S.targetPattern = pitchToPattern(S.pitch);
+                S.sustain = Math.min(1, S.sustain + dt * 2);
             } else {
-                const hue2rgb = (p, q, t) => {
-                    if (t < 0) t += 1;
-                    if (t > 1) t -= 1;
-                    if (t < 1/6) return p + (q - p) * 6 * t;
-                    if (t < 1/2) return q;
-                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-                    return p;
-                };
-                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-                const p = 2 * l - q;
-                r = hue2rgb(p, q, h + 1/3);
-                g = hue2rgb(p, q, h);
-                b = hue2rgb(p, q, h - 1/3);
+                S.sustain = Math.max(0, S.sustain - dt);
             }
-            return {
-                r: Math.round(r * 255),
-                g: Math.round(g * 255),
-                b: Math.round(b * 255)
-            };
+
+            // Smooth pattern transition
+            S.pattern += (S.targetPattern - S.pattern) * dt * 3;
+
+            // Complexity based on sustain and volume
+            S.complexity = 0.3 + S.sustain * 0.5 + S.volume * 0.2;
+
+            // Update UI
+            document.getElementById('volumeFill').style.width = (S.volume * 100) + '%';
+            document.getElementById('pitchDisplay').textContent = pitch > 0 ? Math.round(S.pitch) + ' Hz' : '--';
+            document.getElementById('patternName').textContent = PATTERNS[Math.round(S.pattern)];
+
+            // Clear with fade
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, S.w, S.h);
+
+            // Draw pattern
+            drawPattern();
+
+            // Update and draw crystals
+            S.crystals = S.crystals.filter(c => {
+                if (c.update(dt)) {
+                    c.draw();
+                    return true;
+                }
+                return false;
+            });
         }
 
-        // ═══════════════════════════════════════════════════════════════════
-        // START
-        // ═══════════════════════════════════════════════════════════════════
-
-        window.beginStorm = function() {
-            document.getElementById('intro').classList.add('hidden');
-            State.running = true;
-        };
-
-        window.addEventListener('load', init);
+        // Start
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            await startMic();
+            document.getElementById('startOverlay').classList.add('hidden');
+            S.running = true;
+            requestAnimationFrame(loop);
+        });
     </script>
 </body>
 </html>

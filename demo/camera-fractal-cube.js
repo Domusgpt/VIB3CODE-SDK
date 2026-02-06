@@ -575,9 +575,15 @@ function render(now) {
 
 const startBtn = document.getElementById('startBtn');
 const overlay = document.getElementById('startOverlay');
+let started = false;
 
-startBtn.addEventListener('click', async () => {
+const beginDemo = () => {
+  if (started) return;
+  started = true;
   overlay.classList.add('hidden');
-  await startCamera();
+  generateFallbackTexture();
   requestAnimationFrame(render);
-});
+  startCamera();
+};
+
+startBtn.addEventListener('click', beginDemo);

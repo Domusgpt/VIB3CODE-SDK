@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEUTRON DESCENT - Infinite Fractal Voyage</title>
+    <title>NEUTRON DESCENT - Phillips Renderer Showcase</title>
     <style>
         * {
             margin: 0;
@@ -33,7 +33,7 @@
             cursor: none;
         }
 
-        /* Layer Stack - Parallax Depth */
+        /* Layer Stack */
         .layer {
             position: fixed;
             top: 0;
@@ -44,10 +44,8 @@
         }
 
         #bgLayer { z-index: 1; }
-        #fractalLayer { z-index: 2; }
-        #stormLayer { z-index: 3; }
-        #debrisLayer { z-index: 4; }
-        #shipLayer { z-index: 5; }
+        #phillipsLayer { z-index: 2; }  /* THE PHILLIPS RENDERER */
+        #overlayLayer { z-index: 3; }
         #uiLayer { z-index: 100; pointer-events: none; }
         #uiLayer > * { pointer-events: auto; }
 
@@ -75,12 +73,6 @@
             background: linear-gradient(90deg, var(--plasma-core), var(--plasma-outer));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: titlePulse 2s ease-in-out infinite;
-        }
-
-        @keyframes titlePulse {
-            0%, 100% { opacity: 0.8; filter: brightness(1); }
-            50% { opacity: 1; filter: brightness(1.3); }
         }
 
         .subtitle {
@@ -90,9 +82,21 @@
             margin-top: 5px;
         }
 
+        .tech-badge {
+            display: inline-block;
+            background: rgba(123, 104, 238, 0.3);
+            border: 1px solid var(--neutron-purple);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 9px;
+            margin-top: 8px;
+            letter-spacing: 1px;
+        }
+
         /* Depth Gauge */
         .depth-gauge {
             width: 200px;
+            margin-top: 15px;
         }
 
         .gauge-label {
@@ -118,6 +122,42 @@
             margin-top: 5px;
             font-size: 16px;
             font-variant-numeric: tabular-nums;
+            color: var(--plasma-outer);
+        }
+
+        /* Phillips Stats Panel */
+        .phillips-stats {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--neutron-purple);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+        }
+
+        .phillips-stats-title {
+            color: var(--neutron-purple);
+            font-size: 10px;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+
+        .stat-label {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .stat-value {
+            color: var(--neutron-blue);
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-value.highlight {
             color: var(--plasma-outer);
         }
 
@@ -173,50 +213,6 @@
             color: rgba(255,255,255,0.5);
         }
 
-        /* Harmonic Resonance Display */
-        .harmonic-display {
-            width: 150px;
-        }
-
-        .harmonic-ring {
-            width: 100px;
-            height: 100px;
-            border: 2px solid var(--neutron-blue);
-            border-radius: 50%;
-            margin: 0 auto 10px;
-            position: relative;
-            opacity: 0.6;
-        }
-
-        .harmonic-inner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            border: 2px solid var(--plasma-core);
-            border-radius: 50%;
-        }
-
-        .harmonic-core {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 20px;
-            height: 20px;
-            background: var(--plasma-outer);
-            border-radius: 50%;
-            box-shadow: 0 0 20px var(--plasma-outer);
-        }
-
-        .harmonic-label {
-            text-align: center;
-            font-size: 9px;
-            color: rgba(255,255,255,0.5);
-        }
-
         /* Center Reticle */
         .reticle {
             position: fixed;
@@ -260,49 +256,6 @@
             box-shadow: 0 0 10px var(--neutron-blue);
         }
 
-        .reticle-line {
-            position: absolute;
-            background: rgba(255,255,255,0.2);
-        }
-
-        .reticle-h {
-            width: 10px;
-            height: 1px;
-            top: 30px;
-        }
-
-        .reticle-h.left { left: -15px; }
-        .reticle-h.right { right: -15px; }
-
-        .reticle-v {
-            width: 1px;
-            height: 10px;
-            left: 30px;
-        }
-
-        .reticle-v.top { top: -15px; }
-        .reticle-v.bottom { bottom: -15px; }
-
-        /* Warning Overlay */
-        .warning-overlay {
-            position: fixed;
-            inset: 0;
-            border: 4px solid transparent;
-            pointer-events: none;
-            z-index: 90;
-            transition: border-color 0.1s;
-        }
-
-        .warning-overlay.active {
-            border-color: var(--warning);
-            animation: warningPulse 0.5s ease-in-out infinite;
-        }
-
-        @keyframes warningPulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-        }
-
         /* Intro Screen */
         .intro-screen {
             position: fixed;
@@ -335,7 +288,35 @@
             font-size: 12px;
             letter-spacing: 8px;
             color: rgba(255,255,255,0.5);
-            margin-bottom: 60px;
+            margin-bottom: 30px;
+        }
+
+        .intro-tech {
+            background: rgba(123, 104, 238, 0.2);
+            border: 1px solid var(--neutron-purple);
+            padding: 15px 30px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .intro-tech-title {
+            color: var(--neutron-purple);
+            font-size: 10px;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+
+        .intro-constant {
+            font-size: 32px;
+            color: var(--plasma-outer);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .intro-constant-label {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 5px;
         }
 
         .intro-instructions {
@@ -344,7 +325,7 @@
             line-height: 2;
             color: rgba(255,255,255,0.6);
             font-size: 11px;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
         }
 
         .intro-instructions strong {
@@ -369,22 +350,23 @@
             box-shadow: 0 0 40px var(--plasma-core);
         }
 
-        .intro-mic-note {
-            margin-top: 30px;
-            font-size: 9px;
-            color: rgba(255,255,255,0.3);
+        /* Plastic Sampling Visualization */
+        .sampling-display {
+            width: 100px;
+            height: 100px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 15px;
         }
 
-        /* Mobile Controls Hint */
-        .mobile-hint {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 10px;
-            color: rgba(255,255,255,0.3);
+        .sampling-label {
             text-align: center;
-            z-index: 100;
+            font-size: 8px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 5px;
+            letter-spacing: 1px;
         }
 
         /* Scanlines */
@@ -400,7 +382,7 @@
                 rgba(0,0,0,0.1) 2px,
                 rgba(0,0,0,0.1) 4px
             );
-            opacity: 0.5;
+            opacity: 0.3;
         }
 
         /* Vignette */
@@ -412,47 +394,8 @@
             background: radial-gradient(
                 ellipse at center,
                 transparent 40%,
-                rgba(0,0,0,0.6) 100%
+                rgba(0,0,0,0.7) 100%
             );
-        }
-
-        /* Ship Tilt Indicator */
-        .tilt-indicator {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-        }
-
-        .tilt-horizon {
-            width: 120px;
-            height: 60px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 60px 60px 0 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tilt-line {
-            position: absolute;
-            width: 100%;
-            height: 2px;
-            background: var(--neutron-blue);
-            top: 50%;
-            transform-origin: center;
-            box-shadow: 0 0 10px var(--neutron-blue);
-        }
-
-        .tilt-center {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: var(--plasma-outer);
-            border-radius: 50%;
-            bottom: -4px;
-            left: 50%;
-            transform: translateX(-50%);
         }
 
         @media (max-width: 768px) {
@@ -460,42 +403,35 @@
             .title { font-size: 14px; }
             .intro-title { font-size: 28px; letter-spacing: 8px; }
             .depth-gauge { width: 150px; }
-            .harmonic-ring { width: 70px; height: 70px; }
-            .harmonic-inner { width: 40px; height: 40px; }
+            .phillips-stats { padding: 8px; }
         }
     </style>
 </head>
 <body>
-    <!-- Render Layers (Back to Front) -->
+    <!-- Render Layers -->
     <canvas id="bgLayer" class="layer"></canvas>
-    <canvas id="fractalLayer" class="layer"></canvas>
-    <canvas id="stormLayer" class="layer"></canvas>
-    <canvas id="debrisLayer" class="layer"></canvas>
-    <canvas id="shipLayer" class="layer"></canvas>
+    <canvas id="phillipsLayer" class="layer"></canvas>  <!-- PHILLIPS RENDERER -->
+    <canvas id="overlayLayer" class="layer"></canvas>
 
-    <!-- Visual Effects -->
+    <!-- Effects -->
     <div class="vignette"></div>
     <div class="scanlines"></div>
-    <div class="warning-overlay" id="warningOverlay"></div>
 
-    <!-- Center Reticle -->
+    <!-- Reticle -->
     <div class="reticle">
         <div class="reticle-ring reticle-outer"></div>
         <div class="reticle-ring reticle-inner"></div>
         <div class="reticle-dot"></div>
-        <div class="reticle-line reticle-h left"></div>
-        <div class="reticle-line reticle-h right"></div>
-        <div class="reticle-line reticle-v top"></div>
-        <div class="reticle-line reticle-v bottom"></div>
     </div>
 
-    <!-- HUD Layer -->
+    <!-- HUD -->
     <div id="uiLayer" class="layer">
-        <!-- Top Left: Title & Depth -->
+        <!-- Top Left -->
         <div class="hud-corner hud-tl">
             <div class="title-block">
                 <div class="title">NEUTRON DESCENT</div>
-                <div class="subtitle">FRACTAL VOYAGE SYSTEM</div>
+                <div class="subtitle">PHILLIPS RENDERER SHOWCASE</div>
+                <div class="tech-badge">POWERED BY PLASTIC RATIO</div>
             </div>
             <div class="depth-gauge">
                 <div class="gauge-label">CORE DEPTH</div>
@@ -506,18 +442,34 @@
             </div>
         </div>
 
-        <!-- Top Right: Voice Input -->
+        <!-- Top Right: Phillips Stats -->
         <div class="hud-corner hud-tr">
             <div class="voice-meter">
-                <div class="voice-label">VOICE HARMONIC</div>
+                <div class="voice-label">VOICE → FRACTAL</div>
                 <div class="voice-bars" id="voiceBars"></div>
-                <div style="margin-top: 8px; font-size: 10px;">
-                    <span style="color: var(--plasma-outer);" id="pitchDisplay">-- Hz</span>
+            </div>
+            <div class="phillips-stats">
+                <div class="phillips-stats-title">PHILLIPS RENDERER</div>
+                <div class="stat-row">
+                    <span class="stat-label">POINTS</span>
+                    <span class="stat-value" id="pointCount">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">FPS</span>
+                    <span class="stat-value" id="fps">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">BYTES/SPLAT</span>
+                    <span class="stat-value highlight">17</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">PLASTIC SCALE</span>
+                    <span class="stat-value" id="plasticScale">1.00</span>
                 </div>
             </div>
         </div>
 
-        <!-- Bottom Left: Ship Status -->
+        <!-- Bottom Left -->
         <div class="hud-corner hud-bl">
             <div class="ship-status">
                 <div class="status-item">
@@ -531,90 +483,82 @@
                     <div class="status-label">HARMONY</div>
                 </div>
                 <div class="status-item">
-                    <div class="status-icon">💠</div>
-                    <div class="status-value" id="fractalValue">1.0</div>
-                    <div class="status-label">FRACTAL</div>
+                    <div class="status-icon">ρ</div>
+                    <div class="status-value" id="plasticPower">1.32</div>
+                    <div class="status-label">PLASTIC</div>
                 </div>
             </div>
         </div>
 
-        <!-- Bottom Right: Harmonic Resonance -->
+        <!-- Bottom Right: Sampling Vis -->
         <div class="hud-corner hud-br">
-            <div class="harmonic-display">
-                <div class="harmonic-ring" id="harmonicRing">
-                    <div class="harmonic-inner"></div>
-                    <div class="harmonic-core" id="harmonicCore"></div>
-                </div>
-                <div class="harmonic-label">RESONANCE FIELD</div>
-            </div>
+            <canvas id="samplingVis" class="sampling-display" width="100" height="100"></canvas>
+            <div class="sampling-label">PLASTIC SAMPLING</div>
         </div>
     </div>
 
-    <!-- Tilt Indicator -->
-    <div class="tilt-indicator">
-        <div class="tilt-horizon">
-            <div class="tilt-line" id="tiltLine"></div>
-            <div class="tilt-center"></div>
-        </div>
-    </div>
-
-    <!-- Mobile Hint -->
-    <div class="mobile-hint" id="mobileHint">
-        TILT TO NAVIGATE • SPEAK TO SHAPE THE STORM
-    </div>
-
-    <!-- Intro Screen -->
+    <!-- Intro -->
     <div class="intro-screen" id="introScreen">
         <div class="intro-title">NEUTRON DESCENT</div>
-        <div class="intro-subtitle">INFINITE FRACTAL VOYAGE</div>
-        <div class="intro-instructions">
-            <strong>TILT YOUR DEVICE</strong> to pilot through the storm<br>
-            <strong>USE YOUR VOICE</strong> to shape the fractal patterns<br>
-            <strong>FIND HARMONY</strong> with the neutron star's frequency<br>
-            <br>
-            Descend into infinite complexity.<br>
-            The deeper you go, the more reality bends.
+        <div class="intro-subtitle">PHILLIPS RENDERER IN ACTION</div>
+
+        <div class="intro-tech">
+            <div class="intro-tech-title">POWERED BY THE PLASTIC CONSTANT</div>
+            <div class="intro-constant">ρ ≈ 1.324718</div>
+            <div class="intro-constant-label">Low-discrepancy sampling • 17 bytes/splat • Infinite resolution</div>
         </div>
+
+        <div class="intro-instructions">
+            <strong>TILT</strong> to navigate through the Plastic-sampled storm<br>
+            <strong>VOICE</strong> modulates fractal complexity and color<br>
+            <strong>DESCEND</strong> into infinite depth, powered by ρ<br><br>
+            Watch the Phillips Renderer handle 15,000+ points at 60fps
+        </div>
+
         <button class="begin-btn" onclick="beginDescent()">BEGIN DESCENT</button>
-        <div class="intro-mic-note">Microphone access enables voice-reactive fractals</div>
     </div>
 
-    <script>
+    <script type="module">
         // ═══════════════════════════════════════════════════════════════════
-        // NEUTRON DESCENT - Infinite Fractal Voyage
-        // Voice-reactive, gyroscope-controlled fractal exploration
+        // NEUTRON DESCENT - Phillips Renderer Showcase
+        // Demonstrates the Phillips Rendering System in a gameplay context
         // ═══════════════════════════════════════════════════════════════════
+
+        import { PhillipsRenderer } from '../src/systems/PhillipsRenderer.js';
+        import {
+            PLASTIC_CONSTANT,
+            PLASTIC_ALPHA_1,
+            PLASTIC_ALPHA_2,
+            getPlasticSamplingPoint,
+            getPlasticSamplingPoint3D,
+            getPlasticPower,
+            getPadovanSequence,
+            generatePlasticSamplingGrid
+        } from '../src/math/Plastic.js';
 
         // ─────────────────────────────────────────────────────────────────────
         // CONFIGURATION
         // ─────────────────────────────────────────────────────────────────────
 
         const CONFIG = {
-            // Fractal parameters
-            fractal: {
-                baseIterations: 50,
-                maxIterations: 200,
-                zoomSpeed: 0.015,
-                rotationSpeed: 0.0003,
-                colorCycleSpeed: 0.5
+            // Phillips Renderer settings
+            phillips: {
+                basePointCount: 12000,
+                maxPointCount: 20000,
+                basePlasticScale: 1.0
             },
             // Ship physics
             ship: {
                 turnSpeed: 0.08,
                 maxTilt: 45,
-                damping: 0.92,
                 velocityScale: 2.0
             },
-            // Voice reactivity
-            voice: {
-                smoothing: 0.8,
-                pitchInfluence: 0.5,
-                amplitudeInfluence: 0.3
-            },
-            // Visual
-            parallaxLayers: 5,
-            stormParticles: 300,
-            debrisCount: 50
+            // Storm generation
+            storm: {
+                layers: 5,
+                speedRange: [0.5, 2.0],
+                sizeRange: [0.02, 0.08]
+            }
         };
 
         // ─────────────────────────────────────────────────────────────────────
@@ -622,23 +566,14 @@
         // ─────────────────────────────────────────────────────────────────────
 
         const State = {
-            // Core
             running: false,
             time: 0,
             depth: 0,
 
-            // Fractal state
-            fractal: {
-                zoom: 1,
-                centerX: -0.7435669,
-                centerY: 0.1314023,
-                rotation: 0,
-                juliaC: { x: -0.4, y: 0.6 },
-                hueOffset: 0,
-                complexity: 1.0
-            },
+            // Phillips Renderer instance
+            phillipsRenderer: null,
 
-            // Ship state
+            // Ship
             ship: {
                 tiltX: 0,
                 tiltY: 0,
@@ -648,20 +583,16 @@
                 velocityY: 0
             },
 
-            // Audio state
+            // Audio
             audio: {
                 context: null,
                 analyser: null,
                 dataArray: null,
-                pitch: 0,
                 amplitude: 0,
                 smoothedAmplitude: 0,
-                harmonicMatch: 0
+                pitch: 0,
+                harmonicMatch: 0.5
             },
-
-            // Particles
-            stormParticles: [],
-            debris: [],
 
             // Performance
             fps: 0,
@@ -669,9 +600,8 @@
             lastFpsTime: 0
         };
 
-        // Canvas contexts
-        let ctxBg, ctxFractal, ctxStorm, ctxDebris, ctxShip;
-        let canvasBg, canvasFractal, canvasStorm, canvasDebris, canvasShip;
+        // Contexts
+        let ctxBg, ctxOverlay, ctxSampling;
 
         // ─────────────────────────────────────────────────────────────────────
         // INITIALIZATION
@@ -679,43 +609,48 @@
 
         function init() {
             // Get canvases
-            canvasBg = document.getElementById('bgLayer');
-            canvasFractal = document.getElementById('fractalLayer');
-            canvasStorm = document.getElementById('stormLayer');
-            canvasDebris = document.getElementById('debrisLayer');
-            canvasShip = document.getElementById('shipLayer');
+            const canvasBg = document.getElementById('bgLayer');
+            const canvasPhillips = document.getElementById('phillipsLayer');
+            const canvasOverlay = document.getElementById('overlayLayer');
+            const canvasSampling = document.getElementById('samplingVis');
 
-            // Get contexts
             ctxBg = canvasBg.getContext('2d');
-            ctxFractal = canvasFractal.getContext('2d');
-            ctxStorm = canvasStorm.getContext('2d');
-            ctxDebris = canvasDebris.getContext('2d');
-            ctxShip = canvasShip.getContext('2d');
+            ctxOverlay = canvasOverlay.getContext('2d');
+            ctxSampling = canvasSampling.getContext('2d');
 
-            // Setup canvases
+            // Resize
             resizeCanvases();
             window.addEventListener('resize', resizeCanvases);
 
-            // Initialize particles
-            initStormParticles();
-            initDebris();
+            // ═══════════════════════════════════════════════════════════════
+            // INITIALIZE PHILLIPS RENDERER - The star of the show
+            // ═══════════════════════════════════════════════════════════════
+            State.phillipsRenderer = new PhillipsRenderer(canvasPhillips, {
+                plasticScale: CONFIG.phillips.basePlasticScale,
+                blendMode: 'alpha'
+            });
+            State.phillipsRenderer.setCamera(5, 60);
 
-            // Setup voice bars UI
+            // Setup UI
             setupVoiceBars();
-
-            // Setup controls
             setupControls();
+            drawSamplingVisualization();
 
-            // Start render loop (paused until begin)
+            // Start loop
             requestAnimationFrame(gameLoop);
 
             console.log(`
-╔═══════════════════════════════════════════════════════════╗
-║              NEUTRON DESCENT - FRACTAL VOYAGE             ║
-╠═══════════════════════════════════════════════════════════╣
-║  Navigate the infinite depths of a neutron star           ║
-║  Your voice shapes reality. Your will guides the ship.    ║
-╚═══════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════╗
+║              NEUTRON DESCENT - Phillips Renderer              ║
+╠═══════════════════════════════════════════════════════════════╣
+║  This demo showcases the Phillips Rendering System:           ║
+║                                                               ║
+║  • Plastic Ratio (ρ ≈ ${PLASTIC_CONSTANT.toFixed(10)}) sampling      ║
+║  • Low-discrepancy point distribution                         ║
+║  • ~17 bytes/splat compression                                ║
+║  • Voice-reactive parameter modulation                        ║
+║  • 12,000-20,000 points at 60fps                              ║
+╚═══════════════════════════════════════════════════════════════╝
             `);
         }
 
@@ -724,12 +659,15 @@
             const h = window.innerHeight;
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-            [canvasBg, canvasFractal, canvasStorm, canvasDebris, canvasShip].forEach(canvas => {
+            ['bgLayer', 'phillipsLayer', 'overlayLayer'].forEach(id => {
+                const canvas = document.getElementById(id);
                 canvas.width = w * dpr;
                 canvas.height = h * dpr;
                 canvas.style.width = w + 'px';
                 canvas.style.height = h + 'px';
-                canvas.getContext('2d').scale(dpr, dpr);
+                if (id !== 'phillipsLayer') {
+                    canvas.getContext('2d').scale(dpr, dpr);
+                }
             });
         }
 
@@ -740,6 +678,35 @@
                 bar.className = 'voice-bar';
                 container.appendChild(bar);
             }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // PLASTIC SAMPLING VISUALIZATION (Shows the algorithm at work)
+        // ─────────────────────────────────────────────────────────────────────
+
+        function drawSamplingVisualization() {
+            const ctx = ctxSampling;
+            const size = 100;
+
+            ctx.fillStyle = 'rgba(0, 0, 20, 1)';
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw Plastic-sampled points
+            ctx.fillStyle = '#00ccff';
+            for (let i = 0; i < 200; i++) {
+                const point = getPlasticSamplingPoint(i, 0.5);
+                const x = point.x * size;
+                const y = point.y * size;
+                ctx.beginPath();
+                ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Show α values
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = '7px monospace';
+            ctx.fillText(`α₁=${PLASTIC_ALPHA_1.toFixed(3)}`, 3, 10);
+            ctx.fillText(`α₂=${PLASTIC_ALPHA_2.toFixed(3)}`, 3, 20);
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -757,11 +724,9 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const source = State.audio.context.createMediaStreamSource(stream);
                 source.connect(State.audio.analyser);
-
-                console.log('Voice input active');
                 return true;
             } catch (err) {
-                console.warn('Microphone not available, using synthetic audio:', err);
+                console.warn('Using synthetic audio:', err);
                 State.audio.synthetic = true;
                 return false;
             }
@@ -769,73 +734,55 @@
 
         function analyzeAudio() {
             if (State.audio.synthetic) {
-                // Generate synthetic audio based on time
                 const t = State.time;
                 State.audio.amplitude = 0.3 + Math.sin(t * 0.5) * 0.2 + Math.sin(t * 1.3) * 0.15;
-                State.audio.pitch = 200 + Math.sin(t * 0.3) * 100 + Math.sin(t * 0.7) * 50;
+                State.audio.pitch = 200 + Math.sin(t * 0.3) * 100;
                 State.audio.smoothedAmplitude = State.audio.amplitude;
-
-                // Calculate harmonic match (synthetic pulses)
                 State.audio.harmonicMatch = 0.5 + Math.sin(t * 0.2) * 0.3;
-                return;
-            }
+            } else if (State.audio.analyser) {
+                State.audio.analyser.getByteFrequencyData(State.audio.dataArray);
 
-            if (!State.audio.analyser) return;
-
-            State.audio.analyser.getByteFrequencyData(State.audio.dataArray);
-
-            // Calculate amplitude
-            let sum = 0;
-            for (let i = 0; i < State.audio.dataArray.length; i++) {
-                sum += State.audio.dataArray[i];
-            }
-            const amplitude = sum / State.audio.dataArray.length / 255;
-            State.audio.smoothedAmplitude += (amplitude - State.audio.smoothedAmplitude) * 0.1;
-            State.audio.amplitude = amplitude;
-
-            // Estimate pitch (simplified autocorrelation)
-            State.audio.pitch = estimatePitch();
-
-            // Calculate harmonic match with target frequency
-            const targetFreq = 220 * Math.pow(2, (State.depth % 12) / 12); // Changes with depth
-            const pitchDiff = Math.abs(State.audio.pitch - targetFreq);
-            State.audio.harmonicMatch = Math.max(0, 1 - pitchDiff / 200);
-
-            // Update UI
-            updateVoiceUI();
-        }
-
-        function estimatePitch() {
-            if (!State.audio.dataArray) return 0;
-
-            // Find dominant frequency bin
-            let maxVal = 0;
-            let maxIndex = 0;
-            for (let i = 5; i < State.audio.dataArray.length / 4; i++) {
-                if (State.audio.dataArray[i] > maxVal) {
-                    maxVal = State.audio.dataArray[i];
-                    maxIndex = i;
+                let sum = 0;
+                for (let i = 0; i < State.audio.dataArray.length; i++) {
+                    sum += State.audio.dataArray[i];
                 }
+                const amp = sum / State.audio.dataArray.length / 255;
+                State.audio.smoothedAmplitude += (amp - State.audio.smoothedAmplitude) * 0.1;
+                State.audio.amplitude = amp;
+
+                // Pitch estimation
+                let maxVal = 0, maxIndex = 0;
+                for (let i = 5; i < State.audio.dataArray.length / 4; i++) {
+                    if (State.audio.dataArray[i] > maxVal) {
+                        maxVal = State.audio.dataArray[i];
+                        maxIndex = i;
+                    }
+                }
+                const sampleRate = State.audio.context?.sampleRate || 44100;
+                State.audio.pitch = maxIndex * (sampleRate / State.audio.analyser.fftSize);
+
+                // Harmonic match
+                const targetFreq = 220 * Math.pow(PLASTIC_CONSTANT, (State.depth % 7));
+                State.audio.harmonicMatch = Math.max(0, 1 - Math.abs(State.audio.pitch - targetFreq) / 200);
             }
 
-            // Convert to Hz
-            const sampleRate = State.audio.context?.sampleRate || 44100;
-            const binHz = sampleRate / State.audio.analyser.fftSize;
-            return maxIndex * binHz;
+            updateVoiceUI();
         }
 
         function updateVoiceUI() {
             const bars = document.querySelectorAll('.voice-bar');
-            const step = Math.floor(State.audio.dataArray.length / 4 / bars.length);
-
-            bars.forEach((bar, i) => {
-                const value = State.audio.dataArray[i * step] || 0;
-                const height = (value / 255) * 35 + 5;
-                bar.style.height = height + 'px';
-            });
-
-            document.getElementById('pitchDisplay').textContent =
-                State.audio.pitch > 50 ? Math.round(State.audio.pitch) + ' Hz' : '-- Hz';
+            if (State.audio.synthetic) {
+                bars.forEach((bar, i) => {
+                    const h = 5 + Math.sin(State.time * 2 + i * 0.5) * 15 + State.audio.amplitude * 20;
+                    bar.style.height = h + 'px';
+                });
+            } else if (State.audio.dataArray) {
+                const step = Math.floor(State.audio.dataArray.length / 4 / bars.length);
+                bars.forEach((bar, i) => {
+                    const value = State.audio.dataArray[i * step] || 0;
+                    bar.style.height = (value / 255) * 35 + 5 + 'px';
+                });
+            }
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -843,16 +790,13 @@
         // ─────────────────────────────────────────────────────────────────────
 
         function setupControls() {
-            // Device orientation
+            // Gyroscope
             if (typeof DeviceOrientationEvent !== 'undefined') {
                 if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    // iOS 13+
                     document.addEventListener('click', async () => {
                         try {
                             const response = await DeviceOrientationEvent.requestPermission();
-                            if (response === 'granted') {
-                                enableGyro();
-                            }
+                            if (response === 'granted') enableGyro();
                         } catch (e) {}
                     }, { once: true });
                 } else {
@@ -860,9 +804,23 @@
                 }
             }
 
-            // Mouse/touch fallback
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            // Mouse fallback
+            document.addEventListener('mousemove', (e) => {
+                const cx = window.innerWidth / 2;
+                const cy = window.innerHeight / 2;
+                State.ship.targetTiltX = (e.clientX - cx) / cx;
+                State.ship.targetTiltY = (e.clientY - cy) / cy;
+            });
+
+            // Touch
+            document.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                const cx = window.innerWidth / 2;
+                const cy = window.innerHeight / 2;
+                State.ship.targetTiltX = (t.clientX - cx) / cx;
+                State.ship.targetTiltY = (t.clientY - cy) / cy;
+            }, { passive: false });
         }
 
         function enableGyro() {
@@ -870,394 +828,163 @@
                 State.ship.targetTiltX = (e.gamma || 0) / CONFIG.ship.maxTilt;
                 State.ship.targetTiltY = ((e.beta || 0) - 45) / CONFIG.ship.maxTilt;
             });
-            document.getElementById('mobileHint').style.opacity = '0.5';
-        }
-
-        function handleMouseMove(e) {
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            State.ship.targetTiltX = (e.clientX - centerX) / centerX;
-            State.ship.targetTiltY = (e.clientY - centerY) / centerY;
-        }
-
-        function handleTouchMove(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            State.ship.targetTiltX = (touch.clientX - centerX) / centerX;
-            State.ship.targetTiltY = (touch.clientY - centerY) / centerY;
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // PARTICLE SYSTEMS
+        // POINT GENERATION - Using Phillips Renderer + Plastic Sampling
         // ─────────────────────────────────────────────────────────────────────
 
-        function initStormParticles() {
-            State.stormParticles = [];
-            for (let i = 0; i < CONFIG.stormParticles; i++) {
-                State.stormParticles.push(createStormParticle());
-            }
-        }
+        function generateStormPoints() {
+            const baseCount = CONFIG.phillips.basePointCount;
+            const extraPoints = Math.floor(State.audio.harmonicMatch * 8000);
+            const totalPoints = Math.min(CONFIG.phillips.maxPointCount, baseCount + extraPoints);
 
-        function createStormParticle() {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * 0.8 + 0.2;
-            return {
-                x: Math.cos(angle) * dist,
-                y: Math.sin(angle) * dist,
-                z: Math.random(),
-                size: Math.random() * 3 + 1,
-                speed: Math.random() * 0.02 + 0.01,
-                hue: Math.random() * 60 + 10, // Orange-yellow range
-                alpha: Math.random() * 0.5 + 0.3
-            };
-        }
+            const points = [];
+            const time = State.time;
+            const depth = State.depth;
 
-        function initDebris() {
-            State.debris = [];
-            for (let i = 0; i < CONFIG.debrisCount; i++) {
-                State.debris.push(createDebris());
-            }
-        }
+            // Voice influences fractal parameters
+            const voiceHue = State.audio.pitch * 0.2;
+            const voiceScale = 1 + State.audio.smoothedAmplitude * 0.5;
 
-        function createDebris() {
-            return {
-                x: (Math.random() - 0.5) * 2,
-                y: (Math.random() - 0.5) * 2,
-                z: Math.random(),
-                size: Math.random() * 4 + 2,
-                rotationSpeed: (Math.random() - 0.5) * 0.1,
-                rotation: Math.random() * Math.PI * 2
-            };
-        }
+            for (let i = 0; i < totalPoints; i++) {
+                // ═══════════════════════════════════════════════════════════
+                // USE PLASTIC SAMPLING - This is the Phillips system's core
+                // ═══════════════════════════════════════════════════════════
+                const sample3D = getPlasticSamplingPoint3D(i, 0.5);
 
-        // ─────────────────────────────────────────────────────────────────────
-        // FRACTAL RENDERING
-        // ─────────────────────────────────────────────────────────────────────
+                // Determine which "layer" this point is in (for parallax)
+                const layerIndex = i % CONFIG.storm.layers;
+                const layerDepth = layerIndex / CONFIG.storm.layers;
 
-        function renderFractal() {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            const ctx = ctxFractal;
+                // Z-position cycles through the tunnel (infinite zoom effect)
+                const zSpeed = CONFIG.storm.speedRange[0] +
+                              layerDepth * (CONFIG.storm.speedRange[1] - CONFIG.storm.speedRange[0]);
+                let z = ((time * zSpeed + sample3D.z * 10 + layerIndex * 2) % 10) - 5;
 
-            // Clear
-            ctx.fillStyle = 'rgba(0, 0, 5, 0.1)';
-            ctx.fillRect(0, 0, w, h);
+                // Tunnel coordinates using Plastic sampling for even distribution
+                const angle = sample3D.x * Math.PI * 2;
+                const radius = 0.2 + sample3D.y * 1.5 * (1 + layerDepth);
 
-            // Fractal parameters influenced by voice
-            const voiceInfluence = State.audio.smoothedAmplitude * CONFIG.voice.amplitudeInfluence;
-            const pitchInfluence = (State.audio.pitch / 500) * CONFIG.voice.pitchInfluence;
+                // Apply ship tilt offset
+                let x = Math.cos(angle + time * 0.1) * radius;
+                let y = Math.sin(angle + time * 0.1) * radius;
+                x += State.ship.tiltX * 0.3 * (1 - Math.abs(z) / 5);
+                y += State.ship.tiltY * 0.3 * (1 - Math.abs(z) / 5);
 
-            // Julia set parameters modified by voice
-            const juliaX = State.fractal.juliaC.x + Math.sin(State.time * 0.1) * 0.1 * (1 + voiceInfluence);
-            const juliaY = State.fractal.juliaC.y + Math.cos(State.time * 0.13) * 0.1 * (1 + pitchInfluence);
+                // Scale based on Plastic power (creates natural size hierarchy)
+                const plasticScale = getPlasticPower((i % 7) - 3);
+                const baseSize = CONFIG.storm.sizeRange[0] +
+                                (CONFIG.storm.sizeRange[1] - CONFIG.storm.sizeRange[0]) * sample3D.y;
+                const scale = baseSize * plasticScale * voiceScale * (1 - Math.abs(z) / 6);
 
-            // Zoom increases with depth
-            const zoom = State.fractal.zoom * Math.pow(1.001, State.depth);
+                // Color: Plasma gradient influenced by depth and voice
+                const hue = (20 + depth * 2 + angle * 30 + voiceHue + layerIndex * 15) % 360;
+                const saturation = 70 + State.audio.smoothedAmplitude * 30;
+                const lightness = 40 + (1 - Math.abs(z) / 5) * 30;
 
-            // Render fractal as a field of calculated points
-            const resolution = 3; // Pixel step
-            const iterations = Math.min(
-                CONFIG.fractal.maxIterations,
-                CONFIG.fractal.baseIterations + Math.floor(State.audio.harmonicMatch * 100)
-            );
+                const color = hslToRgb(hue / 360, saturation / 100, lightness / 100);
 
-            // Ship offset
-            const offsetX = State.ship.tiltX * 0.2 / zoom;
-            const offsetY = State.ship.tiltY * 0.2 / zoom;
-
-            ctx.globalCompositeOperation = 'lighter';
-
-            for (let px = 0; px < w; px += resolution) {
-                for (let py = 0; py < h; py += resolution) {
-                    // Map pixel to complex plane
-                    let x = (px - w / 2) / (w / 4) / zoom + State.fractal.centerX + offsetX;
-                    let y = (py - h / 2) / (h / 4) / zoom + State.fractal.centerY + offsetY;
-
-                    // Apply rotation
-                    const cos = Math.cos(State.fractal.rotation);
-                    const sin = Math.sin(State.fractal.rotation);
-                    const rx = x * cos - y * sin;
-                    const ry = x * sin + y * cos;
-                    x = rx; y = ry;
-
-                    // Julia iteration
-                    let i = 0;
-                    while (x * x + y * y < 4 && i < iterations) {
-                        const xtemp = x * x - y * y + juliaX;
-                        y = 2 * x * y + juliaY;
-                        x = xtemp;
-                        i++;
-                    }
-
-                    if (i < iterations) {
-                        // Color based on iteration count and audio
-                        const hue = (i * 3 + State.fractal.hueOffset + State.audio.harmonicMatch * 60) % 360;
-                        const saturation = 70 + State.audio.smoothedAmplitude * 30;
-                        const lightness = 30 + (i / iterations) * 40;
-                        const alpha = 0.3 + (i / iterations) * 0.5;
-
-                        ctx.fillStyle = `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
-                        ctx.fillRect(px, py, resolution, resolution);
-                    }
-                }
+                points.push({
+                    x, y, z,
+                    scale: Math.max(0.01, scale),
+                    color
+                });
             }
 
-            ctx.globalCompositeOperation = 'source-over';
+            return points;
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // STORM RENDERING (Parallax Layer)
-        // ─────────────────────────────────────────────────────────────────────
-
-        function renderStorm() {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            const ctx = ctxStorm;
-            const centerX = w / 2;
-            const centerY = h / 2;
-
-            ctx.clearRect(0, 0, w, h);
-
-            // Update and render particles
-            State.stormParticles.forEach((p, i) => {
-                // Move toward center (zoom effect)
-                p.z -= p.speed * (1 + State.audio.smoothedAmplitude);
-
-                // Reset when reaching center
-                if (p.z <= 0) {
-                    Object.assign(p, createStormParticle());
-                    p.z = 1;
-                }
-
-                // Project to screen
-                const scale = 1 / p.z;
-                const screenX = centerX + (p.x + State.ship.tiltX * 0.3) * centerX * scale;
-                const screenY = centerY + (p.y + State.ship.tiltY * 0.3) * centerY * scale;
-                const size = p.size * scale * (1 + State.audio.smoothedAmplitude * 2);
-
-                // Skip if off screen
-                if (screenX < -50 || screenX > w + 50 || screenY < -50 || screenY > h + 50) return;
-
-                // Color with audio influence
-                const hue = (p.hue + State.audio.pitch * 0.1 + State.time * 20) % 360;
-                const alpha = p.alpha * (1 - p.z) * (0.5 + State.audio.smoothedAmplitude);
-
-                // Draw particle with glow
-                ctx.save();
-                ctx.globalAlpha = alpha;
-
-                // Glow
-                const gradient = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, size * 3);
-                gradient.addColorStop(0, `hsla(${hue}, 100%, 70%, 1)`);
-                gradient.addColorStop(0.5, `hsla(${hue}, 100%, 50%, 0.5)`);
-                gradient.addColorStop(1, 'transparent');
-
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(screenX, screenY, size * 3, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Core
-                ctx.fillStyle = `hsl(${hue}, 100%, 80%)`;
-                ctx.beginPath();
-                ctx.arc(screenX, screenY, size, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.restore();
-            });
-        }
-
-        // ─────────────────────────────────────────────────────────────────────
-        // DEBRIS RENDERING (Closest Parallax Layer)
-        // ─────────────────────────────────────────────────────────────────────
-
-        function renderDebris() {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            const ctx = ctxDebris;
-            const centerX = w / 2;
-            const centerY = h / 2;
-
-            ctx.clearRect(0, 0, w, h);
-
-            State.debris.forEach(d => {
-                // Move toward camera faster than storm
-                d.z -= 0.03;
-                d.rotation += d.rotationSpeed;
-
-                if (d.z <= 0) {
-                    Object.assign(d, createDebris());
-                    d.z = 1;
-                }
-
-                const scale = 1 / d.z;
-                const screenX = centerX + (d.x + State.ship.tiltX * 0.5) * centerX * scale;
-                const screenY = centerY + (d.y + State.ship.tiltY * 0.5) * centerY * scale;
-                const size = d.size * scale;
-
-                if (screenX < -100 || screenX > w + 100 || screenY < -100 || screenY > h + 100) return;
-
-                // Draw debris chunk
-                ctx.save();
-                ctx.translate(screenX, screenY);
-                ctx.rotate(d.rotation);
-                ctx.globalAlpha = 1 - d.z;
-
-                // Irregular shape
-                ctx.fillStyle = `hsl(${30 + Math.random() * 20}, 40%, 20%)`;
-                ctx.beginPath();
-                ctx.moveTo(-size, -size * 0.5);
-                ctx.lineTo(size * 0.5, -size);
-                ctx.lineTo(size, size * 0.3);
-                ctx.lineTo(-size * 0.3, size);
-                ctx.closePath();
-                ctx.fill();
-
-                // Highlight
-                ctx.fillStyle = `hsl(40, 60%, 40%)`;
-                ctx.beginPath();
-                ctx.arc(-size * 0.3, -size * 0.3, size * 0.2, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.restore();
-            });
-        }
-
-        // ─────────────────────────────────────────────────────────────────────
-        // BACKGROUND RENDERING
+        // RENDERING
         // ─────────────────────────────────────────────────────────────────────
 
         function renderBackground() {
             const w = window.innerWidth;
             const h = window.innerHeight;
-            const ctx = ctxBg;
 
-            // Deep space gradient with pulsing
+            // Pulsing nebula gradient
             const pulse = 0.5 + State.audio.smoothedAmplitude * 0.5;
-            const gradient = ctx.createRadialGradient(
+            const gradient = ctxBg.createRadialGradient(
                 w / 2 + State.ship.tiltX * 50,
                 h / 2 + State.ship.tiltY * 50,
-                0,
-                w / 2, h / 2, Math.max(w, h)
+                0, w / 2, h / 2, Math.max(w, h)
             );
 
-            const coreHue = (10 + State.time * 5 + State.audio.pitch * 0.05) % 360;
-            gradient.addColorStop(0, `hsla(${coreHue}, 100%, ${20 * pulse}%, 1)`);
-            gradient.addColorStop(0.3, `hsla(${coreHue + 20}, 80%, ${10 * pulse}%, 1)`);
-            gradient.addColorStop(0.7, 'hsl(260, 50%, 3%)');
-            gradient.addColorStop(1, 'hsl(240, 30%, 1%)');
+            const hue = (10 + State.time * 3 + State.audio.pitch * 0.03) % 360;
+            gradient.addColorStop(0, `hsla(${hue}, 100%, ${15 * pulse}%, 1)`);
+            gradient.addColorStop(0.4, `hsla(${hue + 20}, 70%, ${8 * pulse}%, 1)`);
+            gradient.addColorStop(1, 'hsl(260, 40%, 2%)');
 
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, w, h);
+            ctxBg.fillStyle = gradient;
+            ctxBg.fillRect(0, 0, w, h);
         }
 
-        // ─────────────────────────────────────────────────────────────────────
-        // SHIP HUD RENDERING
-        // ─────────────────────────────────────────────────────────────────────
-
-        function renderShipLayer() {
+        function renderOverlay() {
             const w = window.innerWidth;
             const h = window.innerHeight;
-            const ctx = ctxShip;
+            ctxOverlay.clearRect(0, 0, w, h);
 
-            ctx.clearRect(0, 0, w, h);
-
-            // Speed lines when moving fast
+            // Speed lines when moving
             const speed = Math.sqrt(State.ship.velocityX ** 2 + State.ship.velocityY ** 2);
             if (speed > 0.1) {
-                ctx.strokeStyle = `rgba(0, 200, 255, ${speed * 0.3})`;
-                ctx.lineWidth = 1;
+                ctxOverlay.strokeStyle = `rgba(0, 200, 255, ${speed * 0.2})`;
+                ctxOverlay.lineWidth = 1;
 
-                for (let i = 0; i < 20; i++) {
+                for (let i = 0; i < 15; i++) {
                     const angle = Math.random() * Math.PI * 2;
-                    const dist = 100 + Math.random() * 200;
-                    const length = speed * 50 + Math.random() * 30;
+                    const dist = 80 + Math.random() * 150;
+                    const len = speed * 40 + Math.random() * 20;
 
                     const x1 = w / 2 + Math.cos(angle) * dist;
                     const y1 = h / 2 + Math.sin(angle) * dist;
-                    const x2 = x1 + Math.cos(angle) * length;
-                    const y2 = y1 + Math.sin(angle) * length;
+                    const x2 = x1 + Math.cos(angle) * len;
+                    const y2 = y1 + Math.sin(angle) * len;
 
-                    ctx.beginPath();
-                    ctx.moveTo(x1, y1);
-                    ctx.lineTo(x2, y2);
-                    ctx.stroke();
+                    ctxOverlay.beginPath();
+                    ctxOverlay.moveTo(x1, y1);
+                    ctxOverlay.lineTo(x2, y2);
+                    ctxOverlay.stroke();
                 }
             }
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // UPDATE LOGIC
+        // UPDATE
         // ─────────────────────────────────────────────────────────────────────
 
         function update(dt) {
-            // Update time
             State.time += dt;
+            State.depth += (0.5 + State.audio.harmonicMatch * 1.5) * dt;
 
-            // Update depth (always descending)
-            const baseSpeed = 0.5 + State.audio.harmonicMatch * 1.5;
-            State.depth += baseSpeed * dt;
-
-            // Ship physics - smooth tilt interpolation
+            // Ship physics
             State.ship.tiltX += (State.ship.targetTiltX - State.ship.tiltX) * CONFIG.ship.turnSpeed;
             State.ship.tiltY += (State.ship.targetTiltY - State.ship.tiltY) * CONFIG.ship.turnSpeed;
-
-            // Velocity from tilt
             State.ship.velocityX = State.ship.tiltX * CONFIG.ship.velocityScale;
             State.ship.velocityY = State.ship.tiltY * CONFIG.ship.velocityScale;
 
-            // Update fractal parameters
-            State.fractal.rotation += CONFIG.fractal.rotationSpeed * (1 + State.audio.smoothedAmplitude);
-            State.fractal.hueOffset += CONFIG.fractal.colorCycleSpeed * dt;
-            State.fractal.complexity = 1 + State.audio.harmonicMatch;
+            // Plastic scale modulated by voice
+            const currentPlasticScale = CONFIG.phillips.basePlasticScale *
+                                       (1 + State.audio.smoothedAmplitude * 0.5);
+            State.phillipsRenderer.setPlasticScale(currentPlasticScale);
 
-            // Voice shapes the Julia set target
-            if (State.audio.pitch > 100) {
-                const pitchNorm = Math.min(1, State.audio.pitch / 500);
-                State.fractal.juliaC.x += (Math.sin(pitchNorm * Math.PI) * 0.01 - State.fractal.juliaC.x * 0.001);
-                State.fractal.juliaC.y += (Math.cos(pitchNorm * Math.PI) * 0.01 - State.fractal.juliaC.y * 0.001);
-            }
-
-            // Warning when harmony is low
-            const warning = document.getElementById('warningOverlay');
-            warning.classList.toggle('active', State.audio.harmonicMatch < 0.3 && State.audio.amplitude > 0.2);
-
-            // Update HUD
-            updateHUD();
+            updateHUD(currentPlasticScale);
         }
 
-        function updateHUD() {
-            // Depth
+        function updateHUD(plasticScale) {
             document.getElementById('depthFill').style.width = (State.depth % 100) + '%';
             document.getElementById('depthValue').textContent = State.depth.toFixed(3);
 
-            // Velocity
             const vel = Math.sqrt(State.ship.velocityX ** 2 + State.ship.velocityY ** 2);
             document.getElementById('velocityValue').textContent = vel.toFixed(1);
 
-            // Harmony
             const harmony = Math.round(State.audio.harmonicMatch * 100);
             document.getElementById('harmonyValue').textContent = harmony + '%';
             document.getElementById('harmonyValue').style.color =
                 harmony > 70 ? 'var(--safe)' : harmony > 30 ? 'var(--plasma-outer)' : 'var(--warning)';
 
-            // Fractal complexity
-            document.getElementById('fractalValue').textContent = State.fractal.complexity.toFixed(1);
-
-            // Tilt indicator
-            document.getElementById('tiltLine').style.transform =
-                `rotate(${State.ship.tiltX * 30}deg)`;
-
-            // Harmonic ring pulse
-            const ring = document.getElementById('harmonicRing');
-            ring.style.borderColor = `hsl(${180 + State.audio.harmonicMatch * 120}, 80%, 50%)`;
-            ring.style.transform = `scale(${1 + State.audio.smoothedAmplitude * 0.2})`;
-
-            const core = document.getElementById('harmonicCore');
-            core.style.transform = `translate(-50%, -50%) scale(${0.8 + State.audio.harmonicMatch * 0.4})`;
-            core.style.background = `hsl(${30 + State.audio.harmonicMatch * 30}, 100%, 60%)`;
+            document.getElementById('plasticPower').textContent = PLASTIC_CONSTANT.toFixed(2);
+            document.getElementById('plasticScale').textContent = plasticScale.toFixed(2);
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -1274,26 +1001,60 @@
 
             if (!State.running) return;
 
-            // Analyze audio
             analyzeAudio();
-
-            // Update state
             update(dt);
 
-            // Render layers (back to front)
+            // Render layers
             renderBackground();
-            renderFractal();
-            renderStorm();
-            renderDebris();
-            renderShipLayer();
 
-            // FPS counter
+            // ═══════════════════════════════════════════════════════════════
+            // PHILLIPS RENDERER - Generate and render Plastic-sampled points
+            // ═══════════════════════════════════════════════════════════════
+            const stormPoints = generateStormPoints();
+            State.phillipsRenderer.setPoints(stormPoints);
+            State.phillipsRenderer.render();
+
+            renderOverlay();
+
+            // Stats
             State.frameCount++;
             if (timestamp - State.lastFpsTime >= 1000) {
                 State.fps = State.frameCount;
                 State.frameCount = 0;
                 State.lastFpsTime = timestamp;
+                document.getElementById('fps').textContent = State.fps;
+                document.getElementById('pointCount').textContent = stormPoints.length.toLocaleString();
             }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // UTILITIES
+        // ─────────────────────────────────────────────────────────────────────
+
+        function hslToRgb(h, s, l) {
+            let r, g, b;
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -1302,19 +1063,14 @@
 
         window.beginDescent = async function() {
             document.getElementById('introScreen').classList.add('hidden');
-
             await initAudio();
             State.running = true;
 
-            // Request fullscreen on mobile
-            if (document.documentElement.requestFullscreen && /Mobi|Android/i.test(navigator.userAgent)) {
-                try {
-                    await document.documentElement.requestFullscreen();
-                } catch (e) {}
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                try { await document.documentElement.requestFullscreen(); } catch (e) {}
             }
         };
 
-        // Initialize on load
         window.addEventListener('load', init);
     </script>
 </body>

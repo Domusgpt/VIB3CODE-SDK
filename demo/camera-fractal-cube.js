@@ -110,9 +110,12 @@ void main() {
 
   col = col * edgeMask + edgeCol;
 
-  // Depth-based fade for far cubes
-  float depthFade = smoothstep(0.98, 0.7, v_depth);
+  // Depth-based fade for far cubes (disable to keep cubes visible on mobile GPUs)
+  float depthFade = 1.0;
   float alpha = u_alpha * depthFade;
+
+  // Ensure some emissive visibility even with dark camera frames
+  col = max(col, vec3(0.08));
 
   fragColor = vec4(col, alpha);
 }
@@ -575,9 +578,22 @@ function render(now) {
 
 const startBtn = document.getElementById('startBtn');
 const overlay = document.getElementById('startOverlay');
+let renderStarted = false;
+let cameraRequested = false;
 
-startBtn.addEventListener('click', async () => {
-  overlay.classList.add('hidden');
-  await startCamera();
+const beginRender = () => {
+  if (renderStarted) return;
+  renderStarted = true;
+  generateFallbackTexture();
   requestAnimationFrame(render);
-});
+};
+
+const requestCamera = () => {
+  if (cameraRequested) return;
+  cameraRequested = true;
+  overlay.classList.add('hidden');
+  startCamera();
+};
+
+beginRender();
+startBtn.addEventListener('click', requestCamera);

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phillips Renderer - Gaussian Flat Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #1a1a2e;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --accent-cyan: #00ffff;
+            --accent-magenta: #ff00ff;
+            --accent-gold: #ffd700;
+            --plastic-color: #7b68ee;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #1f1f3a 100%);
+            border-bottom: 2px solid var(--plastic-color);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--plastic-color), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .plastic-badge {
+            background: linear-gradient(135deg, var(--plastic-color), var(--accent-magenta));
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .canvas-wrapper {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        #phillipsCanvas {
+            width: 100%;
+            height: 500px;
+            display: block;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
+        .controls-panel {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #333;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .control-value {
+            color: var(--accent-gold);
+            font-family: monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--plastic-color);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--plastic-color);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--plastic-color));
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: #333;
+            color: var(--text-primary);
+            border: 1px solid #555;
+        }
+
+        .btn-secondary:hover {
+            background: #444;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--accent-gold);
+            font-family: monospace;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .info-section {
+            background: rgba(123, 104, 238, 0.1);
+            border: 1px solid var(--plastic-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .info-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--plastic-color);
+            margin-bottom: 8px;
+        }
+
+        .info-text {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .plastic-constant {
+            font-family: monospace;
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        @media (max-width: 900px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div>
+            <div class="logo">Phillips Renderer</div>
+            <div class="subtitle">Gaussian Flat Rendering System</div>
+        </div>
+        <div class="plastic-badge">PLASTIC RATIO: ρ ≈ 1.3247</div>
+    </header>
+
+    <main class="main-container">
+        <div class="canvas-wrapper">
+            <canvas id="phillipsCanvas"></canvas>
+            <div class="canvas-overlay">
+                <div id="fpsCounter">FPS: --</div>
+                <div id="pointCounter">Points: --</div>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <div class="section-title">
+                <span>🎛️</span> Renderer Controls
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Point Count</span>
+                    <span class="control-value" id="pointCountValue">500</span>
+                </div>
+                <input type="range" id="pointCount" min="100" max="5000" value="500" step="100">
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Plastic Scale (u_plasticScale)</span>
+                    <span class="control-value" id="plasticScaleValue">1.00</span>
+                </div>
+                <input type="range" id="plasticScale" min="0.1" max="3" value="1" step="0.1">
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Camera Distance</span>
+                    <span class="control-value" id="cameraDistValue">5.0</span>
+                </div>
+                <input type="range" id="cameraDist" min="2" max="15" value="5" step="0.5">
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Hue Rotation</span>
+                    <span class="control-value" id="hueValue">200°</span>
+                </div>
+                <input type="range" id="hue" min="0" max="360" value="200" step="1">
+            </div>
+
+            <button class="btn btn-primary" onclick="regeneratePoints()">
+                🔄 Regenerate Points
+            </button>
+
+            <button class="btn btn-secondary" onclick="toggleAnimation()">
+                ⏯️ Toggle Animation
+            </button>
+
+            <button class="btn btn-secondary" onclick="exportFrame()">
+                📷 Export Frame (PNG)
+            </button>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value" id="bytesPerSplat">17</div>
+                    <div class="stat-label">Bytes/Splat</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="totalBytes">--</div>
+                    <div class="stat-label">Total Bytes</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-title">About Plastic Ratio Sampling</div>
+                <div class="info-text">
+                    The Plastic Constant <span class="plastic-constant">ρ ≈ 1.324718</span> is the unique
+                    real solution to x³ = x + 1. Similar to the Golden Ratio but with distinct
+                    geometric properties, it provides optimal low-discrepancy sampling to prevent
+                    moiré patterns in Gaussian Flat rendering.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { PhillipsRenderer } from '../src/systems/PhillipsRenderer.js';
+        import {
+            generatePlasticSamplingGrid,
+            PLASTIC_CONSTANT,
+            getPlasticPower
+        } from '../src/math/Plastic.js';
+
+        // State
+        let renderer = null;
+        let isAnimating = true;
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let currentHue = 200;
+
+        // Initialize
+        function init() {
+            const canvas = document.getElementById('phillipsCanvas');
+
+            renderer = new PhillipsRenderer(canvas, {
+                plasticScale: 1.0,
+                blendMode: 'alpha'
+            });
+
+            regeneratePoints();
+            setupControls();
+            animate();
+        }
+
+        // Generate points with Plastic sampling
+        window.regeneratePoints = function() {
+            const pointCount = parseInt(document.getElementById('pointCount').value);
+            const samplingPoints = generatePlasticSamplingGrid(pointCount);
+
+            const points = samplingPoints.map((sp, i) => {
+                // Create interesting 3D distribution
+                const angle = sp.x * Math.PI * 4;
+                const radius = sp.y * 2;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                const z = (sp.x + sp.y - 1) * 2;
+
+                // Plastic-modulated scale
+                const scale = 0.08 + Math.sin(i * 0.1) * 0.04;
+
+                // Rainbow colors based on hue
+                const hue = (currentHue + i * (360 / pointCount)) % 360;
+                const rgb = hslToRgb(hue / 360, 0.8, 0.5);
+
+                return {
+                    x, y, z,
+                    scale,
+                    color: { r: rgb.r, g: rgb.g, b: rgb.b }
+                };
+            });
+
+            renderer.setPoints(points);
+            updateStats(pointCount);
+        };
+
+        function updateStats(pointCount) {
+            document.getElementById('pointCounter').textContent = `Points: ${pointCount}`;
+            const totalBytes = pointCount * 17;
+            document.getElementById('totalBytes').textContent = formatBytes(totalBytes);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            return (bytes / 1024).toFixed(1) + ' KB';
+        }
+
+        function setupControls() {
+            document.getElementById('pointCount').addEventListener('input', (e) => {
+                document.getElementById('pointCountValue').textContent = e.target.value;
+            });
+            document.getElementById('pointCount').addEventListener('change', regeneratePoints);
+
+            document.getElementById('plasticScale').addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                document.getElementById('plasticScaleValue').textContent = val.toFixed(2);
+                renderer.setPlasticScale(val);
+            });
+
+            document.getElementById('cameraDist').addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                document.getElementById('cameraDistValue').textContent = val.toFixed(1);
+                renderer.setCamera(val, 60);
+            });
+
+            document.getElementById('hue').addEventListener('input', (e) => {
+                currentHue = parseInt(e.target.value);
+                document.getElementById('hueValue').textContent = currentHue + '°';
+                regeneratePoints();
+            });
+        }
+
+        window.toggleAnimation = function() {
+            isAnimating = !isAnimating;
+        };
+
+        window.exportFrame = function() {
+            const dataUrl = renderer.exportFrame();
+            const link = document.createElement('a');
+            link.download = `phillips-frame-${Date.now()}.png`;
+            link.href = dataUrl;
+            link.click();
+        };
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isAnimating) {
+                // Rotate points slowly
+                const time = performance.now() * 0.001;
+                const points = renderer.points.map((p, i) => {
+                    const angle = time * 0.5;
+                    const cos = Math.cos(angle);
+                    const sin = Math.sin(angle);
+                    return {
+                        ...p,
+                        x: p.x * cos - p.z * sin,
+                        z: p.x * sin + p.z * cos
+                    };
+                });
+                renderer.setPoints(points);
+            }
+
+            renderer.render();
+
+            // FPS counter
+            frameCount++;
+            const now = performance.now();
+            if (now - lastTime >= 1000) {
+                document.getElementById('fpsCounter').textContent = `FPS: ${frameCount}`;
+                frameCount = 0;
+                lastTime = now;
+            }
+        }
+
+        function hslToRgb(h, s, l) {
+            let r, g, b;
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

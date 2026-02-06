@@ -78,9 +78,10 @@ out vec4 fragColor;
 void main() {
   vec3 N = normalize(v_normal);
 
-  // Single camera image per face (mirror X for selfie)
+  // Single camera image per face (mirror X for selfie + flip Y for mobile orientation)
   vec2 uv = v_uv;
   uv.x = 1.0 - uv.x;
+  uv.y = 1.0 - uv.y;
 
   // Sample camera texture
   vec4 cam = texture(u_camTex, uv);
@@ -110,9 +111,12 @@ void main() {
 
   col = col * edgeMask + edgeCol;
 
-  // Depth-based fade for far cubes
-  float depthFade = smoothstep(0.98, 0.7, v_depth);
+  // Depth-based fade for far cubes (disable to keep cubes visible on mobile GPUs)
+  float depthFade = 1.0;
   float alpha = u_alpha * depthFade;
+
+  // Ensure some emissive visibility even with dark camera frames
+  col = max(col, vec3(0.08));
 
   fragColor = vec4(col, alpha);
 }
@@ -423,10 +427,10 @@ function mat4RotZ(a) {
 
 const NUM_ARMS = 4;
 const CUBES_PER_ARM = 8;
-const CENTER_DEPTH = 12;      // how far back the center cube is
-const CENTER_SCALE = 0.3;     // size of the smallest (center) cube
-const SPIRAL_TIGHTNESS = 0.4; // how tight the spiral winds
-const VERTICAL_SPREAD = 0.15; // slight Y variation
+const CENTER_DEPTH = 9;       // how far back the center cube is
+const CENTER_SCALE = 0.24;    // size of the smallest (center) cube
+const SPIRAL_TIGHTNESS = 0.32; // how tight the spiral winds
+const VERTICAL_SPREAD = 0.12; // slight Y variation
 
 function generateVortexCubes() {
   const cubes = [];
@@ -489,7 +493,7 @@ const vortexCubes = generateVortexCubes();
 
 function getFixedCamera() {
   // Camera positioned in front, looking into the vortex
-  const eye = [0, 0, 5];
+  const eye = [0, 0, 6.5];
   const target = [0, 0, -CENTER_DEPTH];
   const aspect = canvas.width / canvas.height;
 
@@ -575,9 +579,22 @@ function render(now) {
 
 const startBtn = document.getElementById('startBtn');
 const overlay = document.getElementById('startOverlay');
+let renderStarted = false;
+let cameraRequested = false;
 
-startBtn.addEventListener('click', async () => {
-  overlay.classList.add('hidden');
-  await startCamera();
+const beginRender = () => {
+  if (renderStarted) return;
+  renderStarted = true;
+  generateFallbackTexture();
   requestAnimationFrame(render);
-});
+};
+
+const requestCamera = () => {
+  if (cameraRequested) return;
+  cameraRequested = true;
+  overlay.classList.add('hidden');
+  startCamera();
+};
+
+beginRender();
+startBtn.addEventListener('click', requestCamera);

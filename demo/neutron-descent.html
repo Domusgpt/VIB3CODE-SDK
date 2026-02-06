@@ -537,7 +537,15 @@
             getPlasticSamplingPoint3D,
             getPlasticPower,
             getPadovanSequence,
-            generatePlasticSamplingGrid
+            generatePlasticSamplingGrid,
+            // Strange Attractors for emergent complexity
+            lorenzStep,
+            rosslerStep,
+            thomasStep,
+            // Emergent Systems
+            HarmonicCascade,
+            TemporalFractal,
+            DimensionalBleeding
         } from '../src/math/Plastic.js';
 
         // ─────────────────────────────────────────────────────────────────────
@@ -586,6 +594,12 @@
 
             // Phillips Renderer instance
             phillipsRenderer: null,
+
+            // Emergent Systems
+            harmonicCascade: null,
+            temporalFractal: null,
+            dimensionalBleeding: null,
+            attractorState: { x: 1, y: 1, z: 1 },
 
             // Ship
             ship: {
@@ -650,6 +664,13 @@
                 blendMode: 'alpha'
             });
             State.phillipsRenderer.setCamera(5, 60);
+
+            // ═══════════════════════════════════════════════════════════════
+            // INITIALIZE EMERGENT SYSTEMS - Cross-modulating complexity
+            // ═══════════════════════════════════════════════════════════════
+            State.harmonicCascade = new HarmonicCascade(1, 7);
+            State.temporalFractal = new TemporalFractal(5);
+            State.dimensionalBleeding = new DimensionalBleeding(4);
 
             // Setup UI
             setupVoiceBars();
@@ -994,14 +1015,35 @@
                 y += State.ship.tiltY * 0.5 * parallaxStrength;
 
                 // ═══════════════════════════════════════════════════════════
-                // SIZE - Dramatic variation based on audio
+                // EMERGENT MODULATION - Strange attractor influence
+                // ═══════════════════════════════════════════════════════════
+                const attractorInfluence = 0.08 * (1 + State.harmonicCascade.cascadeLevel * 0.1);
+                x += State.attractorState.x * attractorInfluence * parallaxStrength;
+                y += State.attractorState.y * attractorInfluence * parallaxStrength;
+                z += State.attractorState.z * attractorInfluence * 0.3;
+
+                // Dimensional bleeding projection for select points (every 7th - Plastic-related)
+                if (i % 7 === 0 && State.dimensionalBleeding.bleedIntensity > 0.3) {
+                    const projected = State.dimensionalBleeding.project({
+                        x, y, z,
+                        w: Math.sin(time + i * PLASTIC_ALPHA_1)
+                    });
+                    x = x * 0.7 + projected.x * 0.3;
+                    y = y * 0.7 + projected.y * 0.3;
+                    z = z * 0.7 + projected.z * 0.3;
+                }
+
+                // ═══════════════════════════════════════════════════════════
+                // SIZE - Dramatic variation based on audio + emergent systems
                 // ═══════════════════════════════════════════════════════════
                 const plasticScale = getPlasticPower((i % 9) - 4);
                 const depthScale = 1 - Math.abs(z) / 7;
                 const audioScale = 1 + amp * 1.5 + bass * 0.8;
+                const fractalMod = State.temporalFractal.getModulation();
+                const emergentScale = fractalMod.intensity * (1 + State.harmonicCascade.resonanceEnergy * 0.2);
                 const baseSize = CONFIG.storm.sizeRange[0] +
                                 (CONFIG.storm.sizeRange[1] - CONFIG.storm.sizeRange[0]) * sample3D.y;
-                const scale = baseSize * plasticScale * audioScale * depthScale;
+                const scale = baseSize * plasticScale * audioScale * depthScale * emergentScale;
 
                 // ═══════════════════════════════════════════════════════════
                 // COLOR - Dramatic shifts with voice
@@ -1018,9 +1060,12 @@
                     case 'burst': modeHueOffset = 0; break;     // Red
                 }
 
-                const hue = (modeHueOffset + pitchHue + depth * 3 + layerIndex * 20 + i * 0.01) % 360;
-                const saturation = 60 + amp * 40;
-                const lightness = 35 + depthScale * 35 + high * 20;
+                // Add emergent system influence to color
+                const fractalHueShift = fractalMod.hueShift * 0.5;
+                const cascadeHue = State.harmonicCascade.cascadeLevel * 15;
+                const hue = (modeHueOffset + pitchHue + fractalHueShift + cascadeHue + depth * 3 + layerIndex * 20 + i * 0.01) % 360;
+                const saturation = 60 + amp * 40 + State.dimensionalBleeding.bleedIntensity * 20;
+                const lightness = 35 + depthScale * 35 + high * 20 + fractalMod.intensity * 10;
 
                 const color = hslToRgb(hue / 360, saturation / 100, Math.min(0.9, lightness / 100));
 
@@ -1140,9 +1185,31 @@
             State.ship.velocityX = State.ship.tiltX * CONFIG.ship.velocityScale;
             State.ship.velocityY = State.ship.tiltY * CONFIG.ship.velocityScale;
 
-            // Plastic scale modulated by voice
+            // ═══════════════════════════════════════════════════════════════
+            // UPDATE EMERGENT SYSTEMS - Cross-modulating for complexity
+            // ═══════════════════════════════════════════════════════════════
+
+            // Update strange attractor (influences point distribution)
+            const attractorFuncs = { vortex: lorenzStep, helix: rosslerStep, rings: thomasStep,
+                                    spiral: lorenzStep, burst: rosslerStep };
+            const attractorFunc = attractorFuncs[State.audio.geometryMode] || lorenzStep;
+            State.attractorState = attractorFunc(State.attractorState, 0.005);
+
+            // Update harmonic cascade (voice-reactive resonance)
+            State.harmonicCascade.update(State.audio.smoothedPitch, State.audio.smoothedAmplitude, dt);
+
+            // Update temporal fractal (self-similar time patterns)
+            State.temporalFractal.update(dt, State.audio.smoothedAmplitude);
+
+            // Update dimensional bleeding (4D projection effects)
+            const cascadeLevel = State.harmonicCascade.cascadeLevel;
+            State.dimensionalBleeding.update(dt, cascadeLevel / 5 + State.audio.smoothedAmplitude * 0.3);
+
+            // Plastic scale modulated by voice AND emergent systems
+            const fractalMod = State.temporalFractal.getModulation();
             const currentPlasticScale = CONFIG.phillips.basePlasticScale *
-                                       (1 + State.audio.smoothedAmplitude * 0.5);
+                                       (1 + State.audio.smoothedAmplitude * 0.5) *
+                                       fractalMod.scale;
             State.phillipsRenderer.setPlasticScale(currentPlasticScale);
 
             updateHUD(currentPlasticScale);

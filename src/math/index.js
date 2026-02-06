@@ -76,7 +76,22 @@ export {
     getPlasticScaleFactor,
     packRGB565,
     unpackRGB565,
-    hasSufficientCoverage
+    hasSufficientCoverage,
+    // Strange Attractors
+    lorenzStep,
+    generateLorenzTrajectory,
+    rosslerStep,
+    thomasStep,
+    aizawaStep,
+    halvorsenStep,
+    // Emergent Systems
+    SwarmAgent,
+    PlasticSwarm,
+    HarmonicCascade,
+    TemporalFractal,
+    PhaseInterference,
+    DimensionalBleeding,
+    EmergentComplexity
 } from './Plastic.js';
 
 // Default export for convenience

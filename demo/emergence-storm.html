@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EMERGENCE STORM - Exponential Complexity Through Phillips Rendering</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --void: #020108;
+            --cascade-1: #ff3366;
+            --cascade-2: #ff6600;
+            --cascade-3: #ffcc00;
+            --cascade-4: #00ff88;
+            --cascade-5: #00ccff;
+            --dimension-purple: #9933ff;
+            --swarm-cyan: #00ffff;
+            --fractal-magenta: #ff00ff;
+        }
+
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: var(--void);
+            font-family: 'Courier New', monospace;
+            color: #fff;
+            touch-action: none;
+        }
+
+        .layer {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        #bgLayer { z-index: 1; }
+        #phillipsLayer { z-index: 2; }
+        #overlayLayer { z-index: 3; }
+        #uiLayer { z-index: 100; pointer-events: none; }
+        #uiLayer > * { pointer-events: auto; }
+
+        /* Cascade Level Display */
+        .cascade-indicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 200;
+        }
+
+        .cascade-level {
+            width: 12px; height: 40px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            background: transparent;
+            transition: all 0.3s;
+        }
+
+        .cascade-level.active {
+            box-shadow: 0 0 20px currentColor;
+        }
+
+        .cascade-level:nth-child(1) { color: var(--cascade-1); }
+        .cascade-level:nth-child(2) { color: var(--cascade-2); }
+        .cascade-level:nth-child(3) { color: var(--cascade-3); }
+        .cascade-level:nth-child(4) { color: var(--cascade-4); }
+        .cascade-level:nth-child(5) { color: var(--cascade-5); }
+
+        .cascade-level.active { background: currentColor; }
+
+        /* System Status Panel */
+        .system-panel {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid var(--dimension-purple);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 10px;
+            min-width: 180px;
+        }
+
+        .panel-title {
+            color: var(--cascade-5);
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .system-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .system-label {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .system-value {
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .system-bar {
+            width: 60px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .system-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.1s;
+        }
+
+        /* Attractor Visualization */
+        .attractor-vis {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 150px;
+            height: 150px;
+            border: 1px solid var(--swarm-cyan);
+            border-radius: 8px;
+            background: rgba(0,0,20,0.8);
+            overflow: hidden;
+        }
+
+        .attractor-label {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            color: var(--swarm-cyan);
+            letter-spacing: 1px;
+        }
+
+        /* Complexity Meter */
+        .complexity-meter {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            text-align: right;
+        }
+
+        .complexity-label {
+            font-size: 9px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 2px;
+        }
+
+        .complexity-value {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--cascade-1), var(--cascade-3), var(--cascade-5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255,100,0,0.5);
+        }
+
+        .complexity-exp {
+            font-size: 18px;
+            color: var(--fractal-magenta);
+            vertical-align: super;
+        }
+
+        /* Title */
+        .title-block {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+        }
+
+        .main-title {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            background: linear-gradient(90deg, var(--fractal-magenta), var(--cascade-5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sub-title {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 4px;
+            margin-top: 5px;
+        }
+
+        /* Harmonic Visualizer */
+        .harmonic-vis {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .harmonic-bar {
+            width: 80px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .harmonic-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cascade-1), var(--cascade-3));
+            border-radius: 3px;
+            transition: width 0.05s;
+        }
+
+        /* Intro Screen */
+        .intro-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--void);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1.5s ease, visibility 1.5s;
+        }
+
+        .intro-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .intro-title {
+            font-size: 48px;
+            font-weight: bold;
+            letter-spacing: 15px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--cascade-1), var(--cascade-3), var(--cascade-5), var(--fractal-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        .intro-systems {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            max-width: 600px;
+            margin: 30px 0;
+        }
+
+        .system-badge {
+            padding: 8px 15px;
+            border: 1px solid;
+            border-radius: 4px;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        .system-badge:nth-child(1) { border-color: var(--cascade-1); color: var(--cascade-1); }
+        .system-badge:nth-child(2) { border-color: var(--swarm-cyan); color: var(--swarm-cyan); }
+        .system-badge:nth-child(3) { border-color: var(--cascade-3); color: var(--cascade-3); }
+        .system-badge:nth-child(4) { border-color: var(--cascade-4); color: var(--cascade-4); }
+        .system-badge:nth-child(5) { border-color: var(--dimension-purple); color: var(--dimension-purple); }
+        .system-badge:nth-child(6) { border-color: var(--fractal-magenta); color: var(--fractal-magenta); }
+
+        .intro-equation {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            margin: 20px 0;
+            font-style: italic;
+        }
+
+        .intro-equation span {
+            color: var(--cascade-3);
+        }
+
+        .begin-btn {
+            padding: 20px 60px;
+            font-size: 14px;
+            letter-spacing: 8px;
+            border: 2px solid var(--fractal-magenta);
+            background: transparent;
+            color: var(--fractal-magenta);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            margin-top: 30px;
+        }
+
+        .begin-btn:hover {
+            background: var(--fractal-magenta);
+            color: var(--void);
+            box-shadow: 0 0 50px var(--fractal-magenta);
+        }
+
+        /* Effects */
+        .vignette {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 98;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.8) 100%);
+        }
+
+        @media (max-width: 768px) {
+            .intro-title { font-size: 28px; letter-spacing: 8px; }
+            .system-panel { display: none; }
+            .attractor-vis { width: 100px; height: 100px; }
+            .complexity-value { font-size: 32px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Render Layers -->
+    <canvas id="bgLayer" class="layer"></canvas>
+    <canvas id="phillipsLayer" class="layer"></canvas>
+    <canvas id="overlayLayer" class="layer"></canvas>
+
+    <!-- Effects -->
+    <div class="vignette"></div>
+
+    <!-- HUD -->
+    <div id="uiLayer" class="layer">
+        <!-- Cascade Level -->
+        <div class="cascade-indicator">
+            <div class="cascade-level" id="cascade1"></div>
+            <div class="cascade-level" id="cascade2"></div>
+            <div class="cascade-level" id="cascade3"></div>
+            <div class="cascade-level" id="cascade4"></div>
+            <div class="cascade-level" id="cascade5"></div>
+        </div>
+
+        <!-- Title -->
+        <div class="title-block">
+            <div class="main-title">EMERGENCE STORM</div>
+            <div class="sub-title">EXPONENTIAL COMPLEXITY ENGINE</div>
+        </div>
+
+        <!-- System Panel -->
+        <div class="system-panel">
+            <div class="panel-title">ACTIVE SYSTEMS</div>
+
+            <div class="system-row">
+                <span class="system-label">ATTRACTOR</span>
+                <span class="system-value" id="attractorType" style="color: var(--swarm-cyan)">LORENZ</span>
+            </div>
+
+            <div class="system-row">
+                <span class="system-label">SWARM</span>
+                <span class="system-value" id="swarmCount" style="color: var(--cascade-4)">0</span>
+            </div>
+
+            <div class="system-row">
+                <span class="system-label">RESONANCE</span>
+                <div class="system-bar">
+                    <div class="system-bar-fill" id="resonanceBar" style="background: var(--cascade-3)"></div>
+                </div>
+            </div>
+
+            <div class="system-row">
+                <span class="system-label">BLEED</span>
+                <div class="system-bar">
+                    <div class="system-bar-fill" id="bleedBar" style="background: var(--dimension-purple)"></div>
+                </div>
+            </div>
+
+            <div class="system-row">
+                <span class="system-label">FRACTAL</span>
+                <span class="system-value" id="fractalScale" style="color: var(--fractal-magenta)">1.00</span>
+            </div>
+
+            <div class="system-row">
+                <span class="system-label">FPS</span>
+                <span class="system-value" id="fps" style="color: var(--cascade-5)">0</span>
+            </div>
+
+            <div class="system-row">
+                <span class="system-label">POINTS</span>
+                <span class="system-value" id="pointCount" style="color: var(--cascade-5)">0</span>
+            </div>
+        </div>
+
+        <!-- Harmonic Visualizer -->
+        <div class="harmonic-vis" id="harmonicVis"></div>
+
+        <!-- Attractor Visualization -->
+        <div class="attractor-vis">
+            <canvas id="attractorCanvas" width="150" height="150"></canvas>
+            <div class="attractor-label" id="attractorLabel">LORENZ ATTRACTOR</div>
+        </div>
+
+        <!-- Complexity Meter -->
+        <div class="complexity-meter">
+            <div class="complexity-label">COMPLEXITY INDEX</div>
+            <div class="complexity-value">
+                <span id="complexityBase">0.00</span><span class="complexity-exp" id="complexityExp">e0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Intro -->
+    <div class="intro-screen" id="introScreen">
+        <div class="intro-title">EMERGENCE STORM</div>
+
+        <div class="intro-systems">
+            <div class="system-badge">STRANGE ATTRACTORS</div>
+            <div class="system-badge">SWARM INTELLIGENCE</div>
+            <div class="system-badge">HARMONIC CASCADE</div>
+            <div class="system-badge">TEMPORAL FRACTAL</div>
+            <div class="system-badge">DIMENSIONAL BLEEDING</div>
+            <div class="system-badge">PHASE INTERFERENCE</div>
+        </div>
+
+        <div class="intro-equation">
+            Complexity = <span>f</span>(Lorenz) * <span>g</span>(Swarm) * <span>h</span>(Harmonics) * <span>ρ</span><sup>n</sup>
+        </div>
+
+        <button class="begin-btn" onclick="beginStorm()">INITIATE EMERGENCE</button>
+    </div>
+
+    <script type="module">
+        // ═══════════════════════════════════════════════════════════════════
+        // EMERGENCE STORM - Exponential Complexity Through Phillips Rendering
+        // ═══════════════════════════════════════════════════════════════════
+
+        import { PhillipsRenderer } from '../src/systems/PhillipsRenderer.js';
+        import {
+            PLASTIC_CONSTANT,
+            PLASTIC_ALPHA_1,
+            PLASTIC_ALPHA_2,
+            getPlasticPower,
+            getPlasticSamplingPoint3D,
+            // Strange Attractors
+            lorenzStep,
+            rosslerStep,
+            thomasStep,
+            aizawaStep,
+            halvorsenStep,
+            generateLorenzTrajectory,
+            // Emergent Systems
+            PlasticSwarm,
+            HarmonicCascade,
+            TemporalFractal,
+            PhaseInterference,
+            DimensionalBleeding,
+            EmergentComplexity
+        } from '../src/math/Plastic.js';
+
+        // ─────────────────────────────────────────────────────────────────────
+        // STATE
+        // ─────────────────────────────────────────────────────────────────────
+
+        const State = {
+            running: false,
+            time: 0,
+
+            // Core systems
+            phillipsRenderer: null,
+            emergence: null,
+
+            // Audio
+            audio: {
+                context: null,
+                analyser: null,
+                dataArray: null,
+                amplitude: 0,
+                frequency: 220
+            },
+
+            // User input
+            mouse: { x: 0, y: 0 },
+
+            // Performance
+            fps: 0,
+            frameCount: 0,
+            lastFpsTime: 0,
+
+            // Attractor history for visualization
+            attractorHistory: []
+        };
+
+        let ctxBg, ctxOverlay, ctxAttractor;
+
+        // ─────────────────────────────────────────────────────────────────────
+        // INITIALIZATION
+        // ─────────────────────────────────────────────────────────────────────
+
+        function init() {
+            const canvasBg = document.getElementById('bgLayer');
+            const canvasPhillips = document.getElementById('phillipsLayer');
+            const canvasOverlay = document.getElementById('overlayLayer');
+            const canvasAttractor = document.getElementById('attractorCanvas');
+
+            ctxBg = canvasBg.getContext('2d');
+            ctxOverlay = canvasOverlay.getContext('2d');
+            ctxAttractor = canvasAttractor.getContext('2d');
+
+            resizeCanvases();
+            window.addEventListener('resize', resizeCanvases);
+
+            // Initialize Phillips Renderer
+            State.phillipsRenderer = new PhillipsRenderer(canvasPhillips, {
+                plasticScale: 1.5,
+                blendMode: 'alpha'
+            });
+            State.phillipsRenderer.setCamera(6, 70);
+
+            // Initialize Emergent Complexity Orchestrator
+            State.emergence = new EmergentComplexity({
+                swarmCount: 200,
+                bounds: 6,
+                baseFrequency: 1,
+                dimension: 4
+            });
+
+            // Setup harmonic visualizer
+            setupHarmonicVis();
+
+            // Setup controls
+            setupControls();
+
+            // Start loop
+            requestAnimationFrame(gameLoop);
+
+            console.log(`
+╔═══════════════════════════════════════════════════════════════════╗
+║                    EMERGENCE STORM                                ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  Active Systems:                                                  ║
+║  • Strange Attractors (Lorenz, Rossler, Thomas, Aizawa, Halvorsen)║
+║  • Plastic Swarm Intelligence (200 agents)                        ║
+║  • Harmonic Resonance Cascade (7 harmonics)                       ║
+║  • Temporal Fractal Engine (5 layers)                             ║
+║  • Phase Interference (4 sources)                                 ║
+║  • Dimensional Bleeding (4D projection)                           ║
+║                                                                   ║
+║  All systems cross-modulate for exponential emergent complexity   ║
+╚═══════════════════════════════════════════════════════════════════╝
+            `);
+        }
+
+        function resizeCanvases() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+            ['bgLayer', 'phillipsLayer', 'overlayLayer'].forEach(id => {
+                const canvas = document.getElementById(id);
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                if (id !== 'phillipsLayer') {
+                    canvas.getContext('2d').scale(dpr, dpr);
+                }
+            });
+        }
+
+        function setupHarmonicVis() {
+            const container = document.getElementById('harmonicVis');
+            for (let i = 0; i < 7; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'harmonic-bar';
+                bar.innerHTML = '<div class="harmonic-bar-fill"></div>';
+                container.appendChild(bar);
+            }
+        }
+
+        function setupControls() {
+            document.addEventListener('mousemove', (e) => {
+                State.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                State.mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                State.mouse.x = (t.clientX / window.innerWidth) * 2 - 1;
+                State.mouse.y = (t.clientY / window.innerHeight) * 2 - 1;
+            }, { passive: false });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // AUDIO
+        // ─────────────────────────────────────────────────────────────────────
+
+        async function initAudio() {
+            try {
+                State.audio.context = new (window.AudioContext || window.webkitAudioContext)();
+                State.audio.analyser = State.audio.context.createAnalyser();
+                State.audio.analyser.fftSize = 2048;
+                State.audio.dataArray = new Uint8Array(State.audio.analyser.frequencyBinCount);
+
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const source = State.audio.context.createMediaStreamSource(stream);
+                source.connect(State.audio.analyser);
+                return true;
+            } catch (err) {
+                console.log('Using synthetic audio');
+                return false;
+            }
+        }
+
+        function analyzeAudio() {
+            if (State.audio.analyser) {
+                State.audio.analyser.getByteFrequencyData(State.audio.dataArray);
+
+                let sum = 0;
+                for (let i = 0; i < State.audio.dataArray.length; i++) {
+                    sum += State.audio.dataArray[i];
+                }
+                State.audio.amplitude = sum / State.audio.dataArray.length / 255;
+
+                // Find dominant frequency
+                let maxVal = 0, maxIndex = 0;
+                for (let i = 5; i < State.audio.dataArray.length / 4; i++) {
+                    if (State.audio.dataArray[i] > maxVal) {
+                        maxVal = State.audio.dataArray[i];
+                        maxIndex = i;
+                    }
+                }
+                State.audio.frequency = maxIndex * (State.audio.context.sampleRate / State.audio.analyser.fftSize);
+            } else {
+                // Synthetic audio based on mouse and time
+                const t = State.time;
+                State.audio.amplitude = 0.3 + Math.sin(t * 0.5) * 0.2 + Math.abs(State.mouse.x) * 0.3;
+                State.audio.frequency = 100 + Math.sin(t * 0.3) * 100 + State.mouse.y * 200;
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // RENDERING
+        // ─────────────────────────────────────────────────────────────────────
+
+        function renderBackground() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const params = State.emergence.getRenderingParams();
+
+            // Dynamic gradient based on complexity
+            const complexity = params.complexityIndex;
+            const hue1 = (params.fractalHueShift) % 360;
+            const hue2 = (hue1 + 60) % 360;
+
+            const gradient = ctxBg.createRadialGradient(
+                w / 2 + State.mouse.x * 100,
+                h / 2 + State.mouse.y * 100,
+                0, w / 2, h / 2, Math.max(w, h)
+            );
+
+            const intensity = Math.min(0.15, 0.05 + complexity * 0.01);
+            gradient.addColorStop(0, `hsla(${hue1}, 80%, ${intensity * 100}%, 1)`);
+            gradient.addColorStop(0.5, `hsla(${hue2}, 60%, ${intensity * 50}%, 1)`);
+            gradient.addColorStop(1, 'hsl(260, 30%, 2%)');
+
+            ctxBg.fillStyle = gradient;
+            ctxBg.fillRect(0, 0, w, h);
+        }
+
+        function renderAttractor() {
+            const ctx = ctxAttractor;
+            const w = 150, h = 150;
+            const params = State.emergence.getRenderingParams();
+
+            // Fade previous frame
+            ctx.fillStyle = 'rgba(0, 0, 20, 0.15)';
+            ctx.fillRect(0, 0, w, h);
+
+            // Add current attractor position to history
+            State.attractorHistory.push({ ...params.attractorState });
+            if (State.attractorHistory.length > 500) {
+                State.attractorHistory.shift();
+            }
+
+            // Draw trajectory
+            if (State.attractorHistory.length > 2) {
+                ctx.beginPath();
+
+                for (let i = 1; i < State.attractorHistory.length; i++) {
+                    const p = State.attractorHistory[i];
+                    const x = w / 2 + p.x * 2;
+                    const y = h / 2 + p.y * 2;
+
+                    if (i === 1) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+
+                const hue = (params.fractalHueShift + 180) % 360;
+                ctx.strokeStyle = `hsla(${hue}, 100%, 60%, 0.8)`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Update label
+            document.getElementById('attractorLabel').textContent =
+                params.attractorType.toUpperCase() + ' ATTRACTOR';
+        }
+
+        function renderOverlay() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            ctxOverlay.clearRect(0, 0, w, h);
+
+            const params = State.emergence.getRenderingParams();
+
+            // Draw phase interference pattern (subtle)
+            const resolution = 30;
+            for (let y = 0; y < resolution; y++) {
+                for (let x = 0; x < resolution; x++) {
+                    const nx = (x / resolution) * 2 - 1;
+                    const ny = (y / resolution) * 2 - 1;
+
+                    const interference = State.emergence.phaseInterference.sample(nx, ny);
+                    const alpha = Math.abs(interference) * 0.1 * params.bleedIntensity;
+
+                    if (alpha > 0.02) {
+                        const hue = (interference > 0 ? 200 : 320) + params.fractalHueShift * 0.5;
+                        ctxOverlay.fillStyle = `hsla(${hue}, 80%, 50%, ${alpha})`;
+
+                        const px = (x / resolution) * w;
+                        const py = (y / resolution) * h;
+                        const size = (w / resolution) * (1 + Math.abs(interference) * 0.5);
+
+                        ctxOverlay.beginPath();
+                        ctxOverlay.arc(px, py, size / 2, 0, Math.PI * 2);
+                        ctxOverlay.fill();
+                    }
+                }
+            }
+
+            // Dimensional bleeding effect at high intensity
+            if (params.bleedIntensity > 0.5) {
+                const hypercube = State.emergence.dimensionalBleeding.generateHypercube();
+                const projected = hypercube.map(v => State.emergence.dimensionalBleeding.project(v));
+
+                ctxOverlay.strokeStyle = `rgba(153, 51, 255, ${(params.bleedIntensity - 0.5) * 0.5})`;
+                ctxOverlay.lineWidth = 1;
+
+                // Draw edges (simplified - just some connections)
+                for (let i = 0; i < projected.length; i++) {
+                    for (let j = i + 1; j < projected.length; j++) {
+                        // Only connect vertices that differ by one bit (edges of hypercube)
+                        const diff = i ^ j;
+                        if (diff && (diff & (diff - 1)) === 0) {
+                            const p1 = projected[i];
+                            const p2 = projected[j];
+
+                            const x1 = w / 2 + p1.x * 100;
+                            const y1 = h / 2 + p1.y * 100;
+                            const x2 = w / 2 + p2.x * 100;
+                            const y2 = h / 2 + p2.y * 100;
+
+                            ctxOverlay.beginPath();
+                            ctxOverlay.moveTo(x1, y1);
+                            ctxOverlay.lineTo(x2, y2);
+                            ctxOverlay.stroke();
+                        }
+                    }
+                }
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // UPDATE
+        // ─────────────────────────────────────────────────────────────────────
+
+        function update(dt) {
+            State.time += dt;
+
+            analyzeAudio();
+
+            // Update emergent complexity with audio input
+            State.emergence.update(dt, {
+                amplitude: State.audio.amplitude,
+                frequency: State.audio.frequency,
+                userInput: Math.abs(State.mouse.x) + Math.abs(State.mouse.y)
+            });
+
+            // Modulate Phillips renderer
+            const params = State.emergence.getRenderingParams();
+            State.phillipsRenderer.setPlasticScale(1.2 + params.fractalScale * 0.5);
+
+            updateHUD(params);
+        }
+
+        function updateHUD(params) {
+            // Cascade levels
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`cascade${i}`);
+                el.classList.toggle('active', params.cascadeLevel >= i);
+            }
+
+            // System panel
+            document.getElementById('attractorType').textContent =
+                params.attractorType.toUpperCase();
+            document.getElementById('swarmCount').textContent =
+                params.swarmPositions.length;
+            document.getElementById('resonanceBar').style.width =
+                Math.min(100, params.resonanceEnergy * 30) + '%';
+            document.getElementById('bleedBar').style.width =
+                params.bleedIntensity * 100 + '%';
+            document.getElementById('fractalScale').textContent =
+                params.fractalScale.toFixed(2);
+
+            // Harmonic bars
+            const harmonicBars = document.querySelectorAll('.harmonic-bar-fill');
+            params.harmonics.forEach((h, i) => {
+                if (harmonicBars[i]) {
+                    harmonicBars[i].style.width = Math.min(100, h.amplitude * 80) + '%';
+                }
+            });
+
+            // Complexity meter
+            const complexity = params.complexityIndex;
+            const exp = Math.floor(Math.log10(Math.max(1, complexity)));
+            const base = complexity / Math.pow(10, exp);
+
+            document.getElementById('complexityBase').textContent = base.toFixed(2);
+            document.getElementById('complexityExp').textContent = 'e' + exp;
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // GAME LOOP
+        // ─────────────────────────────────────────────────────────────────────
+
+        let lastTime = 0;
+
+        function gameLoop(timestamp) {
+            requestAnimationFrame(gameLoop);
+
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+            lastTime = timestamp;
+
+            if (!State.running) return;
+
+            update(dt);
+
+            // Render layers
+            renderBackground();
+
+            // Generate points through EmergentComplexity
+            const points = State.emergence.generatePoints(15000);
+            State.phillipsRenderer.setPoints(points);
+            State.phillipsRenderer.render();
+
+            renderOverlay();
+            renderAttractor();
+
+            // FPS
+            State.frameCount++;
+            if (timestamp - State.lastFpsTime >= 1000) {
+                State.fps = State.frameCount;
+                State.frameCount = 0;
+                State.lastFpsTime = timestamp;
+                document.getElementById('fps').textContent = State.fps;
+                document.getElementById('pointCount').textContent = points.length.toLocaleString();
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // START
+        // ─────────────────────────────────────────────────────────────────────
+
+        window.beginStorm = async function() {
+            document.getElementById('introScreen').classList.add('hidden');
+            await initAudio();
+            State.running = true;
+
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                try { await document.documentElement.requestFullscreen(); } catch (e) {}
+            }
+        };
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

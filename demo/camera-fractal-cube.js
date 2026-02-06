@@ -1,10 +1,19 @@
 /**
- * VIB3+ Camera Fractal Cube — Slinky Vortex Demo
+ * VIB3+ Camera Fractal Cube — Vortex Funnel Demo
  *
- * Live camera feed textured onto a cube that tumbles like a slinky/dice
- * (one face at a time). Each tumble leaves a clone. Clones spiral outward
- * in a helix, growing larger toward the edges — creating a vortex effect.
+ * Fixed camera looking INTO a fractal vortex:
+ * - Small center cube at the back
+ * - 4 spiral arms emerging from corners toward the viewer
+ * - Each cube scaled by the PLASTIC RATIO (ρ ≈ 1.3247)
+ * - Creates a tornado/funnel effect with step-like fractal geometry
+ * - Single camera image per cube face
  */
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+// Plastic ratio: unique real solution to x³ = x + 1
+const PLASTIC_RATIO = 1.3247179572447458;
+const PLASTIC_INV = 1 / PLASTIC_RATIO;
 
 // ─── GL Boilerplate ──────────────────────────────────────────────────────────
 
@@ -61,71 +70,49 @@ in float v_depth;
 uniform sampler2D u_camTex;
 uniform float u_time;
 uniform float u_alpha;
-uniform float u_ghostFade;   // 0 = lead cube, 1 = oldest clone
-uniform float u_cubeIndex;   // index in the spiral
-uniform float u_totalCubes;  // total clones
+uniform float u_spiralIndex;  // which cube in the spiral (0 = center)
+uniform float u_armIndex;     // which arm (0-3)
 
 out vec4 fragColor;
 
-// chromatic aberration on the camera feed
-vec4 sampleCam(vec2 uv, float spread) {
-  float r = texture(u_camTex, uv + vec2(spread, 0.0)).r;
-  float g = texture(u_camTex, uv).g;
-  float b = texture(u_camTex, uv - vec2(spread, 0.0)).b;
-  return vec4(r, g, b, 1.0);
-}
-
 void main() {
   vec3 N = normalize(v_normal);
-  float facing = abs(dot(N, vec3(0.0, 0.0, 1.0)));
 
-  // Tile the UV to create a fract pattern across each face
-  float tiles = 3.0;
-  vec2 tiled = fract(v_uv * tiles);
+  // Single camera image per face (mirror X for selfie)
+  vec2 uv = v_uv;
+  uv.x = 1.0 - uv.x;
 
-  // slight angle offset per tile for the "repeating angled" look
-  float tileId = floor(v_uv.x * tiles) + floor(v_uv.y * tiles) * tiles;
-  float ang = tileId * 0.15 + u_time * 0.1;
-  float ca = cos(ang), sa = sin(ang);
-  vec2 centered = tiled - 0.5;
-  vec2 rotUV = vec2(ca * centered.x - sa * centered.y,
-                     sa * centered.x + ca * centered.y) + 0.5;
-  rotUV = clamp(rotUV, 0.01, 0.99);
+  // Sample camera texture
+  vec4 cam = texture(u_camTex, uv);
 
-  // mirror X for selfie-style
-  rotUV.x = 1.0 - rotUV.x;
+  // Soft lighting
+  vec3 lightDir = normalize(vec3(0.3, 0.8, 0.5));
+  float diff = max(dot(N, lightDir), 0.0);
+  float light = 0.4 + 0.6 * diff;
 
-  float aberr = 0.003 + 0.002 * sin(u_time + u_cubeIndex * 0.5);
-  vec4 cam = sampleCam(rotUV, aberr);
+  // Color tint based on spiral arm (subtle rainbow)
+  float hueShift = u_armIndex * 0.25;
+  vec3 tint = vec3(
+    0.5 + 0.5 * cos(hueShift * 6.2832),
+    0.5 + 0.5 * cos(hueShift * 6.2832 + 2.094),
+    0.5 + 0.5 * cos(hueShift * 6.2832 + 4.188)
+  );
 
-  // Subtle edge glow on each tile
-  vec2 edgeDist = smoothstep(vec2(0.0), vec2(0.04), tiled)
-                * smoothstep(vec2(0.0), vec2(0.04), 1.0 - tiled);
-  float edgeMask = edgeDist.x * edgeDist.y;
-
-  // Lighting: soft directional + ambient
-  float diff = max(dot(N, normalize(vec3(0.5, 1.0, 0.8))), 0.0);
-  float light = 0.35 + 0.65 * diff;
-
-  // Ghost colour shift for clones
-  float hueShift = u_cubeIndex * 0.12;
   vec3 col = cam.rgb * light;
-  // Shift toward magenta/cyan for older clones
-  col.r += hueShift * 0.15;
-  col.b += hueShift * 0.2;
+  col = mix(col, col * tint, 0.15 + u_spiralIndex * 0.02);
 
-  // Edge wireframe glow
-  float wire = 1.0 - edgeMask;
-  vec3 wireCol = vec3(0.0, 1.0, 1.0) * wire * 0.3 * (1.0 - u_ghostFade * 0.7);
+  // Edge glow (subtle wireframe effect)
+  vec2 edgeDist = smoothstep(vec2(0.0), vec2(0.03), v_uv)
+                * smoothstep(vec2(0.0), vec2(0.03), 1.0 - v_uv);
+  float edgeMask = edgeDist.x * edgeDist.y;
+  float edge = 1.0 - edgeMask;
+  vec3 edgeCol = vec3(0.0, 1.0, 1.0) * edge * 0.25;
 
-  col = col * edgeMask + wireCol;
+  col = col * edgeMask + edgeCol;
 
-  // Fade out older clones
-  float alpha = u_alpha * (1.0 - u_ghostFade * 0.65);
-
-  // Vignette on the cube based on depth
-  float vig = smoothstep(0.98, 0.5, abs(v_depth));
-  alpha *= mix(1.0, vig, 0.3);
+  // Depth-based fade for far cubes
+  float depthFade = smoothstep(0.98, 0.7, v_depth);
+  float alpha = u_alpha * depthFade;
 
   fragColor = vec4(col, alpha);
 }
@@ -147,32 +134,32 @@ const BG_FRAG = `#version 300 es
 precision highp float;
 in vec2 v_uv;
 uniform float u_time;
-uniform vec2 u_res;
 out vec4 fragColor;
 
 void main() {
-  vec2 uv = v_uv;
   vec2 center = vec2(0.5);
-  float dist = length(uv - center);
+  vec2 uv = v_uv - center;
+  float dist = length(uv);
+  float angle = atan(uv.y, uv.x);
 
-  // Spiral pattern
-  float angle = atan(uv.y - 0.5, uv.x - 0.5);
-  float spiral = sin(angle * 3.0 - dist * 12.0 + u_time * 0.4) * 0.5 + 0.5;
+  // Spiral vortex pattern
+  float spiral = sin(angle * 4.0 - dist * 15.0 + u_time * 0.3) * 0.5 + 0.5;
 
-  // Dark vortex
-  float vortex = smoothstep(0.7, 0.0, dist);
+  // Radial gradient (dark center, slightly brighter edges)
+  float vignette = 1.0 - smoothstep(0.0, 0.8, dist);
+
+  // Dark space colors
   vec3 col = mix(
-    vec3(0.02, 0.02, 0.06),
-    vec3(0.06, 0.02, 0.1),
+    vec3(0.01, 0.01, 0.03),  // near black
+    vec3(0.04, 0.02, 0.06),  // dark purple
     spiral * 0.3
   );
-  // Edge glow
-  float edgeGlow = smoothstep(0.3, 0.8, dist) * 0.15;
+
+  // Subtle edge glow
+  float edgeGlow = smoothstep(0.4, 0.9, dist) * 0.08;
   col += vec3(0.0, edgeGlow * 0.5, edgeGlow);
 
-  // Vignette
-  float vig = 1.0 - smoothstep(0.2, 0.85, dist);
-  col *= 0.4 + vig * 0.6;
+  col *= 0.5 + vignette * 0.5;
 
   fragColor = vec4(col, 1.0);
 }
@@ -192,11 +179,10 @@ function compileShader(src, type) {
   return s;
 }
 
-function linkProgram(vs, fs, attribs) {
+function linkProgram(vs, fs) {
   const p = gl.createProgram();
   gl.attachShader(p, vs);
   gl.attachShader(p, fs);
-  if (attribs) attribs.forEach((name, i) => gl.bindAttribLocation(p, i, name));
   gl.linkProgram(p);
   if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
     console.error(gl.getProgramInfoLog(p));
@@ -214,35 +200,28 @@ function getUniforms(prog, names) {
 // Cube program
 const cubeVS = compileShader(VERT, gl.VERTEX_SHADER);
 const cubeFS = compileShader(FRAG, gl.FRAGMENT_SHADER);
-const cubeProg = linkProgram(cubeVS, cubeFS, ['a_pos', 'a_normal', 'a_uv']);
+const cubeProg = linkProgram(cubeVS, cubeFS);
 const cubeU = getUniforms(cubeProg, [
   'u_proj', 'u_view', 'u_model', 'u_camTex', 'u_time',
-  'u_alpha', 'u_ghostFade', 'u_cubeIndex', 'u_totalCubes'
+  'u_alpha', 'u_spiralIndex', 'u_armIndex'
 ]);
 
 // Background program
 const bgVS = compileShader(BG_VERT, gl.VERTEX_SHADER);
 const bgFS = compileShader(BG_FRAG, gl.FRAGMENT_SHADER);
-const bgProg = linkProgram(bgVS, bgFS, ['a_pos']);
-const bgU = getUniforms(bgProg, ['u_time', 'u_res']);
+const bgProg = linkProgram(bgVS, bgFS);
+const bgU = getUniforms(bgProg, ['u_time']);
 
 // ─── Geometry: Unit Cube ─────────────────────────────────────────────────────
 
 function makeCube() {
-  // Each face: 2 triangles, with positions, normals, UVs
   const faces = [
-    // +Z front
-    { n: [0,0,1], verts: [[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]] },
-    // -Z back
-    { n: [0,0,-1], verts: [[1,-1,-1],[-1,-1,-1],[-1,1,-1],[1,1,-1]] },
-    // +X right
-    { n: [1,0,0], verts: [[1,-1,1],[1,-1,-1],[1,1,-1],[1,1,1]] },
-    // -X left
-    { n: [-1,0,0], verts: [[-1,-1,-1],[-1,-1,1],[-1,1,1],[-1,1,-1]] },
-    // +Y top
-    { n: [0,1,0], verts: [[-1,1,1],[1,1,1],[1,1,-1],[-1,1,-1]] },
-    // -Y bottom
-    { n: [0,-1,0], verts: [[-1,-1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1]] },
+    { n: [0,0,1], verts: [[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]] },     // +Z front
+    { n: [0,0,-1], verts: [[1,-1,-1],[-1,-1,-1],[-1,1,-1],[1,1,-1]] }, // -Z back
+    { n: [1,0,0], verts: [[1,-1,1],[1,-1,-1],[1,1,-1],[1,1,1]] },      // +X right
+    { n: [-1,0,0], verts: [[-1,-1,-1],[-1,-1,1],[-1,1,1],[-1,1,-1]] }, // -X left
+    { n: [0,1,0], verts: [[-1,1,1],[1,1,1],[1,1,-1],[-1,1,-1]] },      // +Y top
+    { n: [0,-1,0], verts: [[-1,-1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1]] }, // -Y bottom
   ];
   const uvs = [[0,0],[1,0],[1,1],[0,1]];
   const idx = [0,1,2, 0,2,3];
@@ -288,7 +267,6 @@ function makeCube() {
   return { vao, count: indices.length };
 }
 
-// Fullscreen quad for background
 function makeQuad() {
   const vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
@@ -304,7 +282,7 @@ function makeQuad() {
 const cube = makeCube();
 const quad = makeQuad();
 
-// ─── Camera (webcam) Texture ─────────────────────────────────────────────────
+// ─── Camera Texture (webcam) ─────────────────────────────────────────────────
 
 let videoReady = false;
 const video = document.createElement('video');
@@ -313,7 +291,7 @@ video.muted = true;
 
 const camTex = gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D, camTex);
-gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([80,80,80,255]));
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([128,128,128,255]));
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -328,26 +306,28 @@ async function startCamera() {
     await video.play();
     videoReady = true;
   } catch (e) {
-    console.warn('Camera not available, using procedural texture fallback', e);
-    // Generate a procedural fallback texture
-    const size = 256;
-    const data = new Uint8Array(size * size * 4);
-    for (let y = 0; y < size; y++) {
-      for (let x = 0; x < size; x++) {
-        const i = (y * size + x) * 4;
-        const cx = x / size - 0.5, cy = y / size - 0.5;
-        const d = Math.sqrt(cx*cx + cy*cy);
-        const v = Math.sin(d * 30) * 0.5 + 0.5;
-        data[i]   = (v * 180 + 60) | 0;
-        data[i+1] = (v * 100 + 80) | 0;
-        data[i+2] = (v * 200 + 55) | 0;
-        data[i+3] = 255;
-      }
-    }
-    gl.bindTexture(gl.TEXTURE_2D, camTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
-    videoReady = false; // won't try to upload frames
+    console.warn('Camera not available, using procedural fallback', e);
+    generateFallbackTexture();
   }
+}
+
+function generateFallbackTexture() {
+  const size = 256;
+  const data = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const cx = x / size - 0.5, cy = y / size - 0.5;
+      const d = Math.sqrt(cx*cx + cy*cy);
+      const v = Math.sin(d * 20) * 0.5 + 0.5;
+      data[i]   = (v * 150 + 80) | 0;
+      data[i+1] = (v * 100 + 100) | 0;
+      data[i+2] = (v * 180 + 75) | 0;
+      data[i+3] = 255;
+    }
+  }
+  gl.bindTexture(gl.TEXTURE_2D, camTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
 }
 
 function updateCamTexture() {
@@ -433,248 +413,119 @@ function mat4RotZ(a) {
   return m;
 }
 
-// ─── Slinky/Dice Tumble Animation ────────────────────────────────────────────
-// The cube tumbles 90 degrees at a time around its bottom edge,
-// simulating a die being pushed lightly, toppling face-over-face.
+// ─── Fractal Vortex Cube Generation ──────────────────────────────────────────
+//
+// Structure:
+// - Center cube at Z = -centerDepth (back of funnel)
+// - 4 spiral arms, each starting from a diagonal direction
+// - Each arm has N cubes, spiraling outward toward the camera
+// - Cubes scale up by plastic ratio as they approach viewer
 
-const HALF_PI = Math.PI / 2;
+const NUM_ARMS = 4;
+const CUBES_PER_ARM = 8;
+const CENTER_DEPTH = 12;      // how far back the center cube is
+const CENTER_SCALE = 0.3;     // size of the smallest (center) cube
+const SPIRAL_TIGHTNESS = 0.4; // how tight the spiral winds
+const VERTICAL_SPREAD = 0.15; // slight Y variation
 
-// Tumble direction: which axis to rotate around, and the edge offset
-const TUMBLE_DIRS = [
-  { axis: 'z', sign: -1, edge: [0, -1, 0], move: [2, 0, 0] },   // tumble right
-  { axis: 'x', sign:  1, edge: [0, -1, 0], move: [0, 0, 2] },    // tumble forward
-  { axis: 'z', sign:  1, edge: [0, -1, 0], move: [-2, 0, 0] },   // tumble left
-  { axis: 'x', sign: -1, edge: [0, -1, 0], move: [0, 0, -2] },   // tumble backward
-];
+function generateVortexCubes() {
+  const cubes = [];
 
-// Build a spiral path of tumble directions
-// This creates a growing spiral: 1 right, 1 forward, 2 left, 2 back, 3 right, 3 forward...
-function buildSpiralPath(count) {
-  const path = [];
-  let dirIdx = 0;
-  let segLen = 1;
-  let segCount = 0;
-  let segPair = 0;
-  for (let i = 0; i < count; i++) {
-    path.push(dirIdx % 4);
-    segCount++;
-    if (segCount >= segLen) {
-      segCount = 0;
-      dirIdx++;
-      segPair++;
-      if (segPair >= 2) {
-        segPair = 0;
-        segLen++;
-      }
+  // Center cube (the "eye" of the vortex)
+  cubes.push({
+    pos: [0, 0, -CENTER_DEPTH],
+    scale: CENTER_SCALE,
+    rotation: [0, 0, 0],
+    armIndex: -1,
+    spiralIndex: 0,
+  });
+
+  // 4 spiral arms
+  for (let arm = 0; arm < NUM_ARMS; arm++) {
+    const baseAngle = (arm / NUM_ARMS) * Math.PI * 2; // 0, 90, 180, 270 degrees
+
+    for (let i = 0; i < CUBES_PER_ARM; i++) {
+      // Distance from center increases with plastic ratio
+      const t = (i + 1) / CUBES_PER_ARM;
+
+      // Scale grows by plastic ratio each step
+      const scale = CENTER_SCALE * Math.pow(PLASTIC_RATIO, i + 1);
+
+      // Spiral angle: base + additional rotation as we go outward
+      const spiralAngle = baseAngle + t * Math.PI * SPIRAL_TIGHTNESS * (arm % 2 === 0 ? 1 : -1);
+
+      // Radial distance from center (grows with plastic ratio too)
+      const radius = 1.5 * Math.pow(PLASTIC_RATIO, i * 0.7);
+
+      // Z position: comes toward camera as we go outward
+      const z = -CENTER_DEPTH + t * (CENTER_DEPTH - 2);
+
+      // X, Y position: spiral pattern
+      const x = Math.cos(spiralAngle) * radius;
+      const y = Math.sin(spiralAngle) * radius * 0.6 + Math.sin(t * Math.PI) * VERTICAL_SPREAD * radius;
+
+      // Rotation: slight tilt toward center
+      const rotY = spiralAngle + Math.PI * 0.1;
+      const rotX = -t * 0.2;
+      const rotZ = arm * 0.1;
+
+      cubes.push({
+        pos: [x, y, z],
+        scale: scale,
+        rotation: [rotX, rotY, rotZ],
+        armIndex: arm,
+        spiralIndex: i + 1,
+      });
     }
   }
-  return path;
+
+  return cubes;
 }
 
-// ─── Clone State ─────────────────────────────────────────────────────────────
+// Pre-generate the vortex structure
+const vortexCubes = generateVortexCubes();
 
-const MAX_CLONES = 80;
-const TUMBLE_DURATION = 0.55; // seconds per tumble
-const TUMBLE_PAUSE = 0.12;   // pause between tumbles
+// ─── Fixed Camera ────────────────────────────────────────────────────────────
 
-// Each clone stores its final world-space transform
-const clones = []; // { modelMatrix, birthTime, spiralIndex }
-
-// Lead cube state
-const lead = {
-  pos: [0, 0, 0],          // center position (world)
-  baseRot: mat4Identity(),  // accumulated rotation from past tumbles
-  tumbleProgress: 0,        // 0..1 progress of current tumble
-  tumbleDir: 0,             // index into TUMBLE_DIRS
-  spiralStep: 0,            // which step in spiral path
-  paused: false,
-  pauseTimer: 0,
-};
-
-const spiralPath = buildSpiralPath(MAX_CLONES + 20);
-
-function getLeadModelMatrix(t) {
-  // Current tumble direction
-  const dir = TUMBLE_DIRS[spiralPath[lead.spiralStep] % 4];
-
-  // Easing: smooth start, snappy finish (like a die toppling)
-  const raw = lead.tumbleProgress;
-  // Use a cubic ease that accelerates (gravity-like)
-  const eased = raw < 0.5
-    ? 2 * raw * raw
-    : 1 - Math.pow(-2 * raw + 2, 2) / 2;
-
-  const angle = eased * HALF_PI * dir.sign;
-
-  // The pivot is at the bottom edge in the tumble direction
-  const pivotX = lead.pos[0] + dir.move[0] * 0.5;
-  const pivotY = lead.pos[1] + dir.edge[1]; // bottom of cube
-  const pivotZ = lead.pos[2] + dir.move[2] * 0.5;
-
-  // Build transform: translate to pivot, rotate, translate back
-  const toPivot = mat4Translate(-pivotX, -pivotY, -pivotZ);
-  const fromPivot = mat4Translate(pivotX, pivotY, pivotZ);
-
-  let rot;
-  if (dir.axis === 'x') rot = mat4RotX(angle);
-  else if (dir.axis === 'z') rot = mat4RotZ(angle);
-  else rot = mat4RotY(angle);
-
-  // Compose: fromPivot * rot * toPivot * (translate to lead.pos) * baseRot
-  const posM = mat4Translate(lead.pos[0], lead.pos[1], lead.pos[2]);
-  let m = mat4Multiply(posM, lead.baseRot);
-  m = mat4Multiply(toPivot, m);
-  m = mat4Multiply(rot, m);
-  m = mat4Multiply(fromPivot, m);
-
-  return m;
-}
-
-function advanceTumble(dt) {
-  if (lead.paused) {
-    lead.pauseTimer -= dt;
-    if (lead.pauseTimer <= 0) lead.paused = false;
-    return;
-  }
-
-  lead.tumbleProgress += dt / TUMBLE_DURATION;
-
-  if (lead.tumbleProgress >= 1.0) {
-    // Complete the tumble: snapshot clone
-    lead.tumbleProgress = 1.0;
-    const cloneMatrix = getLeadModelMatrix(0);
-
-    if (clones.length >= MAX_CLONES) clones.shift();
-    clones.push({
-      modelMatrix: cloneMatrix,
-      birthTime: performance.now() / 1000,
-      spiralIndex: lead.spiralStep,
-    });
-
-    // Apply the 90° rotation permanently
-    const dir = TUMBLE_DIRS[spiralPath[lead.spiralStep] % 4];
-    let permRot;
-    const permAngle = HALF_PI * dir.sign;
-    if (dir.axis === 'x') permRot = mat4RotX(permAngle);
-    else if (dir.axis === 'z') permRot = mat4RotZ(permAngle);
-    else permRot = mat4RotY(permAngle);
-
-    lead.baseRot = mat4Multiply(permRot, lead.baseRot);
-    lead.pos[0] += dir.move[0];
-    lead.pos[1] += 0; // stays on ground plane
-    lead.pos[2] += dir.move[2];
-
-    // Next step
-    lead.spiralStep++;
-    lead.tumbleProgress = 0;
-    lead.paused = true;
-    lead.pauseTimer = TUMBLE_PAUSE;
-
-    // Reset spiral if we've gone too far
-    if (lead.spiralStep >= spiralPath.length - 1) {
-      lead.spiralStep = 0;
-      lead.pos = [0, 0, 0];
-      lead.baseRot = mat4Identity();
-      clones.length = 0;
-    }
-  }
-}
-
-// ─── Camera Orbit ────────────────────────────────────────────────────────────
-
-let camAzimuth = 0.4;
-let camElevation = 0.5;
-let camDist = 18;
-let targetAzimuth = camAzimuth;
-let targetElevation = camElevation;
-let targetDist = camDist;
-let dragging = false;
-let lastMouse = [0, 0];
-
-canvas.addEventListener('pointerdown', (e) => {
-  dragging = true;
-  lastMouse = [e.clientX, e.clientY];
-  canvas.setPointerCapture(e.pointerId);
-});
-canvas.addEventListener('pointermove', (e) => {
-  if (!dragging) return;
-  const dx = e.clientX - lastMouse[0];
-  const dy = e.clientY - lastMouse[1];
-  lastMouse = [e.clientX, e.clientY];
-  targetAzimuth += dx * 0.005;
-  targetElevation = Math.max(-1.2, Math.min(1.2, targetElevation + dy * 0.005));
-});
-canvas.addEventListener('pointerup', () => { dragging = false; });
-canvas.addEventListener('wheel', (e) => {
-  targetDist = Math.max(5, Math.min(60, targetDist + e.deltaY * 0.03));
-  e.preventDefault();
-}, { passive: false });
-
-function getCameraMatrices() {
-  // Smooth follow
-  camAzimuth += (targetAzimuth - camAzimuth) * 0.08;
-  camElevation += (targetElevation - camElevation) * 0.08;
-  camDist += (targetDist - camDist) * 0.08;
-
-  // Look at the midpoint of the spiral
-  const lookX = lead.pos[0] * 0.3;
-  const lookZ = lead.pos[2] * 0.3;
-
-  const eyeX = lookX + Math.cos(camAzimuth) * Math.cos(camElevation) * camDist;
-  const eyeY = Math.sin(camElevation) * camDist + 4;
-  const eyeZ = lookZ + Math.sin(camAzimuth) * Math.cos(camElevation) * camDist;
-
+function getFixedCamera() {
+  // Camera positioned in front, looking into the vortex
+  const eye = [0, 0, 5];
+  const target = [0, 0, -CENTER_DEPTH];
   const aspect = canvas.width / canvas.height;
-  const proj = mat4Perspective(Math.PI / 4, aspect, 0.5, 200);
-  const view = mat4LookAt([eyeX, eyeY, eyeZ], [lookX, 0, lookZ], [0, 1, 0]);
+
+  const proj = mat4Perspective(Math.PI / 3.5, aspect, 0.1, 100);
+  const view = mat4LookAt(eye, target, [0, 1, 0]);
 
   return { proj, view };
 }
 
 // ─── Render Loop ─────────────────────────────────────────────────────────────
 
-let lastTime = 0;
+let startTime = 0;
 const hud = document.getElementById('hud');
-let frameCount = 0;
-let fpsTime = 0;
-let fps = 0;
 
 function render(now) {
   requestAnimationFrame(render);
-  const t = now / 1000;
-  const dt = Math.min(t - lastTime, 0.1);
-  lastTime = t;
 
-  // FPS
-  frameCount++;
-  if (t - fpsTime > 1) {
-    fps = frameCount;
-    frameCount = 0;
-    fpsTime = t;
-  }
+  if (!startTime) startTime = now;
+  const t = (now - startTime) / 1000;
 
-  // Update camera texture
   updateCamTexture();
 
-  // Advance tumble
-  advanceTumble(dt);
-
-  // Matrices
-  const { proj, view } = getCameraMatrices();
+  const { proj, view } = getFixedCamera();
 
   // Clear
-  gl.clearColor(0.02, 0.02, 0.06, 1);
+  gl.clearColor(0.01, 0.01, 0.03, 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // ── Background ──
   gl.disable(gl.DEPTH_TEST);
   gl.useProgram(bgProg);
   gl.uniform1f(bgU.u_time, t);
-  gl.uniform2f(bgU.u_res, canvas.width, canvas.height);
   gl.bindVertexArray(quad);
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-  // ── Cubes ──
+  // ── Cubes (back to front for proper transparency) ──
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -688,48 +539,35 @@ function render(now) {
   gl.bindTexture(gl.TEXTURE_2D, camTex);
   gl.bindVertexArray(cube.vao);
 
-  const totalCubes = clones.length + 1;
-  gl.uniform1f(cubeU.u_totalCubes, totalCubes);
+  // Sort cubes by depth (back to front)
+  const sorted = [...vortexCubes].sort((a, b) => a.pos[2] - b.pos[2]);
 
-  // Draw clones (back to front for proper alpha blending)
-  // Each clone grows slightly based on its spiral distance
-  for (let i = 0; i < clones.length; i++) {
-    const c = clones[i];
-    const age = t - c.birthTime;
-    const fadeIn = Math.min(age * 3, 1);
-    const ghostFade = i / Math.max(clones.length, 1); // 0 = newest, ~1 = oldest
+  for (const c of sorted) {
+    // Build model matrix: translate, rotate, scale
+    // Add gentle animation to rotation
+    const animRotY = c.rotation[1] + t * 0.1 * (c.armIndex >= 0 ? 1 : 0.3);
+    const animRotX = c.rotation[0] + Math.sin(t * 0.5 + c.spiralIndex) * 0.05;
 
-    // Scale increases with distance from center (vortex growth)
-    const distFromCenter = Math.sqrt(
-      c.modelMatrix[12]*c.modelMatrix[12] +
-      c.modelMatrix[14]*c.modelMatrix[14]
-    );
-    const growthFactor = 1.0 + distFromCenter * 0.04;
+    let model = mat4Translate(c.pos[0], c.pos[1], c.pos[2]);
+    model = mat4Multiply(model, mat4RotY(animRotY));
+    model = mat4Multiply(model, mat4RotX(animRotX));
+    model = mat4Multiply(model, mat4RotZ(c.rotation[2]));
+    model = mat4Multiply(model, mat4Scale(c.scale));
 
-    // Apply growth scale to the clone's matrix
-    const scaled = mat4Multiply(c.modelMatrix, mat4Scale(growthFactor));
+    gl.uniformMatrix4fv(cubeU.u_model, false, model);
+    gl.uniform1f(cubeU.u_alpha, c.armIndex < 0 ? 1.0 : 0.92);
+    gl.uniform1f(cubeU.u_spiralIndex, c.spiralIndex);
+    gl.uniform1f(cubeU.u_armIndex, Math.max(0, c.armIndex));
 
-    gl.uniformMatrix4fv(cubeU.u_model, false, scaled);
-    gl.uniform1f(cubeU.u_alpha, fadeIn * 0.85);
-    gl.uniform1f(cubeU.u_ghostFade, ghostFade);
-    gl.uniform1f(cubeU.u_cubeIndex, i);
     gl.drawElements(gl.TRIANGLES, cube.count, gl.UNSIGNED_SHORT, 0);
   }
-
-  // Draw lead cube (fully opaque, no ghost)
-  const leadModel = getLeadModelMatrix(t);
-  gl.uniformMatrix4fv(cubeU.u_model, false, leadModel);
-  gl.uniform1f(cubeU.u_alpha, 1.0);
-  gl.uniform1f(cubeU.u_ghostFade, 0.0);
-  gl.uniform1f(cubeU.u_cubeIndex, clones.length);
-  gl.drawElements(gl.TRIANGLES, cube.count, gl.UNSIGNED_SHORT, 0);
 
   gl.disable(gl.BLEND);
   gl.bindVertexArray(null);
 
   // HUD
   if (hud) {
-    hud.textContent = `${fps} fps | ${totalCubes} cubes | step ${lead.spiralStep}`;
+    hud.textContent = `${vortexCubes.length} cubes | plastic ratio: ${PLASTIC_RATIO.toFixed(4)}`;
   }
 }
 

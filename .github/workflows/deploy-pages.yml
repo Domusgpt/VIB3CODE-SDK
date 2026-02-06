@@ -1,6 +1,16 @@
 name: Deploy to GitHub Pages
 
 on:
+  # Auto-deploy when pushing to these branches
+  push:
+    branches:
+      - claude/camera-fractal-cube-demo-1p62s
+      - main
+    paths:
+      - 'docs/**'
+      - '.github/workflows/deploy-pages.yml'
+
+  # Manual trigger (only works once this file is on main)
   workflow_dispatch:
     inputs:
       branch:
@@ -28,7 +38,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.branch }}
+          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

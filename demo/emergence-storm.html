@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EMERGENCE STORM - Interactive Chaos Engine</title>
+    <title>EMERGENCE STORM - Exponential Chaos Engine</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -35,8 +35,10 @@
         }
 
         #bgLayer { z-index: 1; }
-        #mainLayer { z-index: 2; }
-        #fxLayer { z-index: 3; }
+        #trailLayer { z-index: 2; }
+        #mainLayer { z-index: 3; }
+        #connectionLayer { z-index: 4; }
+        #fxLayer { z-index: 5; }
 
         /* Minimal HUD */
         .hud {
@@ -50,12 +52,19 @@
 
         .hud-tl { top: 20px; left: 20px; }
         .hud-tr { top: 20px; right: 20px; text-align: right; }
+        .hud-br { bottom: 20px; right: 20px; text-align: right; }
         .hud-bc { bottom: 20px; left: 50%; transform: translateX(-50%); text-align: center; }
 
         .mode-display {
             font-size: 14px;
             color: var(--gold);
             margin-bottom: 5px;
+        }
+
+        .sub-mode {
+            font-size: 10px;
+            color: var(--cool);
+            margin-top: 5px;
         }
 
         .charge-bar {
@@ -77,6 +86,7 @@
         .controls-hint {
             color: rgba(255,255,255,0.4);
             font-size: 9px;
+            line-height: 1.6;
         }
 
         .stats {
@@ -86,6 +96,22 @@
         .stats span {
             color: var(--cold);
         }
+
+        .species-indicator {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .species-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .species-normal { background: var(--cold); }
+        .species-predator { background: var(--hot); }
+        .species-attractor { background: var(--gold); }
 
         /* Intro */
         .intro {
@@ -106,23 +132,43 @@
         }
 
         .intro h1 {
-            font-size: 48px;
+            font-size: 42px;
             font-weight: bold;
-            letter-spacing: 15px;
+            letter-spacing: 12px;
             background: linear-gradient(135deg, var(--hot), var(--gold), var(--cold), var(--magenta));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 30px;
         }
 
+        .intro .subtitle {
+            font-size: 12px;
+            letter-spacing: 8px;
+            color: var(--purple);
+            margin-bottom: 30px;
+        }
+
         .intro p {
             color: rgba(255,255,255,0.6);
-            margin: 8px 0;
-            font-size: 12px;
+            margin: 6px 0;
+            font-size: 11px;
         }
 
         .intro strong {
             color: var(--gold);
+        }
+
+        .intro .section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .intro .section-title {
+            color: var(--cool);
+            font-size: 10px;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
         }
 
         .intro button {
@@ -157,38 +203,90 @@
             0% { transform: scale(0); opacity: 1; }
             100% { transform: scale(3); opacity: 0; }
         }
+
+        /* Gravity well indicator */
+        .gravity-well {
+            position: fixed;
+            border-radius: 50%;
+            border: 1px dashed var(--purple);
+            pointer-events: none;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
     </style>
 </head>
 <body>
     <canvas id="bgLayer"></canvas>
+    <canvas id="trailLayer"></canvas>
     <canvas id="mainLayer"></canvas>
+    <canvas id="connectionLayer"></canvas>
     <canvas id="fxLayer"></canvas>
 
     <!-- Minimal HUD -->
     <div class="hud hud-tl">
         <div class="mode-display" id="modeDisplay">LORENZ</div>
-        <div class="controls-hint">[1-5] ATTRACTOR | [SPACE] CHAOS</div>
+        <div class="sub-mode" id="subMode">FLOCKING: OFF | TRAILS: OFF | WEB: OFF</div>
         <div class="charge-bar"><div class="charge-fill" id="chargeFill"></div></div>
+        <div class="species-indicator">
+            <div class="species-dot species-normal" title="Normal"></div>
+            <div class="species-dot species-predator" title="Predator"></div>
+            <div class="species-dot species-attractor" title="Attractor"></div>
+        </div>
     </div>
 
     <div class="hud hud-tr">
         <div class="stats">
-            <span id="fps">0</span> FPS | <span id="particles">0</span> PARTICLES
+            <span id="fps">0</span> FPS<br>
+            <span id="particles">0</span> PARTICLES<br>
+            <span id="wells">0</span> GRAVITY WELLS<br>
+            <span id="connections">0</span> CONNECTIONS
+        </div>
+    </div>
+
+    <div class="hud hud-br">
+        <div class="controls-hint">
+            [F] FLOCKING<br>
+            [T] TRAILS<br>
+            [C] CONNECTIONS<br>
+            [G] DROP WELL<br>
+            [R] CHAIN REACT<br>
+            [A] AUDIO
         </div>
     </div>
 
     <div class="hud hud-bc">
-        <div class="controls-hint">CLICK TO EXPLODE | HOLD TO CHARGE | DRAG TO PULL</div>
+        <div class="controls-hint">CLICK EXPLODE | HOLD CHARGE | DRAG PULL | [1-5] ATTRACTOR | [SPACE] CHAOS</div>
     </div>
 
     <!-- Intro -->
     <div class="intro" id="intro">
         <h1>EMERGENCE STORM</h1>
-        <p><strong>CLICK</strong> anywhere to spawn explosions</p>
-        <p><strong>HOLD</strong> to charge, release for massive burst</p>
-        <p><strong>DRAG</strong> to create gravitational pull</p>
-        <p><strong>1-5</strong> to switch strange attractors</p>
-        <p><strong>SPACE</strong> for chaos mode</p>
+        <div class="subtitle">EXPONENTIAL CHAOS ENGINE</div>
+
+        <p><strong>CLICK</strong> spawn explosions</p>
+        <p><strong>HOLD + RELEASE</strong> charged burst</p>
+        <p><strong>DRAG</strong> gravitational pull</p>
+
+        <div class="section">
+            <div class="section-title">ATTRACTORS</div>
+            <p><strong>1-5</strong> Lorenz / Rossler / Thomas / Aizawa / Halvorsen</p>
+            <p><strong>SPACE</strong> chaos mode</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">EMERGENT SYSTEMS</div>
+            <p><strong>F</strong> toggle flocking (boids behavior)</p>
+            <p><strong>T</strong> toggle motion trails</p>
+            <p><strong>C</strong> toggle neural connection web</p>
+            <p><strong>G</strong> drop permanent gravity well</p>
+            <p><strong>R</strong> toggle chain reaction explosions</p>
+            <p><strong>A</strong> toggle audio synthesis</p>
+        </div>
+
         <button onclick="beginStorm()">ENTER THE STORM</button>
     </div>
 
@@ -207,6 +305,15 @@
         } from '../src/math/Plastic.js';
 
         // ═══════════════════════════════════════════════════════════════════
+        // PARTICLE SPECIES TYPES
+        // ═══════════════════════════════════════════════════════════════════
+        const SPECIES = {
+            NORMAL: 0,      // Cyan - follows attractor, flocks
+            PREDATOR: 1,    // Red - chases other particles
+            ATTRACTOR: 2    // Gold - attracts nearby particles
+        };
+
+        // ═══════════════════════════════════════════════════════════════════
         // STATE
         // ═══════════════════════════════════════════════════════════════════
 
@@ -219,7 +326,7 @@
 
             // Particles
             particles: [],
-            maxParticles: 30000,
+            maxParticles: 25000,
 
             // Attractor
             attractorType: 0,
@@ -227,9 +334,31 @@
             attractorFuncs: [lorenzStep, rosslerStep, thomasStep, aizawaStep, halvorsenStep],
             attractorState: { x: 1, y: 1, z: 1 },
 
+            // Gravity wells (permanent attractors)
+            gravityWells: [],
+            maxWells: 10,
+
             // User input
             mouse: { x: 0, y: 0, down: false, charge: 0 },
             chaosMode: false,
+
+            // Emergent system toggles
+            flockingEnabled: false,
+            trailsEnabled: false,
+            connectionsEnabled: false,
+            chainReactionEnabled: false,
+            audioEnabled: false,
+
+            // Audio
+            audioCtx: null,
+            oscillators: [],
+            gainNode: null,
+
+            // Connection web cache
+            connectionCount: 0,
+
+            // Chain reaction queue
+            pendingExplosions: [],
 
             // Effects
             shockwaves: [],
@@ -241,12 +370,12 @@
             lastFpsTime: 0
         };
 
-        let ctxBg, ctxFx;
+        let ctxBg, ctxTrail, ctxConnection, ctxFx;
         const W = () => window.innerWidth;
         const H = () => window.innerHeight;
 
         // ═══════════════════════════════════════════════════════════════════
-        // PARTICLE CLASS
+        // ENHANCED PARTICLE CLASS WITH SPECIES & BOIDS
         // ═══════════════════════════════════════════════════════════════════
 
         class Particle {
@@ -257,21 +386,64 @@
                 this.vx = vx;
                 this.vy = vy;
                 this.vz = vz;
+
+                // Previous position for trails
+                this.px = x;
+                this.py = y;
+                this.pz = z;
+
+                // Life and appearance
                 this.life = 1;
                 this.decay = 0.002 + Math.random() * 0.003;
                 this.size = 0.02 + Math.random() * 0.04;
-                this.hue = Math.random() * 360;
+                this.baseHue = Math.random() * 360;
+                this.hue = this.baseHue;
+
+                // Species determination
+                const r = Math.random();
+                if (r < 0.03) {
+                    this.species = SPECIES.PREDATOR;
+                    this.hue = 0; // Red
+                    this.size *= 1.5;
+                    this.decay *= 0.5; // Lives longer
+                } else if (r < 0.08) {
+                    this.species = SPECIES.ATTRACTOR;
+                    this.hue = 45; // Gold
+                    this.size *= 1.3;
+                    this.decay *= 0.7;
+                } else {
+                    this.species = SPECIES.NORMAL;
+                }
+
+                // Explosion energy for chain reactions
+                this.energy = 0;
             }
 
-            update(dt, attractor, mouseInfluence) {
-                // Attractor influence
-                const ax = (attractor.x * 0.05 - this.x) * 0.02;
-                const ay = (attractor.y * 0.05 - this.y) * 0.02;
-                const az = (attractor.z * 0.05 - this.z) * 0.02;
+            update(dt, attractor, mouseInfluence, particles, gravityWells) {
+                // Store previous position
+                this.px = this.x;
+                this.py = this.y;
+                this.pz = this.z;
+
+                // Base attractor influence
+                const attractorStrength = 0.015;
+                const ax = (attractor.x * 0.05 - this.x) * attractorStrength;
+                const ay = (attractor.y * 0.05 - this.y) * attractorStrength;
+                const az = (attractor.z * 0.05 - this.z) * attractorStrength;
 
                 this.vx += ax * dt * 60;
                 this.vy += ay * dt * 60;
                 this.vz += az * dt * 60;
+
+                // Gravity wells influence
+                for (const well of gravityWells) {
+                    const dx = well.x - this.x;
+                    const dy = well.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) + 0.1;
+                    const force = well.strength / (dist * dist) * 0.3;
+                    this.vx += (dx / dist) * force * dt * 60;
+                    this.vy += (dy / dist) * force * dt * 60;
+                }
 
                 // Mouse gravitational pull
                 if (mouseInfluence.active) {
@@ -283,33 +455,262 @@
                     this.vy += (my / dist) * force * dt * 60;
                 }
 
+                // Species-specific behavior
+                if (State.flockingEnabled && particles.length > 0) {
+                    this.applyFlocking(dt, particles);
+                }
+
+                this.applySpeciesBehavior(dt, particles);
+
                 // Apply velocity
-                this.x += this.vx * dt * 60;
-                this.y += this.vy * dt * 60;
-                this.z += this.vz * dt * 60;
+                const speedMult = 1 + (State.chaosMode ? 0.5 : 0);
+                this.x += this.vx * dt * 60 * speedMult;
+                this.y += this.vy * dt * 60 * speedMult;
+                this.z += this.vz * dt * 60 * speedMult;
 
                 // Damping
-                this.vx *= 0.99;
-                this.vy *= 0.99;
-                this.vz *= 0.99;
+                const damping = 0.985;
+                this.vx *= damping;
+                this.vy *= damping;
+                this.vz *= damping;
 
                 // Age
-                this.life -= this.decay;
-                this.hue += dt * 30;
+                this.life -= this.decay * (State.chaosMode ? 1.5 : 1);
+
+                // Hue cycling based on species
+                if (this.species === SPECIES.NORMAL) {
+                    this.hue = (this.baseHue + State.time * 30) % 360;
+                } else if (this.species === SPECIES.PREDATOR) {
+                    this.hue = (350 + Math.sin(State.time * 5) * 20) % 360;
+                } else if (this.species === SPECIES.ATTRACTOR) {
+                    this.hue = (40 + Math.sin(State.time * 3) * 15) % 360;
+                }
+
+                // Energy decay
+                this.energy *= 0.95;
+
+                // Chain reaction check
+                if (State.chainReactionEnabled && this.energy > 0.8 && this.life < 0.3) {
+                    State.pendingExplosions.push({
+                        x: this.x,
+                        y: this.y,
+                        charge: this.energy * 0.3,
+                        delay: Math.random() * 0.1
+                    });
+                    this.energy = 0;
+                }
 
                 return this.life > 0;
             }
 
+            applyFlocking(dt, particles) {
+                // Boids algorithm - separation, alignment, cohesion
+                let sepX = 0, sepY = 0;
+                let alignX = 0, alignY = 0;
+                let cohX = 0, cohY = 0;
+                let neighbors = 0;
+
+                const perceptionRadius = 0.5;
+                const perceptionRadiusSq = perceptionRadius * perceptionRadius;
+
+                // Sample nearby particles (not all, for performance)
+                const sampleSize = Math.min(50, particles.length);
+                const step = Math.max(1, Math.floor(particles.length / sampleSize));
+
+                for (let i = 0; i < particles.length; i += step) {
+                    const other = particles[i];
+                    if (other === this) continue;
+
+                    const dx = other.x - this.x;
+                    const dy = other.y - this.y;
+                    const distSq = dx * dx + dy * dy;
+
+                    if (distSq < perceptionRadiusSq && distSq > 0.0001) {
+                        const dist = Math.sqrt(distSq);
+
+                        // Separation - steer away from close neighbors
+                        if (dist < 0.15) {
+                            sepX -= dx / dist;
+                            sepY -= dy / dist;
+                        }
+
+                        // Alignment - match velocity of neighbors
+                        alignX += other.vx;
+                        alignY += other.vy;
+
+                        // Cohesion - steer toward center of neighbors
+                        cohX += other.x;
+                        cohY += other.y;
+
+                        neighbors++;
+                    }
+                }
+
+                if (neighbors > 0) {
+                    // Average and apply forces
+                    const sepForce = 0.05;
+                    const alignForce = 0.02;
+                    const cohForce = 0.01;
+
+                    this.vx += sepX * sepForce * dt * 60;
+                    this.vy += sepY * sepForce * dt * 60;
+
+                    alignX /= neighbors;
+                    alignY /= neighbors;
+                    this.vx += (alignX - this.vx) * alignForce * dt * 60;
+                    this.vy += (alignY - this.vy) * alignForce * dt * 60;
+
+                    cohX = cohX / neighbors - this.x;
+                    cohY = cohY / neighbors - this.y;
+                    this.vx += cohX * cohForce * dt * 60;
+                    this.vy += cohY * cohForce * dt * 60;
+                }
+            }
+
+            applySpeciesBehavior(dt, particles) {
+                if (this.species === SPECIES.PREDATOR) {
+                    // Chase nearest normal particle
+                    let nearestDist = Infinity;
+                    let nearestX = 0, nearestY = 0;
+
+                    const sampleSize = Math.min(30, particles.length);
+                    const step = Math.max(1, Math.floor(particles.length / sampleSize));
+
+                    for (let i = 0; i < particles.length; i += step) {
+                        const other = particles[i];
+                        if (other.species === SPECIES.NORMAL) {
+                            const dx = other.x - this.x;
+                            const dy = other.y - this.y;
+                            const dist = dx * dx + dy * dy;
+                            if (dist < nearestDist && dist > 0.01) {
+                                nearestDist = dist;
+                                nearestX = dx;
+                                nearestY = dy;
+                            }
+                        }
+                    }
+
+                    if (nearestDist < 4) {
+                        const dist = Math.sqrt(nearestDist);
+                        this.vx += (nearestX / dist) * 0.03 * dt * 60;
+                        this.vy += (nearestY / dist) * 0.03 * dt * 60;
+                    }
+                } else if (this.species === SPECIES.ATTRACTOR) {
+                    // Attractors pulse and draw in nearby normal particles
+                    // (This effect is handled by normal particles checking for attractors)
+                } else if (this.species === SPECIES.NORMAL) {
+                    // Normal particles are attracted to ATTRACTOR species
+                    const sampleSize = Math.min(20, particles.length);
+                    const step = Math.max(1, Math.floor(particles.length / sampleSize));
+
+                    for (let i = 0; i < particles.length; i += step) {
+                        const other = particles[i];
+                        if (other.species === SPECIES.ATTRACTOR) {
+                            const dx = other.x - this.x;
+                            const dy = other.y - this.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < 1.5 && dist > 0.05) {
+                                this.vx += (dx / dist) * 0.02 * dt * 60;
+                                this.vy += (dy / dist) * 0.02 * dt * 60;
+                            }
+                        }
+                    }
+                }
+            }
+
             toPoint() {
                 const brightness = Math.min(1, this.life * 1.5);
+                const energyBoost = this.energy * 0.3;
                 return {
                     x: this.x,
                     y: this.y,
                     z: this.z,
-                    scale: this.size * this.life,
-                    color: hslToRgb(this.hue % 360, 0.9, 0.3 + brightness * 0.4)
+                    scale: this.size * this.life * (1 + energyBoost),
+                    color: hslToRgb(this.hue % 360, 0.9, 0.3 + brightness * 0.4 + energyBoost)
                 };
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // AUDIO SYNTHESIS
+        // ═══════════════════════════════════════════════════════════════════
+
+        function initAudio() {
+            if (State.audioCtx) return;
+
+            State.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            State.gainNode = State.audioCtx.createGain();
+            State.gainNode.gain.value = 0.1;
+            State.gainNode.connect(State.audioCtx.destination);
+
+            // Create oscillators based on plastic ratio harmonics
+            const baseFreq = 110; // A2
+            for (let i = 0; i < 5; i++) {
+                const osc = State.audioCtx.createOscillator();
+                const oscGain = State.audioCtx.createGain();
+
+                osc.type = ['sine', 'triangle', 'sawtooth', 'sine', 'triangle'][i];
+                osc.frequency.value = baseFreq * Math.pow(PLASTIC_CONSTANT, i);
+
+                oscGain.gain.value = 0;
+                osc.connect(oscGain);
+                oscGain.connect(State.gainNode);
+                osc.start();
+
+                State.oscillators.push({ osc, gain: oscGain });
+            }
+        }
+
+        function updateAudio() {
+            if (!State.audioEnabled || !State.audioCtx) return;
+
+            // Modulate oscillators based on particle distribution
+            const centerX = State.particles.reduce((s, p) => s + p.x, 0) / Math.max(1, State.particles.length);
+            const centerY = State.particles.reduce((s, p) => s + p.y, 0) / Math.max(1, State.particles.length);
+            const spread = State.particles.reduce((s, p) => {
+                return s + Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2);
+            }, 0) / Math.max(1, State.particles.length);
+
+            // Species counts affect different oscillators
+            const normalCount = State.particles.filter(p => p.species === SPECIES.NORMAL).length;
+            const predatorCount = State.particles.filter(p => p.species === SPECIES.PREDATOR).length;
+            const attractorCount = State.particles.filter(p => p.species === SPECIES.ATTRACTOR).length;
+
+            const now = State.audioCtx.currentTime;
+            const smoothing = 0.1;
+
+            // Modulate each oscillator
+            State.oscillators.forEach((o, i) => {
+                let targetGain = 0;
+                let freqMod = 1;
+
+                switch (i) {
+                    case 0: // Base - attractor influence
+                        targetGain = Math.min(0.3, State.attractorState.x * 0.01 + 0.05);
+                        freqMod = 1 + State.attractorState.y * 0.01;
+                        break;
+                    case 1: // Spread indicator
+                        targetGain = Math.min(0.2, spread * 0.1);
+                        break;
+                    case 2: // Predator activity
+                        targetGain = Math.min(0.25, predatorCount * 0.02);
+                        freqMod = 1 + (State.chaosMode ? 0.2 : 0);
+                        break;
+                    case 3: // Attractor species resonance
+                        targetGain = Math.min(0.2, attractorCount * 0.03);
+                        break;
+                    case 4: // Chaos indicator
+                        targetGain = State.chaosMode ? 0.15 : 0;
+                        freqMod = 1 + Math.sin(State.time * 3) * 0.1;
+                        break;
+                }
+
+                o.gain.gain.linearRampToValueAtTime(targetGain, now + smoothing);
+                o.osc.frequency.linearRampToValueAtTime(
+                    110 * Math.pow(PLASTIC_CONSTANT, i) * freqMod,
+                    now + smoothing
+                );
+            });
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -318,10 +719,14 @@
 
         function init() {
             const canvasBg = document.getElementById('bgLayer');
+            const canvasTrail = document.getElementById('trailLayer');
             const canvasMain = document.getElementById('mainLayer');
+            const canvasConnection = document.getElementById('connectionLayer');
             const canvasFx = document.getElementById('fxLayer');
 
             ctxBg = canvasBg.getContext('2d');
+            ctxTrail = canvasTrail.getContext('2d');
+            ctxConnection = canvasConnection.getContext('2d');
             ctxFx = canvasFx.getContext('2d');
 
             resize();
@@ -352,7 +757,7 @@
 
         function resize() {
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
-            ['bgLayer', 'mainLayer', 'fxLayer'].forEach(id => {
+            ['bgLayer', 'trailLayer', 'mainLayer', 'connectionLayer', 'fxLayer'].forEach(id => {
                 const c = document.getElementById(id);
                 c.width = W() * dpr;
                 c.height = H() * dpr;
@@ -407,8 +812,7 @@
                 // 1-5 for attractors
                 if (e.key >= '1' && e.key <= '5') {
                     State.attractorType = parseInt(e.key) - 1;
-                    document.getElementById('modeDisplay').textContent = State.attractorNames[State.attractorType];
-                    // Reset attractor state for fresh pattern
+                    updateModeDisplay();
                     State.attractorState = { x: 1, y: 1, z: 1 };
                 }
 
@@ -416,10 +820,8 @@
                 if (e.code === 'Space') {
                     e.preventDefault();
                     State.chaosMode = !State.chaosMode;
-                    document.getElementById('modeDisplay').textContent =
-                        State.chaosMode ? 'CHAOS MODE' : State.attractorNames[State.attractorType];
+                    updateModeDisplay();
                     if (State.chaosMode) {
-                        // Chaos explosion
                         for (let i = 0; i < 10; i++) {
                             setTimeout(() => {
                                 explode((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, 0.5 + Math.random() * 0.5);
@@ -427,7 +829,78 @@
                         }
                     }
                 }
+
+                // F for flocking
+                if (e.key === 'f' || e.key === 'F') {
+                    State.flockingEnabled = !State.flockingEnabled;
+                    updateSubModeDisplay();
+                }
+
+                // T for trails
+                if (e.key === 't' || e.key === 'T') {
+                    State.trailsEnabled = !State.trailsEnabled;
+                    if (!State.trailsEnabled) {
+                        ctxTrail.clearRect(0, 0, W(), H());
+                    }
+                    updateSubModeDisplay();
+                }
+
+                // C for connections
+                if (e.key === 'c' || e.key === 'C') {
+                    State.connectionsEnabled = !State.connectionsEnabled;
+                    updateSubModeDisplay();
+                }
+
+                // G for gravity well
+                if (e.key === 'g' || e.key === 'G') {
+                    if (State.gravityWells.length < State.maxWells) {
+                        const x = State.mouse.x * 2;
+                        const y = State.mouse.y * 2;
+                        const well = {
+                            x, y,
+                            strength: 0.5 + Math.random() * 0.5,
+                            hue: (State.time * 50) % 360
+                        };
+                        State.gravityWells.push(well);
+                        createWellIndicator(x, y, well.hue);
+                    }
+                }
+
+                // R for chain reaction
+                if (e.key === 'r' || e.key === 'R') {
+                    State.chainReactionEnabled = !State.chainReactionEnabled;
+                    updateSubModeDisplay();
+                }
+
+                // A for audio
+                if (e.key === 'a' || e.key === 'A') {
+                    State.audioEnabled = !State.audioEnabled;
+                    if (State.audioEnabled) {
+                        initAudio();
+                        if (State.audioCtx.state === 'suspended') {
+                            State.audioCtx.resume();
+                        }
+                    }
+                    updateSubModeDisplay();
+                }
             });
+        }
+
+        function updateModeDisplay() {
+            document.getElementById('modeDisplay').textContent =
+                State.chaosMode ? 'CHAOS MODE' : State.attractorNames[State.attractorType];
+        }
+
+        function updateSubModeDisplay() {
+            const parts = [];
+            if (State.flockingEnabled) parts.push('FLOCK');
+            if (State.trailsEnabled) parts.push('TRAIL');
+            if (State.connectionsEnabled) parts.push('WEB');
+            if (State.chainReactionEnabled) parts.push('CHAIN');
+            if (State.audioEnabled) parts.push('AUDIO');
+
+            document.getElementById('subMode').textContent =
+                parts.length > 0 ? parts.join(' | ') : 'NO SYSTEMS ACTIVE';
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -436,7 +909,7 @@
 
         function explode(x, y, charge) {
             const power = 0.3 + charge * 2;
-            const count = Math.floor(100 + charge * 500);
+            const count = Math.floor(100 + charge * 400);
 
             // Spawn particles
             for (let i = 0; i < count && State.particles.length < State.maxParticles; i++) {
@@ -451,6 +924,7 @@
                 const p = new Particle(x, y, 0, vx, vy, vz);
                 p.hue = (State.time * 50 + Math.random() * 60) % 360;
                 p.size = 0.03 + charge * 0.05;
+                p.energy = charge; // Chain reaction energy
                 State.particles.push(p);
             }
 
@@ -461,7 +935,7 @@
                 power
             );
 
-            // Record explosion for trails
+            // Record explosion
             State.explosions.push({
                 x, y,
                 power,
@@ -469,9 +943,15 @@
                 hue: (State.time * 50) % 360
             });
 
-            // Keep only recent explosions
             if (State.explosions.length > 20) {
                 State.explosions.shift();
+            }
+
+            // Audio burst
+            if (State.audioEnabled && State.audioCtx) {
+                const now = State.audioCtx.currentTime;
+                State.gainNode.gain.setValueAtTime(0.3 + charge * 0.2, now);
+                State.gainNode.gain.linearRampToValueAtTime(0.1, now + 0.3);
             }
         }
 
@@ -485,6 +965,19 @@
             wave.style.borderColor = `hsl(${(State.time * 50) % 360}, 100%, 60%)`;
             document.body.appendChild(wave);
             setTimeout(() => wave.remove(), 600);
+        }
+
+        function createWellIndicator(x, y, hue) {
+            const well = document.createElement('div');
+            well.className = 'gravity-well';
+            const screenX = (x / 2 + 0.5) * W();
+            const screenY = (y / 2 + 0.5) * H();
+            well.style.left = screenX + 'px';
+            well.style.top = screenY + 'px';
+            well.style.width = well.style.height = '60px';
+            well.style.marginLeft = well.style.marginTop = '-30px';
+            well.style.borderColor = `hsl(${hue}, 80%, 50%)`;
+            document.body.appendChild(well);
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -514,6 +1007,16 @@
                 );
             }
 
+            // Process pending chain reaction explosions
+            State.pendingExplosions = State.pendingExplosions.filter(pe => {
+                pe.delay -= dt;
+                if (pe.delay <= 0) {
+                    explode(pe.x, pe.y, pe.charge);
+                    return false;
+                }
+                return true;
+            });
+
             // Mouse influence
             const mouseInfluence = {
                 active: State.mouse.down,
@@ -524,11 +1027,11 @@
 
             // Update particles
             State.particles = State.particles.filter(p =>
-                p.update(dt, State.attractorState, mouseInfluence)
+                p.update(dt, State.attractorState, mouseInfluence, State.particles, State.gravityWells)
             );
 
             // Auto-spawn to maintain particle count
-            const targetCount = State.chaosMode ? 15000 : 8000;
+            const targetCount = State.chaosMode ? 12000 : 6000;
             while (State.particles.length < targetCount) {
                 const sample = getPlasticSamplingPoint3D(State.particles.length + State.time * 100, 0.5);
                 const p = new Particle(
@@ -544,6 +1047,9 @@
             // Modulate renderer
             const scale = 1.2 + (State.chaosMode ? 0.5 : 0) + State.mouse.charge * 0.5;
             State.phillipsRenderer.setPlasticScale(scale);
+
+            // Audio update
+            updateAudio();
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -551,14 +1057,15 @@
         // ═══════════════════════════════════════════════════════════════════
 
         function render() {
-            // Background - dark with subtle attractor-influenced gradient
+            const hue = (State.time * 20) % 360;
+
+            // Background
             const gradient = ctxBg.createRadialGradient(
                 W() / 2 + State.attractorState.x * 50,
                 H() / 2 + State.attractorState.y * 50,
                 0, W() / 2, H() / 2, Math.max(W(), H())
             );
 
-            const hue = (State.time * 20) % 360;
             const intensity = State.chaosMode ? 0.12 : 0.06;
             gradient.addColorStop(0, `hsla(${hue}, 80%, ${intensity * 100}%, 1)`);
             gradient.addColorStop(0.5, `hsla(${hue + 40}, 60%, ${intensity * 50}%, 1)`);
@@ -567,12 +1074,46 @@
             ctxBg.fillStyle = gradient;
             ctxBg.fillRect(0, 0, W(), H());
 
+            // Trails layer
+            if (State.trailsEnabled) {
+                // Fade previous trails
+                ctxTrail.fillStyle = 'rgba(0, 0, 8, 0.05)';
+                ctxTrail.fillRect(0, 0, W(), H());
+
+                // Draw motion trails
+                ctxTrail.lineWidth = 1;
+                for (const p of State.particles) {
+                    const x1 = (p.px / 2 + 0.5) * W();
+                    const y1 = (p.py / 2 + 0.5) * H();
+                    const x2 = (p.x / 2 + 0.5) * W();
+                    const y2 = (p.y / 2 + 0.5) * H();
+
+                    const speed = Math.sqrt((p.vx ** 2) + (p.vy ** 2));
+                    if (speed > 0.01) {
+                        ctxTrail.strokeStyle = `hsla(${p.hue}, 80%, 50%, ${Math.min(0.5, speed * 2) * p.life})`;
+                        ctxTrail.beginPath();
+                        ctxTrail.moveTo(x1, y1);
+                        ctxTrail.lineTo(x2, y2);
+                        ctxTrail.stroke();
+                    }
+                }
+            }
+
             // Phillips Renderer - particles
             const points = State.particles.map(p => p.toPoint());
             State.phillipsRenderer.setPoints(points);
             State.phillipsRenderer.render();
 
-            // FX layer - explosion trails
+            // Connection web layer
+            if (State.connectionsEnabled) {
+                ctxConnection.clearRect(0, 0, W(), H());
+                renderConnections();
+            } else {
+                ctxConnection.clearRect(0, 0, W(), H());
+                State.connectionCount = 0;
+            }
+
+            // FX layer
             ctxFx.clearRect(0, 0, W(), H());
 
             // Draw attractor trajectory hint
@@ -589,7 +1130,7 @@
                 ctxFx.stroke();
             }
 
-            // Draw charge indicator at mouse
+            // Draw charge indicator
             if (State.mouse.down && State.mouse.charge > 0.1) {
                 const mx = (State.mouse.x / 2 + 0.5) * W();
                 const my = (State.mouse.y / 2 + 0.5) * H();
@@ -601,11 +1142,62 @@
                 ctxFx.arc(mx, my, radius, 0, Math.PI * 2);
                 ctxFx.stroke();
 
-                // Inner charging circle
                 ctxFx.beginPath();
                 ctxFx.arc(mx, my, radius * 0.5, 0, Math.PI * 2 * State.mouse.charge);
                 ctxFx.stroke();
             }
+        }
+
+        function renderConnections() {
+            // Draw neural-network style connections between nearby particles
+            const maxConnections = 500;
+            const connectionDist = 0.3;
+            const connectionDistSq = connectionDist * connectionDist;
+            let connectionCount = 0;
+
+            ctxConnection.lineWidth = 0.5;
+
+            // Sample particles for connections
+            const sampleSize = Math.min(200, State.particles.length);
+            const step = Math.max(1, Math.floor(State.particles.length / sampleSize));
+
+            for (let i = 0; i < State.particles.length && connectionCount < maxConnections; i += step) {
+                const p1 = State.particles[i];
+                const x1 = (p1.x / 2 + 0.5) * W();
+                const y1 = (p1.y / 2 + 0.5) * H();
+
+                for (let j = i + step; j < State.particles.length && connectionCount < maxConnections; j += step) {
+                    const p2 = State.particles[j];
+
+                    const dx = p2.x - p1.x;
+                    const dy = p2.y - p1.y;
+                    const distSq = dx * dx + dy * dy;
+
+                    if (distSq < connectionDistSq) {
+                        const x2 = (p2.x / 2 + 0.5) * W();
+                        const y2 = (p2.y / 2 + 0.5) * H();
+
+                        const dist = Math.sqrt(distSq);
+                        const alpha = (1 - dist / connectionDist) * 0.5 * Math.min(p1.life, p2.life);
+
+                        // Color based on species interaction
+                        let hue = (p1.hue + p2.hue) / 2;
+                        if (p1.species !== p2.species) {
+                            hue = (hue + 180) % 360; // Complementary for different species
+                        }
+
+                        ctxConnection.strokeStyle = `hsla(${hue}, 70%, 50%, ${alpha})`;
+                        ctxConnection.beginPath();
+                        ctxConnection.moveTo(x1, y1);
+                        ctxConnection.lineTo(x2, y2);
+                        ctxConnection.stroke();
+
+                        connectionCount++;
+                    }
+                }
+            }
+
+            State.connectionCount = connectionCount;
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -625,7 +1217,7 @@
             update(dt);
             render();
 
-            // FPS counter
+            // Stats update
             State.frameCount++;
             if (timestamp - State.lastFpsTime >= 1000) {
                 State.fps = State.frameCount;
@@ -633,6 +1225,8 @@
                 State.lastFpsTime = timestamp;
                 document.getElementById('fps').textContent = State.fps;
                 document.getElementById('particles').textContent = State.particles.length.toLocaleString();
+                document.getElementById('wells').textContent = State.gravityWells.length;
+                document.getElementById('connections').textContent = State.connectionCount;
             }
         }
 

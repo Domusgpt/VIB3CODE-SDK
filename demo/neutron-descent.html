@@ -466,6 +466,10 @@
                     <span class="stat-label">PLASTIC SCALE</span>
                     <span class="stat-value" id="plasticScale">1.00</span>
                 </div>
+                <div class="stat-row">
+                    <span class="stat-label">GEOMETRY</span>
+                    <span class="stat-value highlight" id="geometryMode">VORTEX</span>
+                </div>
             </div>
         </div>
 
@@ -543,21 +547,31 @@
         const CONFIG = {
             // Phillips Renderer settings
             phillips: {
-                basePointCount: 12000,
-                maxPointCount: 20000,
-                basePlasticScale: 1.0
+                basePointCount: 15000,
+                maxPointCount: 25000,
+                basePlasticScale: 1.2
             },
             // Ship physics
             ship: {
-                turnSpeed: 0.08,
+                turnSpeed: 0.12,
                 maxTilt: 45,
-                velocityScale: 2.0
+                velocityScale: 3.0
             },
-            // Storm generation
+            // Storm generation - MUCH FASTER
             storm: {
-                layers: 5,
-                speedRange: [0.5, 2.0],
-                sizeRange: [0.02, 0.08]
+                layers: 7,
+                baseSpeed: 3.0,        // Base warp speed
+                speedRange: [2.0, 6.0], // Min/max layer speeds
+                sizeRange: [0.015, 0.12],
+                tunnelRadius: 2.5
+            },
+            // Geometry modes based on pitch
+            geometryModes: {
+                vortex: { minPitch: 0, maxPitch: 150 },      // Low rumble = vortex
+                helix: { minPitch: 150, maxPitch: 300 },     // Mid-low = double helix
+                rings: { minPitch: 300, maxPitch: 500 },     // Mid = expanding rings
+                spiral: { minPitch: 500, maxPitch: 800 },    // Mid-high = spiral galaxy
+                burst: { minPitch: 800, maxPitch: 2000 }     // High = starburst
             }
         };
 
@@ -591,7 +605,13 @@
                 amplitude: 0,
                 smoothedAmplitude: 0,
                 pitch: 0,
-                harmonicMatch: 0.5
+                smoothedPitch: 200,
+                harmonicMatch: 0.5,
+                bass: 0,
+                mid: 0,
+                high: 0,
+                geometryMode: 'vortex',
+                transitionProgress: 0
             },
 
             // Performance
@@ -735,24 +755,38 @@
         function analyzeAudio() {
             if (State.audio.synthetic) {
                 const t = State.time;
-                State.audio.amplitude = 0.3 + Math.sin(t * 0.5) * 0.2 + Math.sin(t * 1.3) * 0.15;
-                State.audio.pitch = 200 + Math.sin(t * 0.3) * 100;
-                State.audio.smoothedAmplitude = State.audio.amplitude;
-                State.audio.harmonicMatch = 0.5 + Math.sin(t * 0.2) * 0.3;
+                // More dramatic synthetic audio with pitch sweeps
+                State.audio.amplitude = 0.4 + Math.sin(t * 0.7) * 0.3 + Math.sin(t * 1.7) * 0.2;
+                // Pitch sweeps through all geometry modes
+                State.audio.pitch = 100 + Math.sin(t * 0.15) * 400 + Math.sin(t * 0.4) * 200;
+                State.audio.bass = 0.5 + Math.sin(t * 0.3) * 0.4;
+                State.audio.mid = 0.4 + Math.sin(t * 0.8) * 0.35;
+                State.audio.high = 0.3 + Math.sin(t * 1.5) * 0.25;
             } else if (State.audio.analyser) {
                 State.audio.analyser.getByteFrequencyData(State.audio.dataArray);
+                const len = State.audio.dataArray.length;
 
-                let sum = 0;
-                for (let i = 0; i < State.audio.dataArray.length; i++) {
-                    sum += State.audio.dataArray[i];
+                // Split into frequency bands
+                let bassSum = 0, midSum = 0, highSum = 0, totalSum = 0;
+                const bassEnd = Math.floor(len * 0.1);
+                const midEnd = Math.floor(len * 0.4);
+
+                for (let i = 0; i < len; i++) {
+                    const val = State.audio.dataArray[i];
+                    totalSum += val;
+                    if (i < bassEnd) bassSum += val;
+                    else if (i < midEnd) midSum += val;
+                    else highSum += val;
                 }
-                const amp = sum / State.audio.dataArray.length / 255;
-                State.audio.smoothedAmplitude += (amp - State.audio.smoothedAmplitude) * 0.1;
-                State.audio.amplitude = amp;
 
-                // Pitch estimation
+                State.audio.bass = bassSum / bassEnd / 255;
+                State.audio.mid = midSum / (midEnd - bassEnd) / 255;
+                State.audio.high = highSum / (len - midEnd) / 255;
+                State.audio.amplitude = totalSum / len / 255;
+
+                // Pitch estimation with smoothing
                 let maxVal = 0, maxIndex = 0;
-                for (let i = 5; i < State.audio.dataArray.length / 4; i++) {
+                for (let i = 3; i < len / 3; i++) {
                     if (State.audio.dataArray[i] > maxVal) {
                         maxVal = State.audio.dataArray[i];
                         maxIndex = i;
@@ -760,11 +794,30 @@
                 }
                 const sampleRate = State.audio.context?.sampleRate || 44100;
                 State.audio.pitch = maxIndex * (sampleRate / State.audio.analyser.fftSize);
-
-                // Harmonic match
-                const targetFreq = 220 * Math.pow(PLASTIC_CONSTANT, (State.depth % 7));
-                State.audio.harmonicMatch = Math.max(0, 1 - Math.abs(State.audio.pitch - targetFreq) / 200);
             }
+
+            // Smooth amplitude and pitch
+            State.audio.smoothedAmplitude += (State.audio.amplitude - State.audio.smoothedAmplitude) * 0.15;
+            State.audio.smoothedPitch += (State.audio.pitch - State.audio.smoothedPitch) * 0.1;
+
+            // Determine geometry mode from pitch
+            const pitch = State.audio.smoothedPitch;
+            let newMode = 'vortex';
+            if (pitch < 150) newMode = 'vortex';
+            else if (pitch < 300) newMode = 'helix';
+            else if (pitch < 500) newMode = 'rings';
+            else if (pitch < 800) newMode = 'spiral';
+            else newMode = 'burst';
+
+            if (newMode !== State.audio.geometryMode) {
+                State.audio.geometryMode = newMode;
+                State.audio.transitionProgress = 0;
+            }
+            State.audio.transitionProgress = Math.min(1, State.audio.transitionProgress + 0.02);
+
+            // Harmonic match based on Plastic ratio
+            const targetFreq = 220 * Math.pow(PLASTIC_CONSTANT, (State.depth % 7));
+            State.audio.harmonicMatch = Math.max(0, 1 - Math.abs(State.audio.smoothedPitch - targetFreq) / 300);
 
             updateVoiceUI();
         }
@@ -831,63 +884,149 @@
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // POINT GENERATION - Using Phillips Renderer + Plastic Sampling
+        // POINT GENERATION - Voice-Reactive Geometry with Phillips Renderer
         // ─────────────────────────────────────────────────────────────────────
 
         function generateStormPoints() {
             const baseCount = CONFIG.phillips.basePointCount;
-            const extraPoints = Math.floor(State.audio.harmonicMatch * 8000);
+            const extraPoints = Math.floor(State.audio.smoothedAmplitude * 10000);
             const totalPoints = Math.min(CONFIG.phillips.maxPointCount, baseCount + extraPoints);
 
             const points = [];
             const time = State.time;
             const depth = State.depth;
+            const mode = State.audio.geometryMode;
+            const trans = State.audio.transitionProgress;
 
-            // Voice influences fractal parameters
-            const voiceHue = State.audio.pitch * 0.2;
-            const voiceScale = 1 + State.audio.smoothedAmplitude * 0.5;
+            // Audio-reactive parameters
+            const bass = State.audio.bass;
+            const mid = State.audio.mid;
+            const high = State.audio.high;
+            const amp = State.audio.smoothedAmplitude;
+            const pitch = State.audio.smoothedPitch;
+
+            // Warp speed increases with bass
+            const warpMultiplier = 1 + bass * 2;
 
             for (let i = 0; i < totalPoints; i++) {
                 // ═══════════════════════════════════════════════════════════
-                // USE PLASTIC SAMPLING - This is the Phillips system's core
+                // PLASTIC SAMPLING - The Phillips system's core
                 // ═══════════════════════════════════════════════════════════
                 const sample3D = getPlasticSamplingPoint3D(i, 0.5);
-
-                // Determine which "layer" this point is in (for parallax)
                 const layerIndex = i % CONFIG.storm.layers;
                 const layerDepth = layerIndex / CONFIG.storm.layers;
 
-                // Z-position cycles through the tunnel (infinite zoom effect)
-                const zSpeed = CONFIG.storm.speedRange[0] +
-                              layerDepth * (CONFIG.storm.speedRange[1] - CONFIG.storm.speedRange[0]);
-                let z = ((time * zSpeed + sample3D.z * 10 + layerIndex * 2) % 10) - 5;
+                // Base speed with dramatic acceleration
+                const zSpeed = (CONFIG.storm.speedRange[0] +
+                              layerDepth * (CONFIG.storm.speedRange[1] - CONFIG.storm.speedRange[0]))
+                              * warpMultiplier;
 
-                // Tunnel coordinates using Plastic sampling for even distribution
-                const angle = sample3D.x * Math.PI * 2;
-                const radius = 0.2 + sample3D.y * 1.5 * (1 + layerDepth);
+                // Z cycles through tunnel - MUCH FASTER
+                let z = ((time * zSpeed * CONFIG.storm.baseSpeed + sample3D.z * 8 + layerIndex * 1.5) % 12) - 6;
 
-                // Apply ship tilt offset
-                let x = Math.cos(angle + time * 0.1) * radius;
-                let y = Math.sin(angle + time * 0.1) * radius;
-                x += State.ship.tiltX * 0.3 * (1 - Math.abs(z) / 5);
-                y += State.ship.tiltY * 0.3 * (1 - Math.abs(z) / 5);
+                // ═══════════════════════════════════════════════════════════
+                // GEOMETRY MODES - Pitch changes the shape of reality
+                // ═══════════════════════════════════════════════════════════
+                let x, y;
+                const baseAngle = sample3D.x * Math.PI * 2;
+                const baseRadius = CONFIG.storm.tunnelRadius * sample3D.y;
 
-                // Scale based on Plastic power (creates natural size hierarchy)
-                const plasticScale = getPlasticPower((i % 7) - 3);
+                switch (mode) {
+                    case 'vortex':
+                        // Low rumble: Swirling vortex pulling inward
+                        const vortexTwist = z * 0.8 + time * 2;
+                        const vortexRadius = baseRadius * (1 + z * 0.15) * (0.5 + bass);
+                        x = Math.cos(baseAngle + vortexTwist) * vortexRadius;
+                        y = Math.sin(baseAngle + vortexTwist) * vortexRadius;
+                        break;
+
+                    case 'helix':
+                        // Double helix DNA structure
+                        const strand = i % 2;
+                        const helixAngle = z * 1.5 + time * 1.5 + strand * Math.PI;
+                        const helixRadius = 0.8 + sample3D.y * 1.2 + mid * 0.5;
+                        x = Math.cos(helixAngle) * helixRadius + Math.sin(z * 0.5) * 0.3;
+                        y = Math.sin(helixAngle) * helixRadius + Math.cos(z * 0.5) * 0.3;
+                        break;
+
+                    case 'rings':
+                        // Expanding concentric rings
+                        const ringIndex = Math.floor(sample3D.y * 8);
+                        const ringPhase = time * 3 + ringIndex * 0.5;
+                        const ringRadius = (ringIndex * 0.3 + 0.5) * (1 + Math.sin(ringPhase) * 0.3 * mid);
+                        const ringAngle = baseAngle + ringPhase * 0.2;
+                        x = Math.cos(ringAngle) * ringRadius;
+                        y = Math.sin(ringAngle) * ringRadius;
+                        z = ((z + ringIndex * 0.3) % 12) - 6; // Stagger ring depths
+                        break;
+
+                    case 'spiral':
+                        // Spiral galaxy arms
+                        const armCount = 4;
+                        const arm = i % armCount;
+                        const spiralAngle = sample3D.x * Math.PI * 6 + arm * (Math.PI * 2 / armCount) + time;
+                        const spiralRadius = sample3D.y * 2.5 * (1 + high * 0.5);
+                        const spiralZ = Math.sin(spiralAngle * 2) * 0.5;
+                        x = Math.cos(spiralAngle) * spiralRadius;
+                        y = Math.sin(spiralAngle) * spiralRadius;
+                        z = z + spiralZ;
+                        break;
+
+                    case 'burst':
+                        // High pitch: Explosive starburst
+                        const burstAngle = sample3D.x * Math.PI * 2;
+                        const burstPhi = sample3D.y * Math.PI;
+                        const burstRadius = (1 + high * 2) * (1 + Math.sin(time * 5 + i * 0.1) * 0.3);
+                        const pulse = 1 + Math.sin(time * 8) * 0.5 * amp;
+                        x = Math.sin(burstPhi) * Math.cos(burstAngle) * burstRadius * pulse;
+                        y = Math.sin(burstPhi) * Math.sin(burstAngle) * burstRadius * pulse;
+                        z = (Math.cos(burstPhi) * burstRadius * pulse + z * 0.3);
+                        break;
+
+                    default:
+                        x = Math.cos(baseAngle) * baseRadius;
+                        y = Math.sin(baseAngle) * baseRadius;
+                }
+
+                // Apply ship tilt with parallax
+                const parallaxStrength = 1 - Math.abs(z) / 6;
+                x += State.ship.tiltX * 0.5 * parallaxStrength;
+                y += State.ship.tiltY * 0.5 * parallaxStrength;
+
+                // ═══════════════════════════════════════════════════════════
+                // SIZE - Dramatic variation based on audio
+                // ═══════════════════════════════════════════════════════════
+                const plasticScale = getPlasticPower((i % 9) - 4);
+                const depthScale = 1 - Math.abs(z) / 7;
+                const audioScale = 1 + amp * 1.5 + bass * 0.8;
                 const baseSize = CONFIG.storm.sizeRange[0] +
                                 (CONFIG.storm.sizeRange[1] - CONFIG.storm.sizeRange[0]) * sample3D.y;
-                const scale = baseSize * plasticScale * voiceScale * (1 - Math.abs(z) / 6);
+                const scale = baseSize * plasticScale * audioScale * depthScale;
 
-                // Color: Plasma gradient influenced by depth and voice
-                const hue = (20 + depth * 2 + angle * 30 + voiceHue + layerIndex * 15) % 360;
-                const saturation = 70 + State.audio.smoothedAmplitude * 30;
-                const lightness = 40 + (1 - Math.abs(z) / 5) * 30;
+                // ═══════════════════════════════════════════════════════════
+                // COLOR - Dramatic shifts with voice
+                // ═══════════════════════════════════════════════════════════
+                // Base hue shifts dramatically with pitch
+                const pitchHue = pitch * 0.5;
+                // Mode-specific color schemes
+                let modeHueOffset = 0;
+                switch (mode) {
+                    case 'vortex': modeHueOffset = 280; break;  // Purple
+                    case 'helix': modeHueOffset = 180; break;   // Cyan
+                    case 'rings': modeHueOffset = 40; break;    // Orange
+                    case 'spiral': modeHueOffset = 120; break;  // Green
+                    case 'burst': modeHueOffset = 0; break;     // Red
+                }
 
-                const color = hslToRgb(hue / 360, saturation / 100, lightness / 100);
+                const hue = (modeHueOffset + pitchHue + depth * 3 + layerIndex * 20 + i * 0.01) % 360;
+                const saturation = 60 + amp * 40;
+                const lightness = 35 + depthScale * 35 + high * 20;
+
+                const color = hslToRgb(hue / 360, saturation / 100, Math.min(0.9, lightness / 100));
 
                 points.push({
                     x, y, z,
-                    scale: Math.max(0.01, scale),
+                    scale: Math.max(0.008, scale),
                     color
                 });
             }
@@ -925,25 +1064,63 @@
             const h = window.innerHeight;
             ctxOverlay.clearRect(0, 0, w, h);
 
-            // Speed lines when moving
-            const speed = Math.sqrt(State.ship.velocityX ** 2 + State.ship.velocityY ** 2);
-            if (speed > 0.1) {
-                ctxOverlay.strokeStyle = `rgba(0, 200, 255, ${speed * 0.2})`;
-                ctxOverlay.lineWidth = 1;
+            const bass = State.audio.bass;
+            const amp = State.audio.smoothedAmplitude;
 
-                for (let i = 0; i < 15; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const dist = 80 + Math.random() * 150;
-                    const len = speed * 40 + Math.random() * 20;
+            // WARP SPEED LINES - Always on, intensity based on bass
+            const lineCount = 30 + Math.floor(bass * 40);
+            const baseSpeed = 1 + bass * 3;
 
-                    const x1 = w / 2 + Math.cos(angle) * dist;
-                    const y1 = h / 2 + Math.sin(angle) * dist;
-                    const x2 = x1 + Math.cos(angle) * len;
-                    const y2 = y1 + Math.sin(angle) * len;
+            for (let i = 0; i < lineCount; i++) {
+                const angle = (i / lineCount) * Math.PI * 2 + State.time * 0.5;
+                const dist = 50 + (i % 10) * 20;
+                const len = 30 + bass * 80 + amp * 40;
+
+                const x1 = w / 2 + Math.cos(angle) * dist;
+                const y1 = h / 2 + Math.sin(angle) * dist;
+                const x2 = x1 + Math.cos(angle) * len;
+                const y2 = y1 + Math.sin(angle) * len;
+
+                // Color based on geometry mode
+                let lineHue;
+                switch (State.audio.geometryMode) {
+                    case 'vortex': lineHue = 280; break;
+                    case 'helix': lineHue = 180; break;
+                    case 'rings': lineHue = 40; break;
+                    case 'spiral': lineHue = 120; break;
+                    case 'burst': lineHue = 0; break;
+                    default: lineHue = 200;
+                }
+
+                const alpha = 0.1 + bass * 0.3 + (i % 3 === 0 ? 0.2 : 0);
+                ctxOverlay.strokeStyle = `hsla(${lineHue}, 100%, 70%, ${alpha})`;
+                ctxOverlay.lineWidth = 1 + (i % 4 === 0 ? 1 : 0);
+
+                ctxOverlay.beginPath();
+                ctxOverlay.moveTo(x1, y1);
+                ctxOverlay.lineTo(x2, y2);
+                ctxOverlay.stroke();
+            }
+
+            // Ship tilt lines
+            const tiltMag = Math.sqrt(State.ship.tiltX ** 2 + State.ship.tiltY ** 2);
+            if (tiltMag > 0.1) {
+                ctxOverlay.strokeStyle = `rgba(255, 200, 100, ${tiltMag * 0.4})`;
+                ctxOverlay.lineWidth = 2;
+
+                for (let i = 0; i < 8; i++) {
+                    const offset = (i - 4) * 30;
+                    const tiltAngle = Math.atan2(State.ship.tiltY, State.ship.tiltX);
 
                     ctxOverlay.beginPath();
-                    ctxOverlay.moveTo(x1, y1);
-                    ctxOverlay.lineTo(x2, y2);
+                    ctxOverlay.moveTo(
+                        w / 2 + Math.cos(tiltAngle + Math.PI / 2) * offset,
+                        h / 2 + Math.sin(tiltAngle + Math.PI / 2) * offset
+                    );
+                    ctxOverlay.lineTo(
+                        w / 2 + Math.cos(tiltAngle + Math.PI / 2) * offset + Math.cos(tiltAngle) * tiltMag * 100,
+                        h / 2 + Math.sin(tiltAngle + Math.PI / 2) * offset + Math.sin(tiltAngle) * tiltMag * 100
+                    );
                     ctxOverlay.stroke();
                 }
             }
@@ -985,6 +1162,18 @@
 
             document.getElementById('plasticPower').textContent = PLASTIC_CONSTANT.toFixed(2);
             document.getElementById('plasticScale').textContent = plasticScale.toFixed(2);
+
+            // Geometry mode with color
+            const modeEl = document.getElementById('geometryMode');
+            modeEl.textContent = State.audio.geometryMode.toUpperCase();
+            const modeColors = {
+                vortex: '#9933ff',   // Purple
+                helix: '#00ccff',    // Cyan
+                rings: '#ff6600',    // Orange
+                spiral: '#00ff88',   // Green
+                burst: '#ff3366'     // Red
+            };
+            modeEl.style.color = modeColors[State.audio.geometryMode] || 'var(--plasma-outer)';
         }
 
         // ─────────────────────────────────────────────────────────────────────

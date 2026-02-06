@@ -13,6 +13,7 @@ export default defineConfig({
                 main: resolve(__dirname, 'index.html'),
                 demo: resolve(__dirname, 'demo/index.html'),
                 phillipsRenderer: resolve(__dirname, 'demo/phillips-renderer.html'),
+                plasticCosmos: resolve(__dirname, 'demo/plastic-cosmos.html'),
             }
         }
     },

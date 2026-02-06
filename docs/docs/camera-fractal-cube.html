@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>VIB3+ Camera Fractal Cube — Vortex Funnel</title>
+  <meta name="description" content="Fixed camera looking into a fractal tornado. Center cube at back with 4 spiral arms emerging toward viewer, scaled by the plastic ratio." />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
@@ -35,9 +36,17 @@
       color: rgba(255,255,255,0.5); font: 12px/1.4 monospace;
       pointer-events: none;
     }
+    .back-link {
+      position: fixed; top: 10px; left: 16px; z-index: 20;
+      font: 500 11px/1 'SF Mono','Fira Code','Consolas',monospace;
+      color: #5b9cf5; text-decoration: none; opacity: 0.7;
+      transition: opacity .2s; pointer-events: auto;
+    }
+    .back-link:hover { opacity: 1; }
   </style>
 </head>
 <body>
+  <a class="back-link" href="../index.html">&larr; Gallery</a>
   <div id="startOverlay">
     <h1>Camera Fractal Cube</h1>
     <p>Fixed camera looking into a fractal tornado. 4 spiral arms emerge from the center cube toward you, each scaled by the plastic ratio. Camera permission required.</p>
@@ -95,7 +104,7 @@
     } else {
       overlay.querySelector('p').textContent =
         'Fixed camera looking into a fractal tornado. Tap Start to enable the camera feed.';
-      import('./camera-fractal-cube.js');
+      import('../camera-fractal-cube-bundle.js');
     }
   </script>
 </body>

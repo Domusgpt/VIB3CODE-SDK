@@ -36,6 +36,11 @@ export {
     CORE_TYPES
 } from './GeometryFactory.js';
 
+export {
+    validateProceduralCompactGraph,
+    expandProceduralCompactGraph
+} from './ProceduralCompactGraph.js';
+
 // Base generators
 export { default as generateTesseract } from './generators/Tesseract.js';
 export {
@@ -79,6 +84,11 @@ export {
     generateFractalTree4D,
     generateCantorDust4D
 } from './generators/Fractal.js';
+
+export {
+    default as generateProceduralGaussianSeeds,
+    generateProceduralGaussianSeeds as generateGaussianSeeds
+} from './generators/ProceduralGaussianSeeder.js';
 
 export {
     default as generateWave,

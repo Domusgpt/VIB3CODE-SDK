@@ -6,4 +6,5 @@
 export { MCPServer, mcpServer } from './MCPServer.js';
 export { toolDefinitions, getToolList, getToolNames, getTool, validateToolInput } from './tools.js';
 
-export default mcpServer from './MCPServer.js';
+import { mcpServer as defaultMcpServer } from './MCPServer.js';
+export default defaultMcpServer;

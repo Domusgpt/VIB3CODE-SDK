@@ -15,6 +15,7 @@ export default defineConfig({
                 phillipsRenderer: resolve(__dirname, 'demo/phillips-renderer.html'),
                 plasticCosmos: resolve(__dirname, 'demo/plastic-cosmos.html'),
                 neutronDescent: resolve(__dirname, 'demo/neutron-descent.html'),
+                emergenceStorm: resolve(__dirname, 'demo/emergence-storm.html'),
             }
         }
     },

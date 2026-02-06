@@ -19,6 +19,7 @@ const toolResponseSchema = require('./tool-response.schema.json');
 const errorSchema = require('./error.schema.json');
 const extensionSchema = require('./extension.schema.json');
 const toolPackSchema = require('./tool-pack.schema.json');
+const proceduralCompactGraphSchema = require('./procedural-compact-graph.schema.json');
 
 class SchemaRegistry {
     constructor() {
@@ -42,7 +43,8 @@ class SchemaRegistry {
             toolResponse: toolResponseSchema,
             error: errorSchema,
             extension: extensionSchema,
-            toolPack: toolPackSchema
+            toolPack: toolPackSchema,
+            proceduralCompactGraph: proceduralCompactGraphSchema
         };
 
         // Add all schemas to AJV first (required for $ref resolution)
@@ -51,6 +53,7 @@ class SchemaRegistry {
         this.ajv.addSchema(parametersSchema, 'parameters.schema.json');
         this.ajv.addSchema(extensionSchema, 'extension.schema.json');
         this.ajv.addSchema(toolPackSchema, 'tool-pack.schema.json');
+        this.ajv.addSchema(proceduralCompactGraphSchema, 'procedural-compact-graph.schema.json');
 
         // Now compile validators (refs will resolve)
         this.validators = {};
@@ -60,6 +63,7 @@ class SchemaRegistry {
             this.validators.extension = this.ajv.compile(extensionSchema);
             this.validators.toolPack = this.ajv.compile(toolPackSchema);
             this.validators.toolResponse = this.ajv.compile(toolResponseSchema);
+            this.validators.proceduralCompactGraph = this.ajv.compile(proceduralCompactGraphSchema);
         } catch (e) {
             console.error('Schema compilation error:', e.message);
             // Provide stub validators that always pass (graceful degradation)
@@ -210,5 +214,5 @@ export const schemaRegistry = new SchemaRegistry();
 
 // Named exports
 export { parametersSchema, toolResponseSchema, errorSchema };
-export { extensionSchema, toolPackSchema };
+export { extensionSchema, toolPackSchema, proceduralCompactGraphSchema };
 export default schemaRegistry;

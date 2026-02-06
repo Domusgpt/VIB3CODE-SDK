@@ -7,6 +7,8 @@
 import { performance } from 'node:perf_hooks';
 import { mcpServer, toolDefinitions } from '../agent/index.js';
 import { schemaRegistry } from '../schemas/index.js';
+import { QuaternionAdjacencyGraph } from '../math/QuaternionAdjacencyGraph.js';
+import { PLASTIC_RATIO } from '../math/constants.js';
 
 /**
  * CLI Configuration
@@ -180,7 +182,8 @@ function showHelp(isJson) {
             randomize: 'Randomize all parameters',
             reset: 'Reset to default parameters',
             tools: 'List available MCP tools',
-            validate: 'Validate manifests, packs, and configs'
+            validate: 'Validate manifests, packs, and configs',
+            pcg: 'Generate or validate Procedural Compact Graph payloads'
         },
         options: {
             '--json, -j': 'Output in JSON format (agent-friendly)',
@@ -197,11 +200,85 @@ function showHelp(isJson) {
             `${CLI_NAME} state --json`,
             `${CLI_NAME} tools --json`,
             `${CLI_NAME} validate pack scene.vib3 --json`,
-            `${CLI_NAME} validate manifest extension.json`
+            `${CLI_NAME} validate manifest extension.json`,
+            `${CLI_NAME} pcg template --json`,
+            `${CLI_NAME} pcg validate pcg.json --json`
         ]
     };
 
     output(help, isJson);
+}
+
+function createPcgTemplate() {
+    return {
+        version: '0.1.0',
+        seeds: [
+            {
+                id: 'root',
+                position: [0, 0, 0],
+                orientation: [1, 0, 0, 0],
+                scale: 1,
+                color: [1, 1, 1],
+                tags: ['seed']
+            }
+        ],
+        adjacency: {
+            generators: QuaternionAdjacencyGraph.createS5Generators(),
+            lateralKeys: ['i+', 'i-', 'j+', 'j-'],
+            depthKeys: ['k+', 'k-']
+        },
+        scaling: {
+            ratio: PLASTIC_RATIO,
+            maxDepth: 2,
+            stepDistance: 1
+        },
+        metadata: {
+            author: 'vib3-cli',
+            created_at: new Date().toISOString()
+        }
+    };
+}
+
+async function handlePcgCommand(parsed) {
+    const start = performance.now();
+    const subcommand = parsed.subcommand ?? 'template';
+
+    if (subcommand === 'template') {
+        const template = createPcgTemplate();
+        return wrapResponse('pcg.template', { pcg: template }, true, performance.now() - start);
+    }
+
+    if (subcommand === 'validate') {
+        const target = parsed.positional[0];
+        if (!target) {
+            return wrapResponse('pcg.validate', {
+                error: {
+                    type: 'ValidationError',
+                    code: 'MISSING_INPUT',
+                    message: 'Missing PCG payload path.',
+                    suggestion: 'Provide a JSON file path: vib3 pcg validate <file>.'
+                }
+            }, false, performance.now() - start);
+        }
+
+        const fs = await import('node:fs/promises');
+        const raw = await fs.readFile(target, 'utf-8');
+        const payload = JSON.parse(raw);
+        const validation = schemaRegistry.validate('proceduralCompactGraph', payload);
+        return wrapResponse('pcg.validate', {
+            valid: validation.valid,
+            errors: validation.errors ?? undefined
+        }, validation.valid, performance.now() - start);
+    }
+
+    return wrapResponse('pcg', {
+        error: {
+            type: 'ValidationError',
+            code: 'UNKNOWN_SUBCOMMAND',
+            message: `Unknown pcg subcommand: ${subcommand}`,
+            suggestion: 'Use "pcg template" or "pcg validate <file>".'
+        }
+    }, false, performance.now() - start);
 }
 
 /**
@@ -534,13 +611,16 @@ async function main() {
             case 'validate':
                 result = await handleValidate(parsed, startTime);
                 break;
+            case 'pcg':
+                result = await handlePcgCommand(parsed);
+                break;
             default:
                 result = wrapResponse('get_state', {
                     error: {
                         type: 'NotFoundError',
                         code: 'UNKNOWN_COMMAND',
                         message: `Unknown command: ${parsed.command}`,
-                        valid_options: ['create', 'state', 'set', 'geometry', 'system', 'randomize', 'reset', 'tools'],
+                        valid_options: ['create', 'state', 'set', 'geometry', 'system', 'randomize', 'reset', 'tools', 'validate', 'pcg'],
                         suggestion: 'Run "vib3 --help" for available commands'
                     }
                 }, false, performance.now() - startTime);

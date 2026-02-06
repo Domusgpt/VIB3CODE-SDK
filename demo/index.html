@@ -438,8 +438,42 @@
             <a href="#" id="galleryLink">Gallery</a>
             <a href="#" id="viewerLink">Viewer</a>
             <a href="#" id="docsLink">Docs</a>
+            <a href="#" id="demosLink" style="color: #ff00ff;">Demos</a>
         </nav>
     </header>
+
+    <!-- Demos Modal -->
+    <div class="modal-overlay" id="demosModal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px; height: auto; padding: 30px;">
+            <div class="modal-header">
+                <h2 style="background: linear-gradient(90deg, #ff0066, #00ffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Phillips Renderer Demos</h2>
+                <button class="modal-close" id="closeDemos">&times;</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px;">
+                <a href="hyper-genesis.html" style="display: block; padding: 25px; background: linear-gradient(135deg, rgba(255,0,102,0.2), rgba(255,0,255,0.2)); border: 1px solid #ff00ff; border-radius: 12px; text-decoration: none; transition: all 0.3s;">
+                    <h3 style="color: #ff00ff; margin-bottom: 10px; font-size: 18px;">HYPER GENESIS</h3>
+                    <p style="color: #aaa; font-size: 12px;">Ultimate emergent complexity engine. 5 particle species, multi-attractor mode, flow fields, chain reactions, and microphone input.</p>
+                </a>
+                <a href="emergence-storm.html" style="display: block; padding: 25px; background: linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,255,255,0.2)); border: 1px solid #00ff88; border-radius: 12px; text-decoration: none; transition: all 0.3s;">
+                    <h3 style="color: #00ff88; margin-bottom: 10px; font-size: 18px;">EMERGENCE STORM</h3>
+                    <p style="color: #aaa; font-size: 12px;">Interactive chaos with boids flocking, neural web, gravity wells, chain explosions, and audio synthesis.</p>
+                </a>
+                <a href="neutron-descent.html" style="display: block; padding: 25px; background: linear-gradient(135deg, rgba(255,100,0,0.2), rgba(255,200,0,0.2)); border: 1px solid #ff6600; border-radius: 12px; text-decoration: none; transition: all 0.3s;">
+                    <h3 style="color: #ff6600; margin-bottom: 10px; font-size: 18px;">NEUTRON DESCENT</h3>
+                    <p style="color: #aaa; font-size: 12px;">Voice-reactive infinite fractal voyage. Speak to control geometry modes: vortex, helix, rings, spiral, burst.</p>
+                </a>
+                <a href="plastic-cosmos.html" style="display: block; padding: 25px; background: linear-gradient(135deg, rgba(100,0,255,0.2), rgba(0,150,255,0.2)); border: 1px solid #6600ff; border-radius: 12px; text-decoration: none; transition: all 0.3s;">
+                    <h3 style="color: #6600ff; margin-bottom: 10px; font-size: 18px;">PLASTIC COSMOS</h3>
+                    <p style="color: #aaa; font-size: 12px;">3D Gaussian splat visualization using the Plastic Ratio. Mouse-reactive cosmic particles.</p>
+                </a>
+                <a href="phillips-renderer.html" style="display: block; padding: 25px; background: linear-gradient(135deg, rgba(0,200,255,0.2), rgba(100,100,255,0.2)); border: 1px solid #00ccff; border-radius: 12px; text-decoration: none; transition: all 0.3s;">
+                    <h3 style="color: #00ccff; margin-bottom: 10px; font-size: 18px;">PHILLIPS RENDERER</h3>
+                    <p style="color: #aaa; font-size: 12px;">Core Phillips Rendering demo. WebGL point sprites with Plastic Ratio mathematics.</p>
+                </a>
+            </div>
+            <p style="text-align: center; margin-top: 25px; color: #666; font-size: 11px; letter-spacing: 3px;">PHILLIPS RENDERING SYSTEM - PLASTIC RATIO MATHEMATICS</p>
+        </div>
+    </div>
 
     <main class="main-container">
         <!-- Left Panel - Controls -->
@@ -890,6 +924,15 @@
             document.getElementById('galleryModal').style.display = 'none';
         });
 
+        document.getElementById('demosLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('demosModal').style.display = 'flex';
+        });
+
+        document.getElementById('closeDemos').addEventListener('click', () => {
+            document.getElementById('demosModal').style.display = 'none';
+        });
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             switch (e.key.toLowerCase()) {
@@ -908,8 +951,12 @@
                 case 'g':
                     document.getElementById('galleryModal').style.display = 'flex';
                     break;
+                case 'd':
+                    document.getElementById('demosModal').style.display = 'flex';
+                    break;
                 case 'escape':
                     document.getElementById('galleryModal').style.display = 'none';
+                    document.getElementById('demosModal').style.display = 'none';
                     break;
             }
             if (e.ctrlKey && e.key === 's') {

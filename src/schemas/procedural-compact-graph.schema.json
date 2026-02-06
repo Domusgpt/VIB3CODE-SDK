@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "procedural-compact-graph.schema.json",
+  "title": "Procedural Compact Graph",
+  "type": "object",
+  "required": ["version", "seeds", "adjacency", "scaling"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "seeds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["position", "orientation", "scale", "color"],
+        "properties": {
+          "id": { "type": "string" },
+          "position": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "orientation": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "scale": { "type": "number", "minimum": 0 },
+          "color": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "adjacency": {
+      "type": "object",
+      "required": ["generators"],
+      "properties": {
+        "generators": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 4,
+            "maxItems": 4
+          }
+        },
+        "lateralKeys": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "depthKeys": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "scaling": {
+      "type": "object",
+      "required": ["ratio"],
+      "properties": {
+        "ratio": { "type": "number", "minimum": 1 },
+        "maxDepth": { "type": "integer", "minimum": 0 },
+        "stepDistance": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -56,6 +56,56 @@
   <div class="info-hud">
     <div id="hud"></div>
   </div>
-  <script type="module" src="./camera-fractal-cube-bundle.js"></script>
+  <script>
+    const canvas = document.getElementById('gl');
+    const overlay = document.getElementById('startOverlay');
+    const startBtn = document.getElementById('startBtn');
+    const supportsWebGL2 = !!canvas.getContext('webgl2');
+
+    if (!supportsWebGL2) {
+      startBtn.style.display = 'none';
+      overlay.querySelector('p').textContent =
+        'WebGL 2 is not available on this device. Showing a lightweight fallback preview.';
+
+      const ctx = canvas.getContext('2d');
+      const resize = () => {
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = innerWidth * dpr;
+        canvas.height = innerHeight * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      };
+      addEventListener('resize', resize);
+      resize();
+
+      const draw = (t) => {
+        const w = innerWidth;
+        const h = innerHeight;
+        ctx.clearRect(0, 0, w, h);
+        const grd = ctx.createRadialGradient(w * 0.5, h * 0.5, 10, w * 0.5, h * 0.5, Math.max(w, h));
+        grd.addColorStop(0, '#101020');
+        grd.addColorStop(1, '#030308');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = 'rgba(0,255,255,0.25)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let i = 0; i < 120; i++) {
+          const a = i * 0.25 + t * 0.0003;
+          const r = 20 + i * 3;
+          const x = w * 0.5 + Math.cos(a) * r;
+          const y = h * 0.5 + Math.sin(a) * r * 0.6;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        requestAnimationFrame(draw);
+      };
+      requestAnimationFrame(draw);
+    } else {
+      overlay.querySelector('p').textContent =
+        'Fixed camera looking into a fractal tornado. Tap Start to enable the camera feed.';
+      import('./camera-fractal-cube-bundle.js');
+    }
+  </script>
 </body>
 </html>

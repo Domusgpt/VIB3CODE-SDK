@@ -78,9 +78,10 @@ out vec4 fragColor;
 void main() {
   vec3 N = normalize(v_normal);
 
-  // Single camera image per face (mirror X for selfie)
+  // Single camera image per face (mirror X for selfie + flip Y for mobile orientation)
   vec2 uv = v_uv;
   uv.x = 1.0 - uv.x;
+  uv.y = 1.0 - uv.y;
 
   // Sample camera texture
   vec4 cam = texture(u_camTex, uv);
@@ -110,9 +111,12 @@ void main() {
 
   col = col * edgeMask + edgeCol;
 
-  // Depth-based fade for far cubes
-  float depthFade = smoothstep(0.98, 0.7, v_depth);
+  // Depth-based fade for far cubes (disable to keep cubes visible on mobile GPUs)
+  float depthFade = 1.0;
   float alpha = u_alpha * depthFade;
+
+  // Ensure some emissive visibility even with dark camera frames
+  col = max(col, vec3(0.08));
 
   fragColor = vec4(col, alpha);
 }
@@ -423,10 +427,10 @@ function mat4RotZ(a) {
 
 const NUM_ARMS = 4;
 const CUBES_PER_ARM = 8;
-const CENTER_DEPTH = 12;      // how far back the center cube is
-const CENTER_SCALE = 0.3;     // size of the smallest (center) cube
-const SPIRAL_TIGHTNESS = 0.4; // how tight the spiral winds
-const VERTICAL_SPREAD = 0.15; // slight Y variation
+const CENTER_DEPTH = 9;       // how far back the center cube is
+const CENTER_SCALE = 0.24;    // size of the smallest (center) cube
+const SPIRAL_TIGHTNESS = 0.32; // how tight the spiral winds
+const VERTICAL_SPREAD = 0.12; // slight Y variation
 
 function generateVortexCubes() {
   const cubes = [];
@@ -485,11 +489,95 @@ function generateVortexCubes() {
 // Pre-generate the vortex structure
 const vortexCubes = generateVortexCubes();
 
+// ─── Interaction ─────────────────────────────────────────────────────────────
+
+const interaction = {
+  panX: 0,
+  panY: 0,
+  zoom: 0,
+  swirl: 0,
+  targetPanX: 0,
+  targetPanY: 0,
+  targetZoom: 0,
+  targetSwirl: 0,
+};
+
+const pointers = new Map();
+let lastPinchDistance = null;
+let lastPinchAngle = null;
+
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+const updateTargets = (dx, dy) => {
+  interaction.targetPanX += dx * 0.002;
+  interaction.targetPanY -= dy * 0.002;
+  interaction.targetSwirl += dx * 0.0025;
+};
+
+const onPointerDown = (event) => {
+  pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  event.target.setPointerCapture?.(event.pointerId);
+};
+
+const onPointerMove = (event) => {
+  if (!pointers.has(event.pointerId)) return;
+  const prev = pointers.get(event.pointerId);
+  const dx = event.clientX - prev.x;
+  const dy = event.clientY - prev.y;
+  pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+  if (pointers.size === 1) {
+    updateTargets(dx, dy);
+    return;
+  }
+
+  const pts = [...pointers.values()];
+  const a = pts[0];
+  const b = pts[1];
+  const dist = Math.hypot(a.x - b.x, a.y - b.y);
+  const angle = Math.atan2(b.y - a.y, b.x - a.x);
+
+  if (lastPinchDistance !== null) {
+    const delta = dist - lastPinchDistance;
+    interaction.targetZoom = clamp(interaction.targetZoom + delta * 0.004, -1.2, 2.5);
+  }
+
+  if (lastPinchAngle !== null) {
+    const deltaAngle = angle - lastPinchAngle;
+    interaction.targetSwirl += deltaAngle * 0.6;
+  }
+
+  lastPinchDistance = dist;
+  lastPinchAngle = angle;
+};
+
+const onPointerUp = (event) => {
+  pointers.delete(event.pointerId);
+  if (pointers.size < 2) {
+    lastPinchDistance = null;
+    lastPinchAngle = null;
+  }
+};
+
+canvas.addEventListener('pointerdown', onPointerDown);
+canvas.addEventListener('pointermove', onPointerMove);
+canvas.addEventListener('pointerup', onPointerUp);
+canvas.addEventListener('pointercancel', onPointerUp);
+
+canvas.addEventListener('wheel', (event) => {
+  interaction.targetZoom = clamp(interaction.targetZoom + event.deltaY * -0.0025, -1.2, 2.5);
+  interaction.targetSwirl += event.deltaX * 0.0008;
+}, { passive: true });
+
 // ─── Fixed Camera ────────────────────────────────────────────────────────────
 
 function getFixedCamera() {
   // Camera positioned in front, looking into the vortex
-  const eye = [0, 0, 5];
+  const eye = [
+    interaction.panX,
+    interaction.panY,
+    6.5 - interaction.zoom * 2.2,
+  ];
   const target = [0, 0, -CENTER_DEPTH];
   const aspect = canvas.width / canvas.height;
 
@@ -509,6 +597,11 @@ function render(now) {
 
   if (!startTime) startTime = now;
   const t = (now - startTime) / 1000;
+
+  interaction.panX += (interaction.targetPanX - interaction.panX) * 0.08;
+  interaction.panY += (interaction.targetPanY - interaction.panY) * 0.08;
+  interaction.zoom += (interaction.targetZoom - interaction.zoom) * 0.08;
+  interaction.swirl += (interaction.targetSwirl - interaction.swirl) * 0.08;
 
   updateCamTexture();
 
@@ -545,14 +638,24 @@ function render(now) {
   for (const c of sorted) {
     // Build model matrix: translate, rotate, scale
     // Add gentle animation to rotation
-    const animRotY = c.rotation[1] + t * 0.1 * (c.armIndex >= 0 ? 1 : 0.3);
-    const animRotX = c.rotation[0] + Math.sin(t * 0.5 + c.spiralIndex) * 0.05;
+    const driftPhase = t * 0.6 + c.spiralIndex * 0.35 + c.armIndex * 0.6;
+    const driftAmp = 0.18 + c.spiralIndex * 0.012;
+    const driftX = Math.cos(driftPhase + interaction.swirl) * driftAmp;
+    const driftY = Math.sin(driftPhase * 1.2 + interaction.swirl) * driftAmp * 0.7;
+    const driftZ = Math.sin(driftPhase * 0.7) * 0.25;
 
-    let model = mat4Translate(c.pos[0], c.pos[1], c.pos[2]);
+    const animRotY = c.rotation[1] + t * 0.1 * (c.armIndex >= 0 ? 1 : 0.3) + interaction.swirl * 0.35;
+    const animRotX = c.rotation[0] + Math.sin(t * 0.5 + c.spiralIndex) * 0.05 + interaction.panY * 0.25;
+
+    let model = mat4Translate(
+      c.pos[0] + driftX + interaction.panX * 0.6,
+      c.pos[1] + driftY + interaction.panY * 0.6,
+      c.pos[2] + driftZ - interaction.zoom * 0.6,
+    );
     model = mat4Multiply(model, mat4RotY(animRotY));
     model = mat4Multiply(model, mat4RotX(animRotX));
     model = mat4Multiply(model, mat4RotZ(c.rotation[2]));
-    model = mat4Multiply(model, mat4Scale(c.scale));
+    model = mat4Multiply(model, mat4Scale(c.scale * (1 + interaction.zoom * 0.05)));
 
     gl.uniformMatrix4fv(cubeU.u_model, false, model);
     gl.uniform1f(cubeU.u_alpha, c.armIndex < 0 ? 1.0 : 0.92);
@@ -575,9 +678,22 @@ function render(now) {
 
 const startBtn = document.getElementById('startBtn');
 const overlay = document.getElementById('startOverlay');
+let renderStarted = false;
+let cameraRequested = false;
 
-startBtn.addEventListener('click', async () => {
-  overlay.classList.add('hidden');
-  await startCamera();
+const beginRender = () => {
+  if (renderStarted) return;
+  renderStarted = true;
+  generateFallbackTexture();
   requestAnimationFrame(render);
-});
+};
+
+const requestCamera = () => {
+  if (cameraRequested) return;
+  cameraRequested = true;
+  overlay.classList.add('hidden');
+  startCamera();
+};
+
+beginRender();
+startBtn.addEventListener('click', requestCamera);

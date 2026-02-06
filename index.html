@@ -1,11 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>VIB3+ Avant-Garde</title>
-    <meta http-equiv="refresh" content="0; url=docs/index.html">
+    <title>VIB3+ Demo Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0c0c14;
+            --panel: rgba(255, 255, 255, 0.06);
+            --text: #f0f0f5;
+            --muted: rgba(240, 240, 245, 0.6);
+            --accent: #79f2ff;
+            --accent-2: #c067ff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top left, #171727 0%, var(--bg) 60%);
+            font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+            color: var(--text);
+        }
+        main {
+            max-width: 900px;
+            padding: 48px;
+            border-radius: 24px;
+            background: var(--panel);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        }
+        h1 {
+            font-size: 2.6rem;
+            margin: 0 0 12px;
+        }
+        p {
+            margin: 0 0 24px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+        .links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        a {
+            display: block;
+            padding: 16px 20px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(121, 242, 255, 0.18), rgba(192, 103, 255, 0.18));
+            color: var(--text);
+            text-decoration: none;
+            border: 1px solid rgba(121, 242, 255, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+        }
+        .note {
+            margin-top: 24px;
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+    </style>
 </head>
 <body>
-    <p>Redirecting to <a href="docs/index.html">VIB3+ Algorithmic Avant-Garde Collection</a>...</p>
+    <main>
+        <h1>VIB3+ Demo Hub</h1>
+        <p>Jump into the procedural compact-graph demo or browse the algorithmic avant-garde gallery.</p>
+        <div class="links">
+            <a href="demo/pcg-demo.html">Launch Procedural PCG Demo</a>
+            <a href="docs/index.html">Explore the Avant-Garde Collection</a>
+        </div>
+        <p class="note">Tip: the PCG demo responds to pointer movement for live focus + depth updates.</p>
+    </main>
 </body>
 </html>

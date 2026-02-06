@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VIB3 PCG Procedural Demo</title>
+    <link rel="stylesheet" href="./pcg-demo.css" />
+  </head>
+  <body>
+    <main class="pcg-demo">
+      <section class="pcg-demo__panel">
+        <h1>Procedural Compact Graph</h1>
+        <p>
+          Quaternion adjacency + plastic-ratio scaling rendered as a live field.
+          Hover to shift focus depth.
+        </p>
+        <div class="pcg-demo__stats">
+          <div><span>Depth</span><strong id="depthValue">0</strong></div>
+          <div><span>Batch</span><strong id="batchValue">0</strong></div>
+          <div><span>Seeds</span><strong id="seedValue">0</strong></div>
+        </div>
+        <p class="pcg-demo__status" id="statusMessage">Initializing WebGL2 renderer…</p>
+        <p class="pcg-demo__hint">Move your pointer inside the canvas to change focus.</p>
+      </section>
+      <section class="pcg-demo__canvas">
+        <canvas id="pcgCanvas" width="960" height="640"></canvas>
+      </section>
+    </main>
+    <script type="module" src="./pcg-demo.js"></script>
+  </body>
+</html>

@@ -1,11 +1,11 @@
 /**
- * VIB3+ Camera Fractal Vortex
+ * VIB3+ Camera Hypercube Vortex
  *
- * VISIBLE camera-textured cubes in a fractal spiral vortex.
- * - Actual camera texture on cube faces you can SEE
- * - Fractal spiral using plastic ratio
- * - Audio-reactive rotation and glow
- * - Splat particle effects around cubes
+ * Camera-textured cubes with 4D hypercube behavior.
+ * - Accelerometer/gyroscope control for rotation
+ * - 4D rotation through XW, YW, ZW planes
+ * - Moiré interference patterns
+ * - Audio reactivity
  */
 
 /* ================================================================== */
@@ -33,7 +33,7 @@ const gl = canvas.getContext('webgl2', {
 if (!gl) throw new Error('WebGL2 required');
 
 /* ================================================================== */
-/*  SHADERS - Camera Textured Cubes                                    */
+/*  SHADERS - Hypercube Camera Cubes                                   */
 /* ================================================================== */
 
 const cubeVS = `#version 300 es
@@ -48,24 +48,75 @@ in vec3 a_normal;
 in mat4 a_model;
 in float a_brightness;
 in float a_hueShift;
+in float a_wCoord;  // W coordinate for 4D
 
 uniform mat4 u_viewProj;
 uniform float u_time;
+
+// 4D rotation uniforms
+uniform float u_rotXW;
+uniform float u_rotYW;
+uniform float u_rotZW;
+uniform float u_dimension;
 
 out vec2 v_uv;
 out vec3 v_normal;
 out float v_brightness;
 out float v_hueShift;
 out float v_depth;
+out float v_4dDepth;
+
+// 4D to 3D projection
+vec3 project4Dto3D(vec4 p4d, float dim) {
+  float w = p4d.w + dim;
+  return p4d.xyz / max(w, 0.1);
+}
 
 void main() {
+  // Get world position from model matrix
   vec4 worldPos = a_model * vec4(a_position, 1.0);
-  gl_Position = u_viewProj * worldPos;
+
+  // Create 4D position
+  vec4 pos4D = vec4(worldPos.xyz, a_wCoord);
+
+  // Apply 4D rotations (XW, YW, ZW planes)
+  // Rotate XW
+  float cxw = cos(u_rotXW), sxw = sin(u_rotXW);
+  vec4 p1 = vec4(
+    pos4D.x * cxw - pos4D.w * sxw,
+    pos4D.y,
+    pos4D.z,
+    pos4D.x * sxw + pos4D.w * cxw
+  );
+
+  // Rotate YW
+  float cyw = cos(u_rotYW), syw = sin(u_rotYW);
+  vec4 p2 = vec4(
+    p1.x,
+    p1.y * cyw - p1.w * syw,
+    p1.z,
+    p1.y * syw + p1.w * cyw
+  );
+
+  // Rotate ZW
+  float czw = cos(u_rotZW), szw = sin(u_rotZW);
+  vec4 p3 = vec4(
+    p2.x,
+    p2.y,
+    p2.z * czw - p2.w * szw,
+    p2.z * szw + p2.w * czw
+  );
+
+  // Project 4D to 3D
+  vec3 projected = project4Dto3D(p3, u_dimension);
+
+  gl_Position = u_viewProj * vec4(projected, 1.0);
   v_uv = a_uv;
   v_normal = mat3(a_model) * a_normal;
   v_brightness = a_brightness;
   v_hueShift = a_hueShift;
-  v_depth = -worldPos.z * 0.02; // For fog
+  v_depth = -projected.z * 0.015;
+  v_4dDepth = p3.w * 0.1; // W-depth for effects
 }
 `;
 
@@ -77,11 +128,14 @@ in vec3 v_normal;
 in float v_brightness;
 in float v_hueShift;
 in float v_depth;
+in float v_4dDepth;
 
 uniform sampler2D u_cameraTexture;
 uniform float u_time;
 uniform float u_bass;
 uniform float u_energy;
+uniform float u_glitch;
+uniform float u_moireScale;
 
 out vec4 fragColor;
 
@@ -97,35 +151,162 @@ vec3 hueShift(vec3 color, float shift) {
   );
 }
 
-void main() {
-  // Sample camera texture
-  vec3 camColor = texture(u_cameraTexture, v_uv).rgb;
+// Moiré pattern
+float moire(vec2 uv, float scale1, float scale2) {
+  float p1 = sin(uv.x * scale1 * 50.0) * sin(uv.y * scale1 * 50.0);
+  float p2 = sin(uv.x * scale2 * 50.0) * sin(uv.y * scale2 * 50.0);
+  return abs(p1 - p2);
+}
 
-  // Apply hue shift from audio mid
-  if (v_hueShift > 0.01) {
-    camColor = hueShift(camColor, v_hueShift);
+void main() {
+  vec2 uv = v_uv;
+
+  // Glitch effect - RGB split
+  float glitchAmount = u_glitch * 0.02;
+  vec2 rOffset = vec2(glitchAmount, 0.0);
+  vec2 bOffset = vec2(-glitchAmount, 0.0);
+
+  float r = texture(u_cameraTexture, uv + rOffset).r;
+  float g = texture(u_cameraTexture, uv).g;
+  float b = texture(u_cameraTexture, uv + bOffset).b;
+  vec3 camColor = vec3(r, g, b);
+
+  // Moiré overlay based on 4D depth
+  float moireEffect = moire(uv, 1.0, u_moireScale) * 0.15;
+  moireEffect *= (0.5 + abs(v_4dDepth));
+
+  // Apply hue shift from audio mid + 4D position
+  float totalHueShift = v_hueShift + v_4dDepth * 0.1;
+  if (abs(totalHueShift) > 0.01) {
+    camColor = hueShift(camColor, totalHueShift);
   }
+
+  // Add moiré color tint
+  vec3 moireColor = vec3(0.0, 0.8, 1.0) * moireEffect;
+  camColor = mix(camColor, camColor + moireColor, 0.3);
 
   // Simple lighting
   vec3 lightDir = normalize(vec3(0.5, 1.0, 0.8));
   float diffuse = max(dot(normalize(v_normal), lightDir), 0.0);
-  float ambient = 0.4;
-  float light = ambient + diffuse * 0.6;
+  float ambient = 0.35;
+  float light = ambient + diffuse * 0.65;
 
-  // Bass-reactive glow
-  float glow = 1.0 + u_bass * 0.5;
+  // Bass-reactive glow + 4D depth effect
+  float glow = 1.0 + u_bass * 0.6;
+  float depthGlow = 1.0 + abs(v_4dDepth) * 0.3;
 
   // Apply lighting and brightness
-  vec3 color = camColor * light * v_brightness * glow;
+  vec3 color = camColor * light * v_brightness * glow * depthGlow;
 
-  // Edge glow effect
+  // Edge glow effect (stronger when emerging from 4D)
   float edgeFactor = 1.0 - abs(dot(normalize(v_normal), vec3(0.0, 0.0, 1.0)));
-  color += vec3(0.3, 0.6, 1.0) * pow(edgeFactor, 3.0) * u_energy * 0.5;
+  vec3 edgeColor = mix(vec3(0.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), 0.5 + v_4dDepth * 0.5);
+  color += edgeColor * pow(edgeFactor, 2.5) * (0.3 + u_energy * 0.5);
 
   // Depth fog toward black
-  color = mix(color, vec3(0.0), clamp(v_depth, 0.0, 0.95));
+  color = mix(color, vec3(0.0), clamp(v_depth, 0.0, 0.92));
 
   fragColor = vec4(color, 1.0);
+}
+`;
+
+/* ================================================================== */
+/*  SHADER - Background Moiré Field                                    */
+/* ================================================================== */
+
+const bgVS = `#version 300 es
+in vec2 a_position;
+out vec2 v_uv;
+void main() {
+  v_uv = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.999, 1.0);
+}
+`;
+
+const bgFS = `#version 300 es
+precision highp float;
+
+in vec2 v_uv;
+out vec4 fragColor;
+
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform float u_rotX;
+uniform float u_rotY;
+uniform float u_rotXW;
+uniform float u_rotYW;
+uniform float u_rotZW;
+uniform float u_dimension;
+uniform float u_bass;
+uniform float u_mid;
+uniform float u_gridDensity;
+uniform float u_moireScale;
+
+// 4D rotation matrices
+mat4 rotateXW(float t) {
+  float c = cos(t), s = sin(t);
+  return mat4(c,0,0,-s, 0,1,0,0, 0,0,1,0, s,0,0,c);
+}
+mat4 rotateYW(float t) {
+  float c = cos(t), s = sin(t);
+  return mat4(1,0,0,0, 0,c,0,-s, 0,0,1,0, 0,s,0,c);
+}
+mat4 rotateZW(float t) {
+  float c = cos(t), s = sin(t);
+  return mat4(1,0,0,0, 0,1,0,0, 0,0,c,-s, 0,0,s,c);
+}
+
+vec3 project4Dto3D(vec4 p, float d) {
+  return p.xyz / max(p.w + d, 0.1);
+}
+
+float hypercubeLattice(vec3 p, float morph, float grid) {
+  vec4 p4d = vec4(p * grid, morph * u_dimension);
+
+  p4d = rotateXW(u_rotXW * u_dimension) * p4d;
+  p4d = rotateYW(u_rotYW * u_dimension) * p4d;
+  p4d = rotateZW(u_rotZW * u_dimension) * p4d;
+
+  vec4 lattice = fract(p4d) - 0.5;
+  float dist = max(max(abs(lattice.x), abs(lattice.y)),
+                   max(abs(lattice.z), abs(lattice.w)));
+
+  return 1.0 - smoothstep(0.4, 0.5, dist);
+}
+
+float generateMoire(vec3 p, float morph, float grid) {
+  float g1 = hypercubeLattice(p, morph, grid);
+  float g2 = hypercubeLattice(p, morph, grid * u_moireScale);
+
+  float r4d = length(vec4(p, morph * u_dimension));
+  float s1 = sin(r4d * grid * 3.14159);
+  float s2 = sin(r4d * grid * u_moireScale * 3.14159);
+  float spherical = abs(s1 - s2) * 0.25;
+
+  return abs(g1 - g2) * 0.4 + spherical;
+}
+
+void main() {
+  vec2 uv = (v_uv - 0.5) * 2.0;
+  uv.x *= u_resolution.x / u_resolution.y;
+
+  vec3 rayDir = normalize(vec3(uv, 1.0));
+
+  float morph = u_bass * 0.8;
+  float lattice = hypercubeLattice(rayDir, morph, u_gridDensity);
+  float moire = generateMoire(rayDir, morph, u_gridDensity);
+
+  float combined = lattice + moire * 0.5;
+
+  vec3 c1 = vec3(0.0, 0.4, 0.6);
+  vec3 c2 = vec3(0.4, 0.0, 0.5);
+  vec3 c3 = vec3(0.1, 0.1, 0.2);
+
+  vec3 color = mix(mix(c1, c2, combined), c3, 1.0 - moire);
+  color *= 0.3 + combined * 0.4;
+  color *= 0.5 + u_bass * 0.3 + u_mid * 0.2;
+
+  fragColor = vec4(color * 0.6, 1.0);
 }
 `;
 
@@ -141,7 +322,6 @@ in vec3 a_color;
 in float a_size;
 
 uniform mat4 u_viewProj;
-uniform float u_time;
 uniform float u_pointScale;
 
 out vec3 v_color;
@@ -164,7 +344,6 @@ void main() {
   vec2 cxy = 2.0 * gl_PointCoord - 1.0;
   float r = dot(cxy, cxy);
   if (r > 1.0) discard;
-
   float alpha = exp(-r * 3.0);
   fragColor = vec4(v_color * alpha, alpha);
 }
@@ -180,21 +359,17 @@ function createShader(type, source) {
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     console.error(gl.getShaderInfoLog(shader));
-    gl.deleteShader(shader);
     return null;
   }
   return shader;
 }
 
-function createProgram(vs, fs, attribs) {
+function createProgram(vs, fs) {
   const vsh = createShader(gl.VERTEX_SHADER, vs);
   const fsh = createShader(gl.FRAGMENT_SHADER, fs);
   const prog = gl.createProgram();
   gl.attachShader(prog, vsh);
   gl.attachShader(prog, fsh);
-  if (attribs) {
-    attribs.forEach((name, idx) => gl.bindAttribLocation(prog, idx, name));
-  }
   gl.linkProgram(prog);
   if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
     console.error(gl.getProgramInfoLog(prog));
@@ -202,8 +377,12 @@ function createProgram(vs, fs, attribs) {
   return prog;
 }
 
-// Cube program
+// Programs
 const cubeProgram = createProgram(cubeVS, cubeFS);
+const bgProgram = createProgram(bgVS, bgFS);
+const splatProgram = createProgram(splatVS, splatFS);
+
+// Cube uniforms/attribs
 const cubeLocs = {
   a_position: gl.getAttribLocation(cubeProgram, 'a_position'),
   a_uv: gl.getAttribLocation(cubeProgram, 'a_uv'),
@@ -211,72 +390,77 @@ const cubeLocs = {
   a_model: gl.getAttribLocation(cubeProgram, 'a_model'),
   a_brightness: gl.getAttribLocation(cubeProgram, 'a_brightness'),
   a_hueShift: gl.getAttribLocation(cubeProgram, 'a_hueShift'),
+  a_wCoord: gl.getAttribLocation(cubeProgram, 'a_wCoord'),
   u_viewProj: gl.getUniformLocation(cubeProgram, 'u_viewProj'),
   u_cameraTexture: gl.getUniformLocation(cubeProgram, 'u_cameraTexture'),
   u_time: gl.getUniformLocation(cubeProgram, 'u_time'),
   u_bass: gl.getUniformLocation(cubeProgram, 'u_bass'),
   u_energy: gl.getUniformLocation(cubeProgram, 'u_energy'),
+  u_glitch: gl.getUniformLocation(cubeProgram, 'u_glitch'),
+  u_moireScale: gl.getUniformLocation(cubeProgram, 'u_moireScale'),
+  u_rotXW: gl.getUniformLocation(cubeProgram, 'u_rotXW'),
+  u_rotYW: gl.getUniformLocation(cubeProgram, 'u_rotYW'),
+  u_rotZW: gl.getUniformLocation(cubeProgram, 'u_rotZW'),
+  u_dimension: gl.getUniformLocation(cubeProgram, 'u_dimension'),
 };
 
-// Splat program
-const splatProgram = createProgram(splatVS, splatFS);
+// BG uniforms
+const bgLocs = {
+  a_position: gl.getAttribLocation(bgProgram, 'a_position'),
+  u_time: gl.getUniformLocation(bgProgram, 'u_time'),
+  u_resolution: gl.getUniformLocation(bgProgram, 'u_resolution'),
+  u_rotX: gl.getUniformLocation(bgProgram, 'u_rotX'),
+  u_rotY: gl.getUniformLocation(bgProgram, 'u_rotY'),
+  u_rotXW: gl.getUniformLocation(bgProgram, 'u_rotXW'),
+  u_rotYW: gl.getUniformLocation(bgProgram, 'u_rotYW'),
+  u_rotZW: gl.getUniformLocation(bgProgram, 'u_rotZW'),
+  u_dimension: gl.getUniformLocation(bgProgram, 'u_dimension'),
+  u_bass: gl.getUniformLocation(bgProgram, 'u_bass'),
+  u_mid: gl.getUniformLocation(bgProgram, 'u_mid'),
+  u_gridDensity: gl.getUniformLocation(bgProgram, 'u_gridDensity'),
+  u_moireScale: gl.getUniformLocation(bgProgram, 'u_moireScale'),
+};
+
+// Splat uniforms
 const splatLocs = {
   a_position: gl.getAttribLocation(splatProgram, 'a_position'),
   a_color: gl.getAttribLocation(splatProgram, 'a_color'),
   a_size: gl.getAttribLocation(splatProgram, 'a_size'),
   u_viewProj: gl.getUniformLocation(splatProgram, 'u_viewProj'),
-  u_time: gl.getUniformLocation(splatProgram, 'u_time'),
   u_pointScale: gl.getUniformLocation(splatProgram, 'u_pointScale'),
 };
 
 /* ================================================================== */
-/*  CUBE GEOMETRY                                                      */
+/*  GEOMETRY                                                           */
 /* ================================================================== */
 
-// Positions, UVs, Normals for a unit cube centered at origin
+// Cube vertices
 const cubeVertices = new Float32Array([
-  // Front face (Z+)
-  -0.5, -0.5,  0.5,  0, 0,  0, 0, 1,
-   0.5, -0.5,  0.5,  1, 0,  0, 0, 1,
-   0.5,  0.5,  0.5,  1, 1,  0, 0, 1,
-  -0.5,  0.5,  0.5,  0, 1,  0, 0, 1,
-  // Back face (Z-)
-   0.5, -0.5, -0.5,  0, 0,  0, 0, -1,
-  -0.5, -0.5, -0.5,  1, 0,  0, 0, -1,
-  -0.5,  0.5, -0.5,  1, 1,  0, 0, -1,
-   0.5,  0.5, -0.5,  0, 1,  0, 0, -1,
-  // Top face (Y+)
-  -0.5,  0.5,  0.5,  0, 0,  0, 1, 0,
-   0.5,  0.5,  0.5,  1, 0,  0, 1, 0,
-   0.5,  0.5, -0.5,  1, 1,  0, 1, 0,
-  -0.5,  0.5, -0.5,  0, 1,  0, 1, 0,
-  // Bottom face (Y-)
-  -0.5, -0.5, -0.5,  0, 0,  0, -1, 0,
-   0.5, -0.5, -0.5,  1, 0,  0, -1, 0,
-   0.5, -0.5,  0.5,  1, 1,  0, -1, 0,
-  -0.5, -0.5,  0.5,  0, 1,  0, -1, 0,
-  // Right face (X+)
-   0.5, -0.5,  0.5,  0, 0,  1, 0, 0,
-   0.5, -0.5, -0.5,  1, 0,  1, 0, 0,
-   0.5,  0.5, -0.5,  1, 1,  1, 0, 0,
-   0.5,  0.5,  0.5,  0, 1,  1, 0, 0,
-  // Left face (X-)
-  -0.5, -0.5, -0.5,  0, 0,  -1, 0, 0,
-  -0.5, -0.5,  0.5,  1, 0,  -1, 0, 0,
-  -0.5,  0.5,  0.5,  1, 1,  -1, 0, 0,
-  -0.5,  0.5, -0.5,  0, 1,  -1, 0, 0,
+  // Front (Z+)
+  -0.5,-0.5, 0.5, 0,0, 0,0,1,   0.5,-0.5, 0.5, 1,0, 0,0,1,
+   0.5, 0.5, 0.5, 1,1, 0,0,1,  -0.5, 0.5, 0.5, 0,1, 0,0,1,
+  // Back (Z-)
+   0.5,-0.5,-0.5, 0,0, 0,0,-1, -0.5,-0.5,-0.5, 1,0, 0,0,-1,
+  -0.5, 0.5,-0.5, 1,1, 0,0,-1,  0.5, 0.5,-0.5, 0,1, 0,0,-1,
+  // Top (Y+)
+  -0.5, 0.5, 0.5, 0,0, 0,1,0,   0.5, 0.5, 0.5, 1,0, 0,1,0,
+   0.5, 0.5,-0.5, 1,1, 0,1,0,  -0.5, 0.5,-0.5, 0,1, 0,1,0,
+  // Bottom (Y-)
+  -0.5,-0.5,-0.5, 0,0, 0,-1,0,  0.5,-0.5,-0.5, 1,0, 0,-1,0,
+   0.5,-0.5, 0.5, 1,1, 0,-1,0, -0.5,-0.5, 0.5, 0,1, 0,-1,0,
+  // Right (X+)
+   0.5,-0.5, 0.5, 0,0, 1,0,0,   0.5,-0.5,-0.5, 1,0, 1,0,0,
+   0.5, 0.5,-0.5, 1,1, 1,0,0,   0.5, 0.5, 0.5, 0,1, 1,0,0,
+  // Left (X-)
+  -0.5,-0.5,-0.5, 0,0, -1,0,0, -0.5,-0.5, 0.5, 1,0, -1,0,0,
+  -0.5, 0.5, 0.5, 1,1, -1,0,0, -0.5, 0.5,-0.5, 0,1, -1,0,0,
 ]);
 
 const cubeIndices = new Uint16Array([
-  0, 1, 2, 0, 2, 3,       // Front
-  4, 5, 6, 4, 6, 7,       // Back
-  8, 9, 10, 8, 10, 11,    // Top
-  12, 13, 14, 12, 14, 15, // Bottom
-  16, 17, 18, 16, 18, 19, // Right
-  20, 21, 22, 20, 22, 23, // Left
+  0,1,2,0,2,3, 4,5,6,4,6,7, 8,9,10,8,10,11,
+  12,13,14,12,14,15, 16,17,18,16,18,19, 20,21,22,20,22,23
 ]);
 
-// Create buffers
 const cubeVBO = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, cubeVBO);
 gl.bufferData(gl.ARRAY_BUFFER, cubeVertices, gl.STATIC_DRAW);
@@ -285,17 +469,16 @@ const cubeEBO = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeEBO);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cubeIndices, gl.STATIC_DRAW);
 
-// Instance data buffer (will be updated each frame)
+// Instance data: mat4(16) + brightness(1) + hueShift(1) + wCoord(1) = 19 floats
 const MAX_CUBES = 500;
-const INSTANCE_STRIDE = 18; // 16 for mat4 + 1 brightness + 1 hueShift
+const INSTANCE_STRIDE = 19;
 const instanceData = new Float32Array(MAX_CUBES * INSTANCE_STRIDE);
 const instanceVBO = gl.createBuffer();
 
-// Create VAO for cubes
+// Cube VAO
 const cubeVAO = gl.createVertexArray();
 gl.bindVertexArray(cubeVAO);
 
-// Vertex attributes
 gl.bindBuffer(gl.ARRAY_BUFFER, cubeVBO);
 gl.enableVertexAttribArray(cubeLocs.a_position);
 gl.vertexAttribPointer(cubeLocs.a_position, 3, gl.FLOAT, false, 32, 0);
@@ -304,37 +487,41 @@ gl.vertexAttribPointer(cubeLocs.a_uv, 2, gl.FLOAT, false, 32, 12);
 gl.enableVertexAttribArray(cubeLocs.a_normal);
 gl.vertexAttribPointer(cubeLocs.a_normal, 3, gl.FLOAT, false, 32, 20);
 
-// Instance attributes
 gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-const bytesPerInstance = INSTANCE_STRIDE * 4;
-
-// Model matrix (4 vec4s)
+const bpi = INSTANCE_STRIDE * 4;
 for (let i = 0; i < 4; i++) {
-  const loc = cubeLocs.a_model + i;
-  gl.enableVertexAttribArray(loc);
-  gl.vertexAttribPointer(loc, 4, gl.FLOAT, false, bytesPerInstance, i * 16);
-  gl.vertexAttribDivisor(loc, 1);
+  gl.enableVertexAttribArray(cubeLocs.a_model + i);
+  gl.vertexAttribPointer(cubeLocs.a_model + i, 4, gl.FLOAT, false, bpi, i * 16);
+  gl.vertexAttribDivisor(cubeLocs.a_model + i, 1);
 }
-
-// Brightness
 gl.enableVertexAttribArray(cubeLocs.a_brightness);
-gl.vertexAttribPointer(cubeLocs.a_brightness, 1, gl.FLOAT, false, bytesPerInstance, 64);
+gl.vertexAttribPointer(cubeLocs.a_brightness, 1, gl.FLOAT, false, bpi, 64);
 gl.vertexAttribDivisor(cubeLocs.a_brightness, 1);
-
-// Hue shift
 gl.enableVertexAttribArray(cubeLocs.a_hueShift);
-gl.vertexAttribPointer(cubeLocs.a_hueShift, 1, gl.FLOAT, false, bytesPerInstance, 68);
+gl.vertexAttribPointer(cubeLocs.a_hueShift, 1, gl.FLOAT, false, bpi, 68);
 gl.vertexAttribDivisor(cubeLocs.a_hueShift, 1);
+gl.enableVertexAttribArray(cubeLocs.a_wCoord);
+gl.vertexAttribPointer(cubeLocs.a_wCoord, 1, gl.FLOAT, false, bpi, 72);
+gl.vertexAttribDivisor(cubeLocs.a_wCoord, 1);
 
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeEBO);
 gl.bindVertexArray(null);
 
-/* ================================================================== */
-/*  SPLAT GEOMETRY                                                     */
-/* ================================================================== */
+// BG quad
+const bgVerts = new Float32Array([-1,-1, 1,-1, -1,1, 1,-1, 1,1, -1,1]);
+const bgVBO = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, bgVBO);
+gl.bufferData(gl.ARRAY_BUFFER, bgVerts, gl.STATIC_DRAW);
 
-const MAX_SPLATS = 50000;
-const splatData = new Float32Array(MAX_SPLATS * 7); // x,y,z, r,g,b, size
+const bgVAO = gl.createVertexArray();
+gl.bindVertexArray(bgVAO);
+gl.enableVertexAttribArray(bgLocs.a_position);
+gl.vertexAttribPointer(bgLocs.a_position, 2, gl.FLOAT, false, 0, 0);
+gl.bindVertexArray(null);
+
+// Splats
+const MAX_SPLATS = 40000;
+const splatData = new Float32Array(MAX_SPLATS * 7);
 const splatVBO = gl.createBuffer();
 
 const splatVAO = gl.createVertexArray();
@@ -358,17 +545,14 @@ gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-// Initialize with placeholder
 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-  new Uint8Array([128, 128, 128, 255]));
+  new Uint8Array([100, 100, 120, 255]));
 
 /* ================================================================== */
-/*  AUDIO ANALYSIS                                                     */
+/*  AUDIO                                                              */
 /* ================================================================== */
 
-let audioCtx = null;
-let analyser = null;
+let audioCtx = null, analyser = null;
 let audioData = new Uint8Array(128);
 let audioEnabled = false;
 
@@ -385,14 +569,11 @@ async function initAudio() {
     audioEnabled = true;
   } catch (e) {
     console.warn('Audio unavailable:', e);
-    audioEnabled = false;
   }
 }
 
 function getAudioLevels() {
-  if (!audioEnabled || !analyser) {
-    return { bass: 0, mid: 0, high: 0, energy: 0 };
-  }
+  if (!audioEnabled || !analyser) return { bass: 0, mid: 0, high: 0, energy: 0 };
   analyser.getByteFrequencyData(audioData);
   const len = audioData.length;
   let bass = 0, mid = 0, high = 0;
@@ -406,7 +587,7 @@ function getAudioLevels() {
 }
 
 /* ================================================================== */
-/*  CAMERA FEED                                                        */
+/*  CAMERA                                                             */
 /* ================================================================== */
 
 let videoReady = false;
@@ -422,30 +603,74 @@ async function startCamera() {
     video.srcObject = stream;
     await video.play();
     videoReady = true;
-    console.log('Camera started:', video.videoWidth, 'x', video.videoHeight);
   } catch (e) {
     console.warn('Camera unavailable:', e);
-    videoReady = false;
   }
 }
+
+/* ================================================================== */
+/*  ACCELEROMETER / GYRO / MOUSE                                       */
+/* ================================================================== */
+
+let rotationX = 0, rotationY = 0;
+let targetRotX = 0, targetRotY = 0;
+let accelEnabled = false;
+
+// Device orientation (accelerometer/gyro)
+function initAccelerometer() {
+  if (typeof DeviceOrientationEvent !== 'undefined') {
+    // Check for iOS 13+ permission requirement
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(response => {
+          if (response === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+            accelEnabled = true;
+          }
+        })
+        .catch(console.error);
+    } else {
+      window.addEventListener('deviceorientation', handleOrientation);
+      accelEnabled = true;
+    }
+  }
+}
+
+function handleOrientation(e) {
+  if (e.beta !== null && e.gamma !== null) {
+    // beta: front-back tilt (-180 to 180)
+    // gamma: left-right tilt (-90 to 90)
+    targetRotX = (e.beta / 90) * Math.PI;  // Map to -PI to PI
+    targetRotY = (e.gamma / 45) * Math.PI; // Map to -PI to PI
+  }
+}
+
+// Mouse/touch fallback
+canvas.addEventListener('mousemove', (e) => {
+  if (accelEnabled) return; // Prefer accelerometer
+  const x = e.clientX / window.innerWidth;
+  const y = e.clientY / window.innerHeight;
+  targetRotX = (y - 0.5) * Math.PI * 2;
+  targetRotY = (x - 0.5) * Math.PI * 2;
+});
+
+canvas.addEventListener('touchmove', (e) => {
+  if (accelEnabled) return;
+  const touch = e.touches[0];
+  const x = touch.clientX / window.innerWidth;
+  const y = touch.clientY / window.innerHeight;
+  targetRotX = (y - 0.5) * Math.PI * 2;
+  targetRotY = (x - 0.5) * Math.PI * 2;
+  e.preventDefault();
+}, { passive: false });
 
 /* ================================================================== */
 /*  MATRIX HELPERS                                                     */
 /* ================================================================== */
 
-function mat4Identity() {
-  return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
-}
-
 function mat4Perspective(fov, aspect, near, far) {
-  const f = 1 / Math.tan(fov / 2);
-  const nf = 1 / (near - far);
-  return new Float32Array([
-    f/aspect, 0, 0, 0,
-    0, f, 0, 0,
-    0, 0, (far+near)*nf, -1,
-    0, 0, 2*far*near*nf, 0
-  ]);
+  const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
+  return new Float32Array([f/aspect,0,0,0, 0,f,0,0, 0,0,(far+near)*nf,-1, 0,0,2*far*near*nf,0]);
 }
 
 function mat4LookAt(eye, target, up) {
@@ -456,24 +681,18 @@ function mat4LookAt(eye, target, up) {
   len = 1/Math.sqrt(xx*xx + xy*xy + xz*xz);
   const x = [xx*len, xy*len, xz*len];
   const y = [z[1]*x[2]-z[2]*x[1], z[2]*x[0]-z[0]*x[2], z[0]*x[1]-z[1]*x[0]];
-  return new Float32Array([
-    x[0], y[0], z[0], 0,
-    x[1], y[1], z[1], 0,
-    x[2], y[2], z[2], 0,
+  return new Float32Array([x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0,
     -(x[0]*eye[0]+x[1]*eye[1]+x[2]*eye[2]),
     -(y[0]*eye[0]+y[1]*eye[1]+y[2]*eye[2]),
-    -(z[0]*eye[0]+z[1]*eye[1]+z[2]*eye[2]), 1
-  ]);
+    -(z[0]*eye[0]+z[1]*eye[1]+z[2]*eye[2]), 1]);
 }
 
 function mat4Multiply(a, b) {
-  const out = new Float32Array(16);
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
-      out[j*4+i] = a[i]*b[j*4] + a[i+4]*b[j*4+1] + a[i+8]*b[j*4+2] + a[i+12]*b[j*4+3];
-    }
-  }
-  return out;
+  const o = new Float32Array(16);
+  for (let i = 0; i < 4; i++)
+    for (let j = 0; j < 4; j++)
+      o[j*4+i] = a[i]*b[j*4] + a[i+4]*b[j*4+1] + a[i+8]*b[j*4+2] + a[i+12]*b[j*4+3];
+  return o;
 }
 
 function mat4Translate(x, y, z) {
@@ -500,15 +719,13 @@ function mat4RotateZ(a) {
 }
 
 /* ================================================================== */
-/*  GENERATE FRACTAL CUBES                                             */
+/*  CUBE GENERATION - HYPERCUBE VORTEX                                 */
 /* ================================================================== */
 
-function generateCubeInstances(time, audio) {
+function generateCubeInstances(time, audio, rot4d) {
   let count = 0;
-
-  // 4 spiral arms emerging from center
   const ARMS = 4;
-  const CUBES_PER_ARM = 30;
+  const CUBES_PER_ARM = 25;
 
   for (let arm = 0; arm < ARMS; arm++) {
     const armAngle = (arm / ARMS) * Math.PI * 2;
@@ -516,65 +733,54 @@ function generateCubeInstances(time, audio) {
     for (let i = 0; i < CUBES_PER_ARM; i++) {
       if (count >= MAX_CUBES) break;
 
-      // Spiral outward using plastic ratio
       const t = i / CUBES_PER_ARM;
-      const scale = Math.pow(PLASTIC, i * 0.5);
-      const spiralAngle = armAngle + i * (Math.PI * 2 / (PLASTIC * 3));
+      const spiralAngle = armAngle + i * (Math.PI * 2 / (PLASTIC * 3)) + time * 0.1;
 
-      // Position: spiral out and toward camera
-      const radius = 0.3 + t * 4;
+      const radius = 0.3 + t * 4.5;
       const x = Math.cos(spiralAngle) * radius;
       const y = Math.sin(spiralAngle) * radius;
-      const z = -20 + t * 22; // Start far, come toward camera
+      const z = -22 + t * 24;
 
-      // Size: larger toward camera (inverse plastic ratio)
-      const cubeScale = 0.15 + t * 0.8;
+      // W coordinate oscillates based on position in spiral
+      const wCoord = Math.sin(t * Math.PI * 2 + time * 0.5 + arm) * 2.0;
 
-      // Audio-reactive rotation
-      const rotSpeed = 0.3 + audio.bass * 0.5;
-      const rotX = time * rotSpeed * (0.5 + i * 0.1) + i * 0.3;
-      const rotY = time * rotSpeed * (0.3 + i * 0.15) + arm;
-      const rotZ = time * rotSpeed * 0.2;
+      const cubeScale = 0.12 + t * 0.7;
 
-      // Build model matrix
+      // 3D rotation (affected by accelerometer)
+      const rotSpeed = 0.25 + audio.bass * 0.4;
+      const rotX = time * rotSpeed * 0.4 + rotationX * 0.3 + i * 0.2;
+      const rotY = time * rotSpeed * 0.3 + rotationY * 0.3 + arm * 1.57;
+      const rotZ = time * rotSpeed * 0.15;
+
       let model = mat4Translate(x, y, z);
       model = mat4Multiply(model, mat4RotateX(rotX));
       model = mat4Multiply(model, mat4RotateY(rotY));
       model = mat4Multiply(model, mat4RotateZ(rotZ));
       model = mat4Multiply(model, mat4Scale(cubeScale));
 
-      // Write to instance buffer
       const offset = count * INSTANCE_STRIDE;
-      for (let j = 0; j < 16; j++) {
-        instanceData[offset + j] = model[j];
-      }
+      for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
 
-      // Brightness: fade with depth, boost with bass
-      const brightness = (0.3 + t * 0.7) * (1 + audio.bass * 0.5);
-      instanceData[offset + 16] = brightness;
-
-      // Hue shift from mid frequencies
-      instanceData[offset + 17] = audio.mid * 0.3;
+      instanceData[offset + 16] = (0.25 + t * 0.75) * (1 + audio.bass * 0.4);
+      instanceData[offset + 17] = audio.mid * 0.25 + wCoord * 0.05;
+      instanceData[offset + 18] = wCoord;
 
       count++;
     }
   }
 
-  // Center cube (largest, closest)
+  // Center cube
   if (count < MAX_CUBES) {
     const offset = count * INSTANCE_STRIDE;
-    let model = mat4Translate(0, 0, 2);
-    const rotX = time * 0.1 + audio.bass * 0.3;
-    const rotY = time * 0.15;
-    model = mat4Multiply(model, mat4RotateX(rotX));
-    model = mat4Multiply(model, mat4RotateY(rotY));
-    const centerScale = 1.2 + audio.bass * 0.3;
-    model = mat4Multiply(model, mat4Scale(centerScale));
-    for (let j = 0; j < 16; j++) {
-      instanceData[offset + j] = model[j];
-    }
-    instanceData[offset + 16] = 1.5; // Bright
-    instanceData[offset + 17] = audio.mid * 0.2;
+    let model = mat4Translate(0, 0, 2.5);
+    model = mat4Multiply(model, mat4RotateX(time * 0.08 + rotationX * 0.5 + audio.bass * 0.3));
+    model = mat4Multiply(model, mat4RotateY(time * 0.1 + rotationY * 0.5));
+    const s = 1.3 + audio.bass * 0.3;
+    model = mat4Multiply(model, mat4Scale(s));
+    for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
+    instanceData[offset + 16] = 1.6;
+    instanceData[offset + 17] = audio.mid * 0.15;
+    instanceData[offset + 18] = Math.sin(time * 0.3) * 1.5; // Oscillating W
     count++;
   }
 
@@ -582,38 +788,37 @@ function generateCubeInstances(time, audio) {
 }
 
 /* ================================================================== */
-/*  GENERATE SPLAT PARTICLES                                           */
+/*  SPLAT GENERATION                                                   */
 /* ================================================================== */
 
 function generateSplats(time, audio) {
   let count = 0;
-  const PARTICLE_COUNT = 30000;
+  const N = 25000;
 
-  for (let i = 0; i < PARTICLE_COUNT && count < MAX_SPLATS; i++) {
-    const t = i / PARTICLE_COUNT;
-    const angle = t * Math.PI * 20 + time * 0.2;
-    const radius = 0.5 + t * 6;
-    const z = -25 + t * 28;
+  for (let i = 0; i < N && count < MAX_SPLATS; i++) {
+    const t = i / N;
+    const angle = t * Math.PI * 18 + time * 0.15;
+    const radius = 0.4 + t * 6;
+    const z = -28 + t * 30;
 
-    const x = Math.cos(angle) * radius * (0.5 + Math.random() * 0.5);
-    const y = Math.sin(angle) * radius * (0.5 + Math.random() * 0.5);
+    const x = Math.cos(angle) * radius * (0.4 + Math.random() * 0.6);
+    const y = Math.sin(angle) * radius * (0.4 + Math.random() * 0.6);
 
-    // Color: cyan to magenta based on position
-    const hue = t + audio.mid * 0.3;
-    const r = 0.3 + Math.sin(hue * 6.28) * 0.3 + audio.bass * 0.3;
-    const g = 0.4 + Math.sin(hue * 6.28 + 2.09) * 0.3;
-    const b = 0.7 + Math.sin(hue * 6.28 + 4.18) * 0.3 + audio.high * 0.3;
+    const hue = t + audio.mid * 0.25;
+    const r = 0.2 + Math.sin(hue * 6.28) * 0.25 + audio.bass * 0.25;
+    const g = 0.3 + Math.sin(hue * 6.28 + 2.09) * 0.25;
+    const b = 0.6 + Math.sin(hue * 6.28 + 4.18) * 0.3 + audio.high * 0.25;
 
-    const size = (0.02 + Math.random() * 0.04) * (1 + audio.energy * 0.5);
+    const size = (0.015 + Math.random() * 0.03) * (1 + audio.energy * 0.4);
 
-    const offset = count * 7;
-    splatData[offset] = x;
-    splatData[offset + 1] = y;
-    splatData[offset + 2] = z;
-    splatData[offset + 3] = r;
-    splatData[offset + 4] = g;
-    splatData[offset + 5] = b;
-    splatData[offset + 6] = size;
+    const off = count * 7;
+    splatData[off] = x;
+    splatData[off+1] = y;
+    splatData[off+2] = z;
+    splatData[off+3] = r;
+    splatData[off+4] = g;
+    splatData[off+5] = b;
+    splatData[off+6] = size;
     count++;
   }
 
@@ -621,11 +826,17 @@ function generateSplats(time, audio) {
 }
 
 /* ================================================================== */
-/*  RENDER LOOP                                                        */
+/*  RENDER                                                             */
 /* ================================================================== */
 
 const startTime = performance.now();
 const hud = document.getElementById('hud');
+
+// 4D rotation state
+let rot4d = { xw: 0, yw: 0, zw: 0 };
+
+// Animated moiré scale
+let moirePhase = 0;
 
 function render() {
   requestAnimationFrame(render);
@@ -634,26 +845,59 @@ function render() {
   const time = (now - startTime) * 0.001;
   const audio = getAudioLevels();
 
-  // Update camera texture from video
+  // Smooth rotation interpolation
+  rotationX += (targetRotX - rotationX) * 0.08;
+  rotationY += (targetRotY - rotationY) * 0.08;
+
+  // 4D rotations driven by accelerometer + time
+  rot4d.xw = rotationX * 0.5 + Math.sin(time * 0.15) * 0.3 + audio.bass * 0.4;
+  rot4d.yw = rotationY * 0.5 + Math.cos(time * 0.12) * 0.25 + audio.mid * 0.3;
+  rot4d.zw = Math.sin(time * 0.1) * 0.2 + audio.high * 0.2;
+
+  // Animated moiré
+  moirePhase = 1.01 + Math.sin(time * 1.5) * 0.005 + Math.sin(time * 0.7) * 0.003;
+
+  // Glitch from high frequencies
+  const glitch = 0.1 + audio.high * 0.5;
+
+  // Update camera texture
   if (videoReady && video.readyState >= 2) {
     gl.bindTexture(gl.TEXTURE_2D, cameraTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
   }
 
-  // Camera: fixed, looking into the vortex
+  // View/projection
   const aspect = canvas.width / canvas.height;
   const proj = mat4Perspective(70 * Math.PI / 180, aspect, 0.1, 100);
   const view = mat4LookAt([0, 0, 5], [0, 0, -10], [0, 1, 0]);
   const viewProj = mat4Multiply(proj, view);
 
-  // Clear
   gl.viewport(0, 0, canvas.width, canvas.height);
-  gl.clearColor(0.02, 0.02, 0.05, 1);
+  gl.clearColor(0.01, 0.01, 0.03, 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.enable(gl.DEPTH_TEST);
 
-  // Generate and render cubes
-  const cubeCount = generateCubeInstances(time, audio);
+  // --- Background moiré ---
+  gl.disable(gl.DEPTH_TEST);
+  gl.useProgram(bgProgram);
+  gl.uniform1f(bgLocs.u_time, time);
+  gl.uniform2f(bgLocs.u_resolution, canvas.width, canvas.height);
+  gl.uniform1f(bgLocs.u_rotX, rotationX);
+  gl.uniform1f(bgLocs.u_rotY, rotationY);
+  gl.uniform1f(bgLocs.u_rotXW, rot4d.xw);
+  gl.uniform1f(bgLocs.u_rotYW, rot4d.yw);
+  gl.uniform1f(bgLocs.u_rotZW, rot4d.zw);
+  gl.uniform1f(bgLocs.u_dimension, 3.5);
+  gl.uniform1f(bgLocs.u_bass, audio.bass);
+  gl.uniform1f(bgLocs.u_mid, audio.mid);
+  gl.uniform1f(bgLocs.u_gridDensity, 12);
+  gl.uniform1f(bgLocs.u_moireScale, moirePhase);
+
+  gl.bindVertexArray(bgVAO);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+  // --- Cubes ---
+  gl.enable(gl.DEPTH_TEST);
+  const cubeCount = generateCubeInstances(time, audio, rot4d);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
   gl.bufferData(gl.ARRAY_BUFFER, instanceData, gl.DYNAMIC_DRAW);
@@ -664,6 +908,12 @@ function render() {
   gl.uniform1f(cubeLocs.u_time, time);
   gl.uniform1f(cubeLocs.u_bass, audio.bass);
   gl.uniform1f(cubeLocs.u_energy, audio.energy);
+  gl.uniform1f(cubeLocs.u_glitch, glitch);
+  gl.uniform1f(cubeLocs.u_moireScale, moirePhase);
+  gl.uniform1f(cubeLocs.u_rotXW, rot4d.xw);
+  gl.uniform1f(cubeLocs.u_rotYW, rot4d.yw);
+  gl.uniform1f(cubeLocs.u_rotZW, rot4d.zw);
+  gl.uniform1f(cubeLocs.u_dimension, 3.5);
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, cameraTexture);
@@ -671,7 +921,7 @@ function render() {
   gl.bindVertexArray(cubeVAO);
   gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0, cubeCount);
 
-  // Generate and render splats
+  // --- Splats ---
   const splatCount = generateSplats(time, audio);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, splatVBO);
@@ -683,7 +933,6 @@ function render() {
 
   gl.useProgram(splatProgram);
   gl.uniformMatrix4fv(splatLocs.u_viewProj, false, viewProj);
-  gl.uniform1f(splatLocs.u_time, time);
   gl.uniform1f(splatLocs.u_pointScale, canvas.height * 0.5);
 
   gl.bindVertexArray(splatVAO);
@@ -695,8 +944,9 @@ function render() {
 
   // HUD
   if (hud) {
-    const status = videoReady ? 'CAM ON' : 'NO CAM';
-    hud.textContent = `${cubeCount} cubes | ${(splatCount/1000).toFixed(0)}K particles | ${status} | bass:${(audio.bass*100).toFixed(0)}`;
+    const cam = videoReady ? 'CAM' : 'NO-CAM';
+    const acc = accelEnabled ? 'GYRO' : 'MOUSE';
+    hud.textContent = `${cubeCount} cubes | ${(splatCount/1000).toFixed(0)}K splats | ${cam} | ${acc} | 4D: ${rot4d.xw.toFixed(1)},${rot4d.yw.toFixed(1)},${rot4d.zw.toFixed(1)}`;
   }
 }
 
@@ -707,10 +957,16 @@ function render() {
 document.getElementById('startBtn').addEventListener('click', async () => {
   document.getElementById('startOverlay').classList.add('hidden');
 
-  await Promise.all([
-    startCamera(),
-    initAudio()
-  ]);
+  // Request accelerometer permission on iOS
+  initAccelerometer();
+
+  await Promise.all([startCamera(), initAudio()]);
 
   requestAnimationFrame(render);
+});
+
+// Handle resize
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth * devicePixelRatio;
+  canvas.height = window.innerHeight * devicePixelRatio;
 });

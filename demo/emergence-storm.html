@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EMERGENCE STORM - HYPERDIMENSIONAL</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: system-ui, sans-serif;
+            color: #fff;
+            touch-action: none;
+        }
+        #canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
+        .hud {
+            position: fixed;
+            z-index: 100;
+            pointer-events: none;
+            text-shadow: 0 0 15px #000, 0 0 30px #000;
+        }
+        .top-left { top: 15px; left: 15px; }
+        .top-right { top: 15px; right: 15px; text-align: right; }
+        .pattern {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #0ff, #f0f, #ff0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: hueRotate 3s linear infinite;
+        }
+        @keyframes hueRotate { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+        .pitch { font-size: 36px; font-weight: 900; color: #fff; }
+        .note { font-size: 16px; color: #0f0; }
+        .stat { font-size: 11px; color: #888; margin: 3px 0; }
+        .stat span { color: #0ff; font-weight: bold; }
+        .mic { width: 12px; height: 12px; border-radius: 50%; background: #f00; display: inline-block; margin-left: 8px; }
+        .mic.on { background: #0f0; box-shadow: 0 0 15px #0f0; animation: pulse 0.5s ease infinite; }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+        .bottom { bottom: 15px; left: 0; right: 0; text-align: center; font-size: 11px; color: rgba(255,255,255,0.4); }
+
+        .start {
+            position: fixed; inset: 0;
+            background: radial-gradient(ellipse at center, #111 0%, #000 100%);
+            z-index: 1000;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .start.hidden { display: none; }
+        .start h1 {
+            font-size: 42px;
+            background: linear-gradient(135deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient 2s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .start h2 { font-size: 14px; color: #666; margin: 10px 0 30px; letter-spacing: 6px; }
+        .start p { color: #888; font-size: 14px; margin: 8px 0; }
+        .start button {
+            margin-top: 40px; padding: 22px 70px;
+            font-size: 20px; font-weight: 900;
+            background: linear-gradient(135deg, #f00, #ff0, #0f0, #0ff);
+            background-size: 300% 300%;
+            animation: gradient 2s ease infinite;
+            border: none; color: #000;
+            cursor: pointer; border-radius: 60px;
+            letter-spacing: 3px;
+            box-shadow: 0 0 50px rgba(255,0,255,0.5);
+        }
+        .start button:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div class="hud top-left">
+        <div class="pattern" id="pattern">HYPERDIMENSIONAL</div>
+        <div class="stat">Dimension: <span id="dimension">4D</span></div>
+        <div class="stat">Chaos: <span id="chaos">0.00</span></div>
+        <div class="stat">Particles: <span id="particles">0</span></div>
+    </div>
+
+    <div class="hud top-right">
+        <div class="pitch" id="hz">--</div>
+        <div class="note" id="note">--<span class="mic" id="mic"></span></div>
+    </div>
+
+    <div class="hud bottom">
+        HUM for SPIRALS | WHISTLE for CRYSTALS | SCREAM for CHAOS | TAP to RIP SPACETIME
+    </div>
+
+    <div class="start" id="start">
+        <h1>EMERGENCE STORM</h1>
+        <h2>HYPERDIMENSIONAL</h2>
+        <p>4D geometry projecting through 3D space</p>
+        <p>Your voice warps the dimensional fabric</p>
+        <p>Tap to tear holes in reality</p>
+        <button id="go">ENTER THE VOID</button>
+    </div>
+
+<script type="module">
+    import { PhillipsRenderer } from '../src/systems/PhillipsRenderer.js';
+    import {
+        PLASTIC_CONSTANT,
+        PLASTIC_ALPHA_1,
+        PLASTIC_ALPHA_2,
+        getPlasticPower,
+        lorenzStep,
+        rosslerStep,
+        thomasStep,
+        aizawaStep,
+        halvorsenStep
+    } from '../src/math/Plastic.js';
+
+    const canvas = document.getElementById('canvas');
+    const patternEl = document.getElementById('pattern');
+    const hzEl = document.getElementById('hz');
+    const noteEl = document.getElementById('note');
+    const micEl = document.getElementById('mic');
+    const dimensionEl = document.getElementById('dimension');
+    const chaosEl = document.getElementById('chaos');
+    const particlesEl = document.getElementById('particles');
+    const startEl = document.getElementById('start');
+
+    let renderer = null;
+    let audioCtx, analyser, audioData;
+    let running = false;
+    let time = 0;
+
+    // Voice state
+    let pitch = 0, smoothPitch = 0, volume = 0, sustain = 0, screamLevel = 0;
+
+    // Camera
+    let camAngle = 0, camElev = 0.2, camDist = 14, camShake = 0;
+    let isDrag = false, lastX = 0, lastY = 0;
+
+    // Particles
+    const particles = [];
+    const MAX_PARTICLES = 4000;
+
+    // 4D rotation angles
+    let rot4D = { xw: 0, yw: 0, zw: 0, xy: 0, xz: 0, yz: 0 };
+
+    // Attractors
+    const attractors = [
+        { state: { x: 1, y: 1, z: 1 }, type: 'lorenz', scale: 0.08, w: 0 },
+        { state: { x: 0.1, y: 0, z: 0 }, type: 'rossler', scale: 0.15, w: 0.5 },
+        { state: { x: 0.5, y: 0.5, z: 0.5 }, type: 'thomas', scale: 0.4, w: -0.3 },
+        { state: { x: 0.1, y: 0.1, z: 0.1 }, type: 'aizawa', scale: 0.3, w: 0.7 },
+        { state: { x: 1, y: 0, z: 0 }, type: 'halvorsen', scale: 0.06, w: -0.6 }
+    ];
+
+    let chaosIndex = 0;
+    let autoEventTimer = 0;
+    let pulsePhase = 0;
+    let dimensionalRift = 0;
+
+    // Geometric structures (4D hypercube vertices)
+    const hypercubeVerts = [];
+    for (let i = 0; i < 16; i++) {
+        hypercubeVerts.push({
+            x: (i & 1) ? 1 : -1,
+            y: (i & 2) ? 1 : -1,
+            z: (i & 4) ? 1 : -1,
+            w: (i & 8) ? 1 : -1
+        });
+    }
+
+    // Hypercube edges
+    const hypercubeEdges = [];
+    for (let i = 0; i < 16; i++) {
+        for (let j = i + 1; j < 16; j++) {
+            const diff = i ^ j;
+            if (diff === 1 || diff === 2 || diff === 4 || diff === 8) {
+                hypercubeEdges.push([i, j]);
+            }
+        }
+    }
+
+    // 24-cell vertices (4D polytope)
+    const cell24Verts = [];
+    // Permutations of (±1, ±1, 0, 0)
+    const perms = [[0,1,2,3],[0,2,1,3],[0,3,1,2],[1,2,0,3],[1,3,0,2],[2,3,0,1]];
+    for (const p of perms) {
+        for (let s1 = -1; s1 <= 1; s1 += 2) {
+            for (let s2 = -1; s2 <= 1; s2 += 2) {
+                const v = [0, 0, 0, 0];
+                v[p[0]] = s1;
+                v[p[1]] = s2;
+                cell24Verts.push({ x: v[0], y: v[1], z: v[2], w: v[3] });
+            }
+        }
+    }
+
+    // Nebula background particles
+    const nebula = [];
+    for (let i = 0; i < 500; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        const r = 15 + Math.random() * 20;
+        nebula.push({
+            x: r * Math.sin(phi) * Math.cos(theta),
+            y: r * Math.sin(phi) * Math.sin(theta),
+            z: r * Math.cos(phi),
+            w: (Math.random() - 0.5) * 2,
+            hue: Math.random() * 360,
+            size: 0.02 + Math.random() * 0.03,
+            twinkle: Math.random() * Math.PI * 2
+        });
+    }
+
+    const PATTERNS = [
+        'VOID PULSE', 'DIMENSIONAL WAVE', 'SPIRAL VORTEX', 'BLOOM FRACTAL',
+        'STELLAR CORE', 'TESSERACT STORM', 'REALITY RIFT', 'HARMONIC FIELD',
+        'QUANTUM FOAM', 'HYPERDIMENSIONAL'
+    ];
+
+    const NOTES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const freqToNote = f => f < 20 ? '--' : NOTES[Math.round(12*Math.log2(f/440)+69)%12];
+    const freqToPattern = f => f<80?0:f<120?1:f<180?2:f<250?3:f<350?4:f<500?5:f<700?6:f<1000?7:f<1400?8:9;
+
+    async function initAudio() {
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 2048;
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            });
+            audioCtx.createMediaStreamSource(stream).connect(analyser);
+            audioData = new Float32Array(analyser.fftSize);
+            micEl.classList.add('on');
+            return true;
+        } catch(e) { return false; }
+    }
+
+    function detectPitch() {
+        if (!analyser) return 0;
+        analyser.getFloatTimeDomainData(audioData);
+        let sum = 0;
+        for (let i = 0; i < audioData.length; i++) sum += audioData[i] * audioData[i];
+        volume = Math.sqrt(sum / audioData.length) * 15;
+        if (volume < 0.02) return 0;
+        const len = audioData.length / 2;
+        let best = 0, bestLag = 0;
+        for (let lag = 25; lag < len; lag++) {
+            let c = 0;
+            for (let i = 0; i < len; i++) c += audioData[i] * audioData[i + lag];
+            if (c > best) { best = c; bestLag = lag; }
+        }
+        if (best < 0.03) return 0;
+        const f = audioCtx.sampleRate / bestLag;
+        return (f > 40 && f < 2000) ? f : 0;
+    }
+
+    // 4D rotation matrix application
+    function rotate4D(p, angles) {
+        let { x, y, z, w } = p;
+
+        // XW rotation
+        let cos = Math.cos(angles.xw), sin = Math.sin(angles.xw);
+        let nx = x * cos - w * sin, nw = x * sin + w * cos;
+        x = nx; w = nw;
+
+        // YW rotation
+        cos = Math.cos(angles.yw); sin = Math.sin(angles.yw);
+        let ny = y * cos - w * sin;
+        nw = y * sin + w * cos;
+        y = ny; w = nw;
+
+        // ZW rotation
+        cos = Math.cos(angles.zw); sin = Math.sin(angles.zw);
+        let nz = z * cos - w * sin;
+        nw = z * sin + w * cos;
+        z = nz; w = nw;
+
+        // XY rotation (standard 3D)
+        cos = Math.cos(angles.xy); sin = Math.sin(angles.xy);
+        nx = x * cos - y * sin;
+        ny = x * sin + y * cos;
+        x = nx; y = ny;
+
+        return { x, y, z, w };
+    }
+
+    // Project 4D to 3D
+    function project4Dto3D(p, distance = 3) {
+        const w = p.w || 0;
+        const scale = distance / (distance - w * 0.5);
+        return {
+            x: p.x * scale,
+            y: p.y * scale,
+            z: p.z * scale,
+            scale: Math.abs(scale),
+            depth: w
+        };
+    }
+
+    function spawnParticles(count, x, y, z, w, speed, hue, life, size) {
+        for (let i = 0; i < count && particles.length < MAX_PARTICLES; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const s = speed * (0.5 + Math.random());
+            particles.push({
+                x, y, z, w: w + (Math.random() - 0.5) * 0.5,
+                vx: Math.sin(phi) * Math.cos(theta) * s,
+                vy: Math.sin(phi) * Math.sin(theta) * s,
+                vz: Math.cos(phi) * s,
+                vw: (Math.random() - 0.5) * s * 0.3,
+                life, maxLife: life,
+                hue: hue + Math.random() * 40 - 20,
+                size: size * (0.5 + Math.random()),
+                attractor: Math.floor(Math.random() * attractors.length),
+                trail: [],
+                ribbon: Math.random() < 0.1 // Some particles leave ribbon trails
+            });
+        }
+    }
+
+    function explode(sx, sy) {
+        const nx = (sx / canvas.clientWidth - 0.5) * 10;
+        const ny = -(sy / canvas.clientHeight - 0.5) * 10;
+        const hue = (time * 100) % 360;
+
+        // Main 4D burst
+        spawnParticles(200, nx, ny, 0, 0, 4, hue, 3.5, 0.1);
+
+        // Dimensional rings at different W depths
+        for (let d = -1; d <= 1; d += 0.5) {
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                spawnParticles(15, nx + Math.cos(angle)*2, ny + Math.sin(angle)*2, 0, d, 2, hue + d*60, 2.5, 0.06);
+            }
+        }
+
+        camShake = 0.6;
+        chaosIndex = Math.min(10, chaosIndex + 1.5);
+        dimensionalRift = Math.min(1, dimensionalRift + 0.3);
+    }
+
+    function chainReaction(x, y, z, w, hue, depth) {
+        if (depth <= 0) return;
+        spawnParticles(40, x, y, z, w, 2, hue, 2, 0.05);
+        setTimeout(() => {
+            const offsets = [[1,0,0,0],[-1,0,0,0],[0,1,0,0],[0,-1,0,0],[0,0,1,0],[0,0,-1,0],[0,0,0,0.5],[0,0,0,-0.5]];
+            for (const [dx, dy, dz, dw] of offsets) {
+                if (Math.random() < 0.35) {
+                    chainReaction(x + dx, y + dy, z + dz, w + dw, hue + 25, depth - 1);
+                }
+            }
+        }, 80);
+    }
+
+    function updateAttractors(dt) {
+        const steps = [lorenzStep, rosslerStep, thomasStep, aizawaStep, halvorsenStep];
+        const dts = [0.008, 0.03, 0.15, 0.008, 0.003];
+
+        for (let i = 0; i < attractors.length; i++) {
+            const a = attractors[i];
+            a.state = steps[i](a.state, dts[i] * (1 + chaosIndex * 0.3));
+
+            // Oscillate W dimension
+            a.w = Math.sin(time * (i + 1) * 0.3 + i) * (0.5 + dimensionalRift * 0.5);
+
+            const mag = Math.sqrt(a.state.x**2 + a.state.y**2 + a.state.z**2);
+            if (mag > 100) {
+                a.state.x /= mag / 50;
+                a.state.y /= mag / 50;
+                a.state.z /= mag / 50;
+            }
+        }
+    }
+
+    function spawnFromAttractors(dt) {
+        const rate = 30 + sustain * 150 + screamLevel * 300;
+        const count = Math.floor(rate * dt);
+
+        for (let i = 0; i < count && particles.length < MAX_PARTICLES; i++) {
+            const aIdx = Math.floor(Math.random() * attractors.length);
+            const a = attractors[aIdx];
+
+            const x = a.state.x * a.scale + (Math.random() - 0.5) * 0.3;
+            const y = a.state.y * a.scale + (Math.random() - 0.5) * 0.3;
+            const z = a.state.z * a.scale + (Math.random() - 0.5) * 0.3;
+            const w = a.w + (Math.random() - 0.5) * 0.3;
+
+            const hue = (time * 60 + aIdx * 72 + smoothPitch * 0.4) % 360;
+            const speed = 0.4 + volume * 2.5 + screamLevel * 4;
+            const life = 2.5 + sustain * 4;
+            const size = 0.035 + sustain * 0.05 + screamLevel * 0.06;
+
+            spawnParticles(1, x, y, z, w, speed, hue, life, size);
+        }
+    }
+
+    function updateParticles(dt) {
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+
+            // Store trail
+            if (p.trail.length > 12) p.trail.shift();
+            p.trail.push({ x: p.x, y: p.y, z: p.z, w: p.w });
+
+            // Attractor influence
+            const a = attractors[p.attractor];
+            const ax = a.state.x * a.scale;
+            const ay = a.state.y * a.scale;
+            const az = a.state.z * a.scale;
+            const aw = a.w;
+
+            const dx = ax - p.x, dy = ay - p.y, dz = az - p.z, dw = aw - p.w;
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz + dw*dw) + 0.1;
+
+            const pull = (0.6 + chaosIndex * 0.4) / dist;
+            p.vx += dx * pull * dt;
+            p.vy += dy * pull * dt;
+            p.vz += dz * pull * dt;
+            p.vw += dw * pull * dt * 0.5;
+
+            // Pattern forces
+            const pattern = Math.round(freqToPattern(smoothPitch));
+
+            if (pattern === 2 || pattern === 3) {
+                const angle = Math.atan2(p.y, p.x);
+                p.vx += Math.cos(angle + Math.PI/2) * 0.6 * dt * sustain;
+                p.vy += Math.sin(angle + Math.PI/2) * 0.6 * dt * sustain;
+            }
+
+            if (pattern === 5) {
+                // Tesseract alignment
+                const grid = 0.4;
+                p.x += (Math.round(p.x / grid) * grid - p.x) * 0.15 * sustain;
+                p.y += (Math.round(p.y / grid) * grid - p.y) * 0.15 * sustain;
+                p.z += (Math.round(p.z / grid) * grid - p.z) * 0.15 * sustain;
+                p.w += (Math.round(p.w / 0.5) * 0.5 - p.w) * 0.1 * sustain;
+            }
+
+            if (pattern >= 7) {
+                p.vx += (Math.random() - 0.5) * screamLevel * 3;
+                p.vy += (Math.random() - 0.5) * screamLevel * 3;
+                p.vz += (Math.random() - 0.5) * screamLevel * 3;
+                p.vw += (Math.random() - 0.5) * screamLevel * 1;
+            }
+
+            // Dimensional rift pull
+            if (dimensionalRift > 0.1) {
+                p.vw += (Math.random() - 0.5) * dimensionalRift * 2 * dt;
+            }
+
+            p.x += p.vx * dt * 60;
+            p.y += p.vy * dt * 60;
+            p.z += p.vz * dt * 60;
+            p.w += p.vw * dt * 60;
+
+            const damp = 0.96 - screamLevel * 0.04;
+            p.vx *= damp; p.vy *= damp; p.vz *= damp; p.vw *= damp;
+
+            p.life -= dt;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+    }
+
+    function hslToRgb(h, s, l) {
+        h = h / 360;
+        let r, g, b;
+        if (s === 0) { r = g = b = l; }
+        else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1; if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+        return { r: r * 255, g: g * 255, b: b * 255 };
+    }
+
+    function buildPoints() {
+        const points = [];
+
+        // Nebula background (always visible, twinkling)
+        for (const n of nebula) {
+            const rotated = rotate4D({ x: n.x, y: n.y, z: n.z, w: n.w }, rot4D);
+            const proj = project4Dto3D(rotated, 5);
+            const twinkle = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(time * 2 + n.twinkle));
+            const color = hslToRgb(n.hue, 0.6, 0.3 * twinkle);
+            points.push({
+                x: proj.x, y: proj.y, z: proj.z,
+                scale: n.size * twinkle * proj.scale,
+                color
+            });
+        }
+
+        // Hypercube wireframe
+        const cubeScale = 3 + Math.sin(time * 0.5) * 0.5 + dimensionalRift * 2;
+        const cubeHue = (time * 30) % 360;
+        const cubeAlpha = 0.4 + dimensionalRift * 0.4;
+
+        // Project and draw hypercube vertices
+        const projVerts = hypercubeVerts.map(v => {
+            const scaled = { x: v.x * cubeScale, y: v.y * cubeScale, z: v.z * cubeScale, w: v.w * cubeScale };
+            const rotated = rotate4D(scaled, rot4D);
+            return project4Dto3D(rotated, 4);
+        });
+
+        // Add edge particles (interpolate between vertices)
+        for (const [i, j] of hypercubeEdges) {
+            const v1 = projVerts[i], v2 = projVerts[j];
+            const steps = 8;
+            for (let s = 0; s <= steps; s++) {
+                const t = s / steps;
+                const depth = v1.depth * (1-t) + v2.depth * t;
+                const depthColor = 0.5 + depth * 0.3;
+                const color = hslToRgb(cubeHue + depth * 60, 0.8, 0.3 + depthColor * 0.3);
+                points.push({
+                    x: v1.x * (1-t) + v2.x * t,
+                    y: v1.y * (1-t) + v2.y * t,
+                    z: v1.z * (1-t) + v2.z * t,
+                    scale: 0.025 * cubeAlpha * (v1.scale * (1-t) + v2.scale * t),
+                    color
+                });
+            }
+        }
+
+        // 24-cell (when pitch is high)
+        if (smoothPitch > 400) {
+            const cellScale = 2.5 + sustain;
+            const cellHue = (time * 50 + 180) % 360;
+            for (const v of cell24Verts) {
+                const scaled = { x: v.x * cellScale, y: v.y * cellScale, z: v.z * cellScale, w: v.w * cellScale };
+                const rotated = rotate4D(scaled, { ...rot4D, xw: rot4D.xw * 1.5, yw: rot4D.yw * 1.3 });
+                const proj = project4Dto3D(rotated, 4);
+                const color = hslToRgb(cellHue + proj.depth * 40, 0.9, 0.5);
+                points.push({
+                    x: proj.x, y: proj.y, z: proj.z,
+                    scale: 0.06 * proj.scale * sustain,
+                    color
+                });
+            }
+        }
+
+        // Particles with trails
+        for (const p of particles) {
+            const alpha = p.life / p.maxLife;
+            const rotated = rotate4D(p, rot4D);
+            const proj = project4Dto3D(rotated, 4);
+
+            const depthBrightness = 0.4 + (1 - Math.abs(rotated.w)) * 0.6;
+            const color = hslToRgb(p.hue, 0.9, (0.4 + alpha * 0.4) * depthBrightness);
+
+            points.push({
+                x: proj.x, y: proj.y, z: proj.z,
+                scale: p.size * alpha * proj.scale * (1 + volume * 0.5),
+                color
+            });
+
+            // Trails
+            for (let j = 0; j < p.trail.length; j++) {
+                const t = p.trail[j];
+                const tr = rotate4D(t, rot4D);
+                const tp = project4Dto3D(tr, 4);
+                const ta = (j / p.trail.length) * alpha * 0.4;
+                const tc = hslToRgb(p.hue, 0.7, 0.3 * ta * depthBrightness);
+                points.push({
+                    x: tp.x, y: tp.y, z: tp.z,
+                    scale: p.size * ta * 0.4 * tp.scale,
+                    color: tc
+                });
+            }
+
+            // Ribbon trails for special particles
+            if (p.ribbon && p.trail.length > 2) {
+                for (let j = 1; j < p.trail.length; j++) {
+                    const t1 = p.trail[j-1], t2 = p.trail[j];
+                    const mid = { x: (t1.x+t2.x)/2, y: (t1.y+t2.y)/2, z: (t1.z+t2.z)/2, w: (t1.w+t2.w)/2 };
+                    const mr = rotate4D(mid, rot4D);
+                    const mp = project4Dto3D(mr, 4);
+                    const ma = (j / p.trail.length) * alpha * 0.6;
+                    const mc = hslToRgb(p.hue + 30, 0.95, 0.5 * ma);
+                    points.push({
+                        x: mp.x, y: mp.y, z: mp.z,
+                        scale: p.size * 1.5 * ma * mp.scale,
+                        color: mc
+                    });
+                }
+            }
+        }
+
+        // Attractor cores
+        const pulse = 0.6 + Math.sin(pulsePhase) * 0.4;
+        for (let i = 0; i < attractors.length; i++) {
+            const a = attractors[i];
+            const core = { x: a.state.x * a.scale, y: a.state.y * a.scale, z: a.state.z * a.scale, w: a.w };
+            const rotated = rotate4D(core, rot4D);
+            const proj = project4Dto3D(rotated, 4);
+            const coreHue = (time * 100 + i * 72) % 360;
+            const color = hslToRgb(coreHue, 1, 0.6);
+
+            points.push({
+                x: proj.x, y: proj.y, z: proj.z,
+                scale: 0.2 * pulse * proj.scale * (1 + volume * 0.8),
+                color
+            });
+
+            // Core glow rings
+            for (let r = 0; r < 3; r++) {
+                const ringScale = (r + 1) * 0.3 * pulse;
+                for (let a = 0; a < 8; a++) {
+                    const angle = (a / 8) * Math.PI * 2 + time * (r + 1);
+                    const rx = proj.x + Math.cos(angle) * ringScale * 0.3;
+                    const ry = proj.y + Math.sin(angle) * ringScale * 0.3;
+                    const rc = hslToRgb(coreHue + r * 20, 0.8, 0.4);
+                    points.push({
+                        x: rx, y: ry, z: proj.z,
+                        scale: 0.03 * proj.scale,
+                        color: rc
+                    });
+                }
+            }
+        }
+
+        return points;
+    }
+
+    function buildViewMatrix() {
+        const shakeX = (Math.random() - 0.5) * camShake * 0.4;
+        const shakeY = (Math.random() - 0.5) * camShake * 0.4;
+        const cosY = Math.cos(camAngle + shakeX);
+        const sinY = Math.sin(camAngle + shakeX);
+        const cosX = Math.cos(camElev + shakeY);
+        const sinX = Math.sin(camElev + shakeY);
+        return new Float32Array([
+            cosY, sinX * sinY, -cosX * sinY, 0,
+            0, cosX, sinX, 0,
+            sinY, -sinX * cosY, cosX * cosY, 0,
+            0, 0, -camDist, 1
+        ]);
+    }
+
+    function update(dt) {
+        time += dt;
+        pulsePhase += dt * 6;
+
+        // Update 4D rotations
+        rot4D.xw += dt * 0.3 * (1 + sustain * 0.5);
+        rot4D.yw += dt * 0.2 * PLASTIC_CONSTANT;
+        rot4D.zw += dt * 0.25 * (1 + dimensionalRift);
+        rot4D.xy += dt * 0.1;
+
+        // Audio
+        pitch = detectPitch();
+        if (pitch > 0) {
+            smoothPitch = smoothPitch * 0.7 + pitch * 0.3;
+            sustain = Math.min(1, sustain + dt * 3);
+        } else {
+            sustain = Math.max(0, sustain - dt * 0.7);
+        }
+
+        if (volume > 0.35) {
+            screamLevel = Math.min(1, screamLevel + dt * 4);
+            chaosIndex = Math.min(10, chaosIndex + dt * 3);
+        } else {
+            screamLevel = Math.max(0, screamLevel - dt * 1.5);
+        }
+
+        chaosIndex = Math.max(0, chaosIndex - dt * 0.25);
+        dimensionalRift = Math.max(0, dimensionalRift - dt * 0.15);
+        camShake = Math.max(0, camShake - dt * 2.5);
+
+        // Auto events
+        autoEventTimer -= dt;
+        if (autoEventTimer <= 0) {
+            autoEventTimer = 1.5 + Math.random() * 2.5;
+            const event = Math.random();
+            if (event < 0.25) {
+                const a = attractors[Math.floor(Math.random() * attractors.length)];
+                spawnParticles(60, a.state.x * a.scale, a.state.y * a.scale, a.state.z * a.scale, a.w, 2, Math.random() * 360, 2.5, 0.05);
+            } else if (event < 0.45) {
+                chainReaction((Math.random()-0.5)*5, (Math.random()-0.5)*5, (Math.random()-0.5)*5, (Math.random()-0.5), Math.random()*360, 4);
+                camShake = 0.25;
+            } else if (event < 0.6) {
+                // Dimensional pulse
+                for (let w = -1; w <= 1; w += 0.5) {
+                    for (let i = 0; i < 20; i++) {
+                        const angle = (i / 20) * Math.PI * 2;
+                        spawnParticles(5, Math.cos(angle)*4, Math.sin(angle)*4, 0, w, 1, (time*50+w*60)%360, 3, 0.04);
+                    }
+                }
+                dimensionalRift = Math.min(1, dimensionalRift + 0.2);
+            }
+        }
+
+        // Voice events
+        if (sustain > 0.85 && Math.random() < 0.04) {
+            chainReaction(0, 0, 0, 0, smoothPitch * 0.5, 5);
+            dimensionalRift = Math.min(1, dimensionalRift + 0.15);
+        }
+
+        if (screamLevel > 0.6 && Math.random() < 0.12) {
+            spawnParticles(120, 0, 0, 0, (Math.random()-0.5)*2, 5, Math.random()*360, 2.5, 0.07);
+            camShake = 0.5;
+        }
+
+        // HUD
+        const patternIdx = Math.round(freqToPattern(smoothPitch));
+        hzEl.textContent = pitch > 0 ? Math.round(smoothPitch) + ' Hz' : '--';
+        noteEl.innerHTML = freqToNote(smoothPitch) + '<span class="mic' + (pitch > 0 ? ' on' : '') + '"></span>';
+        patternEl.textContent = PATTERNS[patternIdx];
+        chaosEl.textContent = chaosIndex.toFixed(1);
+        dimensionEl.textContent = dimensionalRift > 0.3 ? '5D RIFT' : '4D';
+
+        updateAttractors(dt);
+        spawnFromAttractors(dt);
+        updateParticles(dt);
+
+        particlesEl.textContent = particles.length;
+
+        const points = buildPoints();
+        renderer.setPoints(points);
+
+        camAngle += dt * 0.12 * (1 + chaosIndex * 0.25);
+        renderer.viewMatrix = buildViewMatrix();
+        renderer.setPlasticScale(1.2 + chaosIndex * 0.2 + screamLevel * 0.4);
+        renderer.render();
+    }
+
+    let lastTime = 0;
+    function loop(ts) {
+        if (!running) return;
+        requestAnimationFrame(loop);
+        const dt = Math.min((ts - lastTime) / 1000, 0.1);
+        lastTime = ts;
+        update(dt);
+    }
+
+    canvas.addEventListener('mousedown', e => { isDrag = true; lastX = e.clientX; lastY = e.clientY; });
+    canvas.addEventListener('mousemove', e => {
+        if (!isDrag) return;
+        camAngle += (e.clientX - lastX) * 0.005;
+        camElev = Math.max(-1.2, Math.min(1.2, camElev + (e.clientY - lastY) * 0.005));
+        lastX = e.clientX; lastY = e.clientY;
+    });
+    canvas.addEventListener('mouseup', () => isDrag = false);
+    canvas.addEventListener('click', e => { if (!isDrag) explode(e.clientX, e.clientY); });
+
+    canvas.addEventListener('touchstart', e => {
+        e.preventDefault();
+        isDrag = true;
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+    }, { passive: false });
+    canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        camAngle += (e.touches[0].clientX - lastX) * 0.005;
+        camElev = Math.max(-1.2, Math.min(1.2, camElev + (e.touches[0].clientY - lastY) * 0.005));
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
+    }, { passive: false });
+    canvas.addEventListener('touchend', e => {
+        isDrag = false;
+        if (e.changedTouches[0]) explode(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    });
+
+    canvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        camDist = Math.max(4, Math.min(35, camDist + e.deltaY * 0.02));
+    }, { passive: false });
+
+    document.getElementById('go').addEventListener('click', async () => {
+        renderer = new PhillipsRenderer(canvas, { alpha: true, antialias: false, plasticScale: 1.2, blendMode: 'alpha' });
+        renderer.setCamera(camDist, 70);
+
+        const ok = await initAudio();
+        if (!ok) alert('Microphone recommended for full experience');
+
+        // Initial hyperdimensional burst
+        for (let w = -1; w <= 1; w += 0.5) {
+            spawnParticles(100, 0, 0, 0, w, 3, w * 60 + 180, 4, 0.06);
+        }
+
+        startEl.classList.add('hidden');
+        running = true;
+        lastTime = performance.now();
+        requestAnimationFrame(loop);
+    });
+
+    window.addEventListener('resize', () => renderer?.resize());
+</script>
+</body>
+</html>

@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>PLASTIC COSMOS - Phillips Renderer Showcase</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --void: #000000;
+            --plasma: #ff00ff;
+            --cosmic: #00ffff;
+            --solar: #ffaa00;
+            --nebula: #7b68ee;
+            --plastic: #1a1a2e;
+        }
+
+        @font-face {
+            font-family: 'Cosmos';
+            src: local('SF Mono'), local('Monaco'), local('Consolas');
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--void);
+            font-family: 'Cosmos', monospace;
+            color: #fff;
+            touch-action: none;
+        }
+
+        /* Main Canvas - Full Viewport */
+        #cosmos {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Overlay UI */
+        .ui-layer {
+            position: fixed;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .ui-layer > * {
+            pointer-events: auto;
+        }
+
+        /* Top HUD */
+        .hud-top {
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .logo-block {
+            text-align: left;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            background: linear-gradient(135deg, var(--cosmic) 0%, var(--plasma) 50%, var(--solar) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(255, 0, 255, 0.5);
+            animation: logoShimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes logoShimmer {
+            0%, 100% { filter: brightness(1) hue-rotate(0deg); }
+            50% { filter: brightness(1.3) hue-rotate(15deg); }
+        }
+
+        .subtitle {
+            font-size: 10px;
+            letter-spacing: 4px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 5px;
+        }
+
+        .stats-panel {
+            text-align: right;
+            background: rgba(0,0,0,0.6);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            margin: 4px 0;
+            font-size: 11px;
+        }
+
+        .stat-label {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .stat-value {
+            color: var(--cosmic);
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-value.highlight {
+            color: var(--solar);
+        }
+
+        /* Phase Indicator */
+        .phase-indicator {
+            position: fixed;
+            top: 50%;
+            left: 30px;
+            transform: translateY(-50%);
+            z-index: 100;
+        }
+
+        .phase-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin: 15px 0;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .phase-dot.active {
+            background: var(--plasma);
+            border-color: var(--plasma);
+            box-shadow: 0 0 20px var(--plasma);
+            transform: scale(1.3);
+        }
+
+        .phase-dot:hover {
+            transform: scale(1.2);
+            border-color: var(--cosmic);
+        }
+
+        .phase-label {
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.6);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .phase-dot:hover .phase-label {
+            opacity: 1;
+        }
+
+        /* Audio Visualizer Bar */
+        .audio-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 3px;
+            align-items: flex-end;
+            height: 60px;
+            z-index: 100;
+        }
+
+        .audio-band {
+            width: 4px;
+            background: linear-gradient(to top, var(--plasma), var(--cosmic));
+            border-radius: 2px;
+            transition: height 0.05s ease-out;
+            min-height: 3px;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ctrl-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--cosmic);
+            transform: scale(1.1);
+        }
+
+        .ctrl-btn.active {
+            background: var(--plasma);
+            border-color: var(--plasma);
+            box-shadow: 0 0 20px var(--plasma);
+        }
+
+        /* Intro Overlay */
+        .intro-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--void);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1s ease, visibility 1s;
+        }
+
+        .intro-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .intro-title {
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 15px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--cosmic), var(--plasma));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .intro-subtitle {
+            font-size: 14px;
+            letter-spacing: 5px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 60px;
+        }
+
+        .intro-constant {
+            font-size: 72px;
+            font-weight: 300;
+            color: var(--solar);
+            margin-bottom: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .intro-label {
+            font-size: 12px;
+            letter-spacing: 8px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 60px;
+        }
+
+        .enter-btn {
+            padding: 20px 60px;
+            font-size: 14px;
+            letter-spacing: 5px;
+            border: 2px solid var(--cosmic);
+            background: transparent;
+            color: var(--cosmic);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .enter-btn:hover {
+            background: var(--cosmic);
+            color: var(--void);
+            box-shadow: 0 0 40px var(--cosmic);
+        }
+
+        .intro-permissions {
+            margin-top: 40px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.3);
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        /* Info Panel (toggleable) */
+        .info-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 10, 20, 0.95);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            z-index: 500;
+            backdrop-filter: blur(20px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .info-panel.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .info-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--cosmic);
+        }
+
+        .info-text {
+            font-size: 13px;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 15px;
+        }
+
+        .info-equation {
+            font-size: 18px;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin: 20px 0;
+            color: var(--solar);
+        }
+
+        .info-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Motion Indicator */
+        .motion-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .gyro-display {
+            width: 80px;
+            height: 80px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            position: relative;
+            background: rgba(0,0,0,0.4);
+        }
+
+        .gyro-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--cosmic);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--cosmic);
+            transition: all 0.1s ease-out;
+        }
+
+        .gyro-label {
+            text-align: center;
+            font-size: 8px;
+            margin-top: 8px;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 2px;
+        }
+
+        /* Warp Effect Overlay */
+        .warp-lines {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .warp-lines.active {
+            opacity: 1;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .logo { font-size: 20px; letter-spacing: 4px; }
+            .stats-panel { font-size: 10px; padding: 10px; }
+            .intro-title { font-size: 28px; letter-spacing: 8px; }
+            .intro-constant { font-size: 48px; }
+            .control-panel { bottom: 80px; right: 10px; }
+            .ctrl-btn { width: 44px; height: 44px; font-size: 18px; }
+        }
+
+        /* Scanline effect */
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 50;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0) 0px,
+                rgba(0,0,0,0) 1px,
+                rgba(0,0,0,0.03) 1px,
+                rgba(0,0,0,0.03) 2px
+            );
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Render Canvas -->
+    <canvas id="cosmos"></canvas>
+
+    <!-- Scanline Overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Warp Effect Canvas -->
+    <canvas id="warpCanvas" class="warp-lines"></canvas>
+
+    <!-- Top HUD -->
+    <div class="ui-layer hud-top">
+        <div class="logo-block">
+            <div class="logo">PLASTIC COSMOS</div>
+            <div class="subtitle">PHILLIPS RENDERING SYSTEM SHOWCASE</div>
+        </div>
+        <div class="stats-panel">
+            <div class="stat-row">
+                <span class="stat-label">POINTS</span>
+                <span class="stat-value" id="pointCount">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">FPS</span>
+                <span class="stat-value" id="fps">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">BYTES/SPLAT</span>
+                <span class="stat-value highlight">17</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">DATA RATE</span>
+                <span class="stat-value" id="dataRate">0 KB/s</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">PHASE</span>
+                <span class="stat-value" id="phaseName">GENESIS</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phase Selector -->
+    <div class="ui-layer phase-indicator">
+        <div class="phase-dot active" data-phase="0" onclick="setPhase(0)">
+            <span class="phase-label">GENESIS</span>
+        </div>
+        <div class="phase-dot" data-phase="1" onclick="setPhase(1)">
+            <span class="phase-label">LORENZ ATTRACTOR</span>
+        </div>
+        <div class="phase-dot" data-phase="2" onclick="setPhase(2)">
+            <span class="phase-label">QUANTUM FIELD</span>
+        </div>
+        <div class="phase-dot" data-phase="3" onclick="setPhase(3)">
+            <span class="phase-label">WARP DRIVE</span>
+        </div>
+        <div class="phase-dot" data-phase="4" onclick="setPhase(4)">
+            <span class="phase-label">PADOVAN SPIRAL</span>
+        </div>
+    </div>
+
+    <!-- Audio Visualizer -->
+    <div class="audio-bar" id="audioBar"></div>
+
+    <!-- Control Buttons -->
+    <div class="ui-layer control-panel">
+        <button class="ctrl-btn" id="audioBtn" onclick="toggleAudio()" title="Toggle Audio">
+            🎵
+        </button>
+        <button class="ctrl-btn" id="motionBtn" onclick="toggleMotion()" title="Toggle Motion">
+            📱
+        </button>
+        <button class="ctrl-btn" id="infoBtn" onclick="toggleInfo()" title="System Info">
+            ℹ️
+        </button>
+        <button class="ctrl-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Fullscreen">
+            ⛶
+        </button>
+    </div>
+
+    <!-- Motion Indicator -->
+    <div class="ui-layer motion-indicator">
+        <div class="gyro-display">
+            <div class="gyro-dot" id="gyroDot"></div>
+        </div>
+        <div class="gyro-label">GYRO</div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="info-panel" id="infoPanel">
+        <span class="info-close" onclick="toggleInfo()">×</span>
+        <h2 class="info-title">The Phillips Rendering System</h2>
+        <p class="info-text">
+            A post-photorealistic rendering architecture built on the <strong>Plastic Ratio</strong> (ρ),
+            the unique real solution to the cubic equation:
+        </p>
+        <div class="info-equation">x³ = x + 1 → ρ ≈ 1.324717957244746</div>
+        <p class="info-text">
+            Unlike traditional renderers that simulate light, the Phillips system produces
+            <strong>canonical views</strong>—pure albedo outputs with no lighting calculations.
+            This enables:
+        </p>
+        <p class="info-text">
+            • <strong>17 bytes/splat</strong> compression (vs 200+ for standard Gaussian Splats)<br>
+            • <strong>Infinite resolution</strong> through point-based rendering<br>
+            • <strong>Deterministic outputs</strong> for AI/ML applications<br>
+            • <strong>Moiré-free sampling</strong> via Plastic low-discrepancy sequences
+        </p>
+        <p class="info-text">
+            <strong>Controls:</strong> Tilt your device to navigate the phase space.
+            Audio reactivity modulates point scales and colors in real-time.
+        </p>
+    </div>
+
+    <!-- Intro Overlay -->
+    <div class="intro-overlay" id="introOverlay">
+        <div class="intro-title">PLASTIC COSMOS</div>
+        <div class="intro-subtitle">A PHILLIPS RENDERING EXPERIENCE</div>
+        <div class="intro-constant">ρ ≈ 1.324718</div>
+        <div class="intro-label">THE PLASTIC CONSTANT</div>
+        <button class="enter-btn" onclick="enterCosmos()">ENTER THE VOID</button>
+        <div class="intro-permissions">
+            Audio and motion permissions enhance the experience<br>
+            Best viewed in fullscreen on mobile
+        </div>
+    </div>
+
+    <script type="module">
+        // ═══════════════════════════════════════════════════════════════════
+        // PLASTIC COSMOS - Phillips Renderer Showcase
+        // A demonstration of post-photorealistic rendering
+        // ═══════════════════════════════════════════════════════════════════
+
+        import { PhillipsRenderer } from '../src/systems/PhillipsRenderer.js';
+        import {
+            PLASTIC_CONSTANT,
+            PLASTIC_ALPHA_1,
+            PLASTIC_ALPHA_2,
+            getPlasticSamplingPoint,
+            getPlasticPower,
+            getPadovanSequence
+        } from '../src/math/Plastic.js';
+
+        // ─────────────────────────────────────────────────────────────────────
+        // GLOBAL STATE
+        // ─────────────────────────────────────────────────────────────────────
+
+        const State = {
+            renderer: null,
+            audioContext: null,
+            analyser: null,
+            audioData: null,
+            audioEnabled: false,
+            motionEnabled: false,
+            currentPhase: 0,
+            time: 0,
+            gyro: { x: 0, y: 0, z: 0 },
+            targetGyro: { x: 0, y: 0, z: 0 },
+            velocity: { x: 0, y: 0, z: 0 },
+            cameraPos: { x: 0, y: 0, z: 5 },
+            baseHue: 280,
+            pointCount: 8000,
+            fps: 0,
+            frameCount: 0,
+            lastFpsTime: performance.now()
+        };
+
+        // Phase configurations
+        const Phases = [
+            {
+                name: 'GENESIS',
+                pointCount: 8000,
+                generator: generateGenesisField,
+                colorScheme: [280, 320], // Purple to pink
+                speed: 0.3
+            },
+            {
+                name: 'LORENZ ATTRACTOR',
+                pointCount: 15000,
+                generator: generateLorenzAttractor,
+                colorScheme: [180, 240], // Cyan to blue
+                speed: 0.5
+            },
+            {
+                name: 'QUANTUM FIELD',
+                pointCount: 20000,
+                generator: generateQuantumField,
+                colorScheme: [30, 60], // Orange to yellow
+                speed: 0.8
+            },
+            {
+                name: 'WARP DRIVE',
+                pointCount: 12000,
+                generator: generateWarpField,
+                colorScheme: [200, 280], // Blue to purple
+                speed: 2.0
+            },
+            {
+                name: 'PADOVAN SPIRAL',
+                pointCount: 10000,
+                generator: generatePadovanSpiral,
+                colorScheme: [100, 160], // Green to cyan
+                speed: 0.4
+            }
+        ];
+
+        // ─────────────────────────────────────────────────────────────────────
+        // POINT GENERATORS - The Mathematical Heart
+        // ─────────────────────────────────────────────────────────────────────
+
+        /**
+         * GENESIS FIELD - Pure Plastic Ratio distribution
+         * Demonstrates the low-discrepancy sampling with no clustering
+         */
+        function generateGenesisField(count, time, audio, gyro) {
+            const points = [];
+            const audioScale = audio ? 1 + audio.bass * 0.5 : 1;
+            const audioHue = audio ? audio.mid * 60 : 0;
+
+            for (let i = 0; i < count; i++) {
+                const sample = getPlasticSamplingPoint(i, 0.5);
+
+                // Spherical distribution using Plastic sampling
+                const phi = sample.x * Math.PI * 2;
+                const theta = Math.acos(2 * sample.y - 1);
+                const r = 2 + Math.sin(time * 0.5 + i * 0.01) * 0.3;
+
+                // Apply gyro rotation
+                let x = r * Math.sin(theta) * Math.cos(phi);
+                let y = r * Math.sin(theta) * Math.sin(phi);
+                let z = r * Math.cos(theta);
+
+                // Rotate by gyro
+                const rotX = gyro.x * 0.02;
+                const rotY = gyro.y * 0.02;
+                const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+                const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+
+                const y1 = y * cosX - z * sinX;
+                const z1 = y * sinX + z * cosX;
+                const x1 = x * cosY + z1 * sinY;
+                const z2 = -x * sinY + z1 * cosY;
+
+                const hue = (280 + i * 0.02 + audioHue + time * 10) % 360;
+                const scale = 0.04 * audioScale * getPlasticPower((i % 5) - 2);
+
+                points.push({
+                    x: x1, y: y1, z: z2,
+                    scale,
+                    color: hslToRgb(hue / 360, 0.8, 0.55)
+                });
+            }
+            return points;
+        }
+
+        /**
+         * LORENZ ATTRACTOR - Classic chaos visualization
+         * Shows how Plastic sampling traces strange attractors
+         */
+        function generateLorenzAttractor(count, time, audio, gyro) {
+            const points = [];
+            const sigma = 10, rho = 28, beta = 8/3;
+            let x = 0.1, y = 0, z = 0;
+            const dt = 0.005;
+            const audioMod = audio ? 1 + audio.bass * 0.3 : 1;
+
+            // Pre-iterate to reach attractor
+            for (let i = 0; i < 1000; i++) {
+                const dx = sigma * (y - x);
+                const dy = x * (rho - z) - y;
+                const dz = x * y - beta * z;
+                x += dx * dt; y += dy * dt; z += dz * dt;
+            }
+
+            for (let i = 0; i < count; i++) {
+                const dx = sigma * (y - x);
+                const dy = x * (rho - z) - y;
+                const dz = x * y - beta * z;
+                x += dx * dt; y += dy * dt; z += dz * dt;
+
+                // Apply time-based rotation and gyro
+                const angle = time * 0.2 + gyro.x * 0.01;
+                const cos = Math.cos(angle), sin = Math.sin(angle);
+                const px = (x * cos - y * sin) * 0.08;
+                const py = (x * sin + y * cos) * 0.08;
+                const pz = (z - 25) * 0.08 + gyro.y * 0.02;
+
+                const hue = (200 + z * 2 + time * 20) % 360;
+                const scale = 0.03 * audioMod * (1 + Math.sin(i * 0.1) * 0.2);
+
+                points.push({
+                    x: px, y: py, z: pz,
+                    scale,
+                    color: hslToRgb(hue / 360, 0.9, 0.5)
+                });
+            }
+            return points;
+        }
+
+        /**
+         * QUANTUM FIELD - Probability density visualization
+         * Demonstrates infinite resolution: zoom reveals more structure
+         */
+        function generateQuantumField(count, time, audio, gyro) {
+            const points = [];
+            const audioEnergy = audio ? audio.bass + audio.mid * 0.5 : 0.5;
+
+            for (let i = 0; i < count; i++) {
+                const sample = getPlasticSamplingPoint(i);
+
+                // Quantum probability distribution (simplified hydrogen orbital)
+                const r = -Math.log(1 - sample.x * 0.999) * 1.5;
+                const theta = sample.y * Math.PI * 2;
+                const phi = getPlasticSamplingPoint(i + count).x * Math.PI;
+
+                // Spherical harmonics influence
+                const n = 3, l = 2, m = 1;
+                const Ylm = Math.sin(phi) * Math.cos(m * theta);
+                const R = Math.exp(-r / n) * Math.pow(r, l);
+                const probability = R * R * Ylm * Ylm;
+
+                let x = r * Math.sin(phi) * Math.cos(theta);
+                let y = r * Math.sin(phi) * Math.sin(theta);
+                let z = r * Math.cos(phi);
+
+                // Pulsing with audio
+                const pulse = 1 + Math.sin(time * 2 + r) * 0.2 * audioEnergy;
+                x *= pulse; y *= pulse; z *= pulse;
+
+                // Gyro rotation
+                const rotZ = gyro.x * 0.015;
+                const cos = Math.cos(rotZ), sin = Math.sin(rotZ);
+                const x1 = x * cos - y * sin;
+                const y1 = x * sin + y * cos;
+
+                const hue = (40 + probability * 200 + time * 30) % 360;
+                const brightness = 0.4 + probability * 0.4;
+
+                points.push({
+                    x: x1, y: y1 + gyro.y * 0.01, z,
+                    scale: 0.025 * (0.5 + probability * 2) * (1 + audioEnergy * 0.3),
+                    color: hslToRgb(hue / 360, 0.85, brightness)
+                });
+            }
+            return points;
+        }
+
+        /**
+         * WARP DRIVE - First-person tunnel effect
+         * Maximum speed, audio-reactive intensity
+         */
+        function generateWarpField(count, time, audio, gyro) {
+            const points = [];
+            const warpSpeed = audio ? 2 + audio.bass * 3 : 2;
+            const intensity = audio ? 0.5 + audio.high * 0.5 : 0.5;
+
+            for (let i = 0; i < count; i++) {
+                const sample = getPlasticSamplingPoint(i);
+
+                // Tunnel coordinates
+                const angle = sample.x * Math.PI * 2;
+                const radius = 0.3 + sample.y * 2;
+
+                // Z position cycles through the tunnel
+                let z = ((time * warpSpeed + i * 0.5) % 20) - 10;
+
+                // Spiral effect
+                const spiralAngle = angle + z * 0.3 + gyro.x * 0.02;
+                const x = Math.cos(spiralAngle) * radius;
+                const y = Math.sin(spiralAngle) * radius + gyro.y * 0.02;
+
+                // Stars stretch with speed
+                const stretch = 1 + (10 - Math.abs(z)) * 0.1 * warpSpeed * 0.3;
+
+                const hue = (220 + z * 5 + angle * 30) % 360;
+                const brightness = 0.3 + (1 - Math.abs(z) / 10) * 0.5 * intensity;
+
+                points.push({
+                    x, y, z,
+                    scale: 0.02 * stretch * (1 + intensity),
+                    color: hslToRgb(hue / 360, 0.7, brightness)
+                });
+            }
+            return points;
+        }
+
+        /**
+         * PADOVAN SPIRAL - The Plastic Ratio visualized directly
+         * Each point placement follows the Padovan sequence
+         */
+        function generatePadovanSpiral(count, time, audio, gyro) {
+            const points = [];
+            const padovan = getPadovanSequence(Math.min(50, Math.floor(count / 200)));
+            const audioMod = audio ? 1 + audio.mid * 0.4 : 1;
+
+            for (let i = 0; i < count; i++) {
+                const sample = getPlasticSamplingPoint(i);
+
+                // Determine which Padovan "ring" this point belongs to
+                const ringIndex = i % padovan.length;
+                const padovanRadius = padovan[ringIndex] * 0.15;
+
+                // Angle based on Plastic constant
+                const angle = i * PLASTIC_ALPHA_1 * Math.PI * 2;
+
+                // 3D spiral using both Plastic alphas
+                const heightFactor = i * PLASTIC_ALPHA_2 * 0.002;
+                const z = Math.sin(heightFactor * 10 + time) * 2;
+
+                let x = Math.cos(angle + time * 0.3) * padovanRadius * audioMod;
+                let y = Math.sin(angle + time * 0.3) * padovanRadius * audioMod;
+
+                // Gyro influence
+                x += gyro.x * 0.015;
+                y += gyro.y * 0.015;
+
+                // Color follows the spiral
+                const hue = (120 + angle * 20 + time * 15) % 360;
+                const scale = 0.03 + (padovanRadius * 0.02) * audioMod;
+
+                points.push({
+                    x, y, z,
+                    scale,
+                    color: hslToRgb(hue / 360, 0.75, 0.5)
+                });
+            }
+            return points;
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // AUDIO SYSTEM
+        // ─────────────────────────────────────────────────────────────────────
+
+        async function initAudio() {
+            try {
+                State.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                State.analyser = State.audioContext.createAnalyser();
+                State.analyser.fftSize = 256;
+                State.audioData = new Uint8Array(State.analyser.frequencyBinCount);
+
+                // Try to get microphone
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const source = State.audioContext.createMediaStreamSource(stream);
+                source.connect(State.analyser);
+
+                State.audioEnabled = true;
+                document.getElementById('audioBtn').classList.add('active');
+
+                // Create audio bar bands
+                const audioBar = document.getElementById('audioBar');
+                audioBar.innerHTML = '';
+                for (let i = 0; i < 32; i++) {
+                    const band = document.createElement('div');
+                    band.className = 'audio-band';
+                    audioBar.appendChild(band);
+                }
+
+                console.log('Audio initialized');
+            } catch (err) {
+                console.warn('Audio not available:', err);
+                // Create synthetic audio
+                createSyntheticAudio();
+            }
+        }
+
+        function createSyntheticAudio() {
+            State.audioEnabled = true;
+            State.syntheticAudio = true;
+            document.getElementById('audioBtn').classList.add('active');
+
+            const audioBar = document.getElementById('audioBar');
+            audioBar.innerHTML = '';
+            for (let i = 0; i < 32; i++) {
+                const band = document.createElement('div');
+                band.className = 'audio-band';
+                audioBar.appendChild(band);
+            }
+        }
+
+        function getAudioLevels() {
+            if (!State.audioEnabled) return null;
+
+            if (State.syntheticAudio) {
+                // Generate synthetic audio based on time
+                const t = State.time;
+                return {
+                    bass: 0.5 + Math.sin(t * 0.5) * 0.3 + Math.sin(t * 0.7) * 0.2,
+                    mid: 0.4 + Math.sin(t * 1.2) * 0.3 + Math.sin(t * 0.3) * 0.2,
+                    high: 0.3 + Math.sin(t * 2.5) * 0.25 + Math.sin(t * 3.1) * 0.15,
+                    raw: new Array(32).fill(0).map((_, i) =>
+                        0.3 + Math.sin(t * (0.5 + i * 0.1)) * 0.4
+                    )
+                };
+            }
+
+            State.analyser.getByteFrequencyData(State.audioData);
+
+            const bass = average(State.audioData, 0, 4) / 255;
+            const mid = average(State.audioData, 4, 16) / 255;
+            const high = average(State.audioData, 16, 32) / 255;
+
+            return { bass, mid, high, raw: Array.from(State.audioData).slice(0, 32).map(v => v / 255) };
+        }
+
+        function average(arr, start, end) {
+            let sum = 0;
+            for (let i = start; i < end && i < arr.length; i++) sum += arr[i];
+            return sum / (end - start);
+        }
+
+        function updateAudioBars(audio) {
+            if (!audio || !audio.raw) return;
+            const bars = document.querySelectorAll('.audio-band');
+            bars.forEach((bar, i) => {
+                const height = audio.raw[i] * 50 + 3;
+                bar.style.height = `${height}px`;
+            });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // MOTION SYSTEM
+        // ─────────────────────────────────────────────────────────────────────
+
+        function initMotion() {
+            if (typeof DeviceOrientationEvent !== 'undefined' &&
+                typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS 13+
+                DeviceOrientationEvent.requestPermission()
+                    .then(response => {
+                        if (response === 'granted') {
+                            enableMotion();
+                        }
+                    })
+                    .catch(console.error);
+            } else if (window.DeviceOrientationEvent) {
+                enableMotion();
+            }
+        }
+
+        function enableMotion() {
+            window.addEventListener('deviceorientation', handleOrientation);
+            State.motionEnabled = true;
+            document.getElementById('motionBtn').classList.add('active');
+            console.log('Motion enabled');
+        }
+
+        function handleOrientation(event) {
+            State.targetGyro.x = (event.gamma || 0); // Left/right tilt
+            State.targetGyro.y = (event.beta || 0) - 45; // Front/back tilt (centered at 45°)
+            State.targetGyro.z = event.alpha || 0; // Compass
+        }
+
+        function updateGyro() {
+            // Smooth interpolation
+            const smoothing = 0.1;
+            State.gyro.x += (State.targetGyro.x - State.gyro.x) * smoothing;
+            State.gyro.y += (State.targetGyro.y - State.gyro.y) * smoothing;
+            State.gyro.z += (State.targetGyro.z - State.gyro.z) * smoothing;
+
+            // Update visual indicator
+            const dot = document.getElementById('gyroDot');
+            const maxOffset = 30;
+            const offsetX = Math.max(-maxOffset, Math.min(maxOffset, State.gyro.x * 0.8));
+            const offsetY = Math.max(-maxOffset, Math.min(maxOffset, State.gyro.y * 0.5));
+            dot.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+        }
+
+        // Mouse fallback for desktop
+        function initMouseControl() {
+            document.addEventListener('mousemove', (e) => {
+                if (!State.motionEnabled) {
+                    const centerX = window.innerWidth / 2;
+                    const centerY = window.innerHeight / 2;
+                    State.targetGyro.x = (e.clientX - centerX) * 0.1;
+                    State.targetGyro.y = (e.clientY - centerY) * 0.1;
+                }
+            });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // RENDERING
+        // ─────────────────────────────────────────────────────────────────────
+
+        function initRenderer() {
+            const canvas = document.getElementById('cosmos');
+            State.renderer = new PhillipsRenderer(canvas, {
+                plasticScale: 1.0,
+                blendMode: 'alpha'
+            });
+            State.renderer.setCamera(5, 60);
+        }
+
+        function render() {
+            requestAnimationFrame(render);
+
+            State.time += 0.016 * Phases[State.currentPhase].speed;
+
+            // Get inputs
+            const audio = getAudioLevels();
+            updateGyro();
+            updateAudioBars(audio);
+
+            // Generate points for current phase
+            const phase = Phases[State.currentPhase];
+            const points = phase.generator(phase.pointCount, State.time, audio, State.gyro);
+
+            // Update renderer
+            State.renderer.setPoints(points);
+            State.renderer.setPlasticScale(1.0 + (audio ? audio.bass * 0.3 : 0));
+            State.renderer.render();
+
+            // Update stats
+            updateStats(points.length);
+        }
+
+        function updateStats(pointCount) {
+            State.frameCount++;
+            const now = performance.now();
+            if (now - State.lastFpsTime >= 1000) {
+                State.fps = State.frameCount;
+                State.frameCount = 0;
+                State.lastFpsTime = now;
+                document.getElementById('fps').textContent = State.fps;
+            }
+
+            document.getElementById('pointCount').textContent = pointCount.toLocaleString();
+
+            const dataRate = (pointCount * 17 * State.fps / 1024).toFixed(1);
+            document.getElementById('dataRate').textContent = `${dataRate} KB/s`;
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // UI CONTROLS
+        // ─────────────────────────────────────────────────────────────────────
+
+        window.setPhase = function(index) {
+            State.currentPhase = index;
+            State.time = 0;
+
+            // Update dots
+            document.querySelectorAll('.phase-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+
+            // Update label
+            document.getElementById('phaseName').textContent = Phases[index].name;
+
+            // Trigger warp effect on phase change
+            triggerWarpEffect();
+        };
+
+        window.toggleAudio = async function() {
+            if (!State.audioEnabled) {
+                await initAudio();
+            } else {
+                State.audioEnabled = false;
+                document.getElementById('audioBtn').classList.remove('active');
+            }
+        };
+
+        window.toggleMotion = function() {
+            if (!State.motionEnabled) {
+                initMotion();
+            } else {
+                State.motionEnabled = false;
+                document.getElementById('motionBtn').classList.remove('active');
+            }
+        };
+
+        window.toggleInfo = function() {
+            document.getElementById('infoPanel').classList.toggle('visible');
+        };
+
+        window.toggleFullscreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
+        window.enterCosmos = async function() {
+            document.getElementById('introOverlay').classList.add('hidden');
+            await initAudio();
+            initMotion();
+        };
+
+        function triggerWarpEffect() {
+            const warpCanvas = document.getElementById('warpCanvas');
+            warpCanvas.classList.add('active');
+            setTimeout(() => warpCanvas.classList.remove('active'), 500);
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // UTILITIES
+        // ─────────────────────────────────────────────────────────────────────
+
+        function hslToRgb(h, s, l) {
+            let r, g, b;
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // INITIALIZATION
+        // ─────────────────────────────────────────────────────────────────────
+
+        function init() {
+            initRenderer();
+            initMouseControl();
+            render();
+            console.log(`
+╔═══════════════════════════════════════════════════════════╗
+║           PLASTIC COSMOS - Phillips Renderer              ║
+║═══════════════════════════════════════════════════════════║
+║  The Plastic Constant: ρ ≈ ${PLASTIC_CONSTANT.toFixed(15)}        ║
+║  Satisfies: x³ = x + 1                                    ║
+║                                                           ║
+║  Sampling Constants:                                      ║
+║    α₁ = 1/ρ  ≈ ${PLASTIC_ALPHA_1.toFixed(15)}         ║
+║    α₂ = 1/ρ² ≈ ${PLASTIC_ALPHA_2.toFixed(15)}         ║
+║                                                           ║
+║  Compression: ~17 bytes/splat (vs 200+ standard)          ║
+╚═══════════════════════════════════════════════════════════╝
+            `);
+        }
+
+        init();
+    </script>
+</body>
+</html>

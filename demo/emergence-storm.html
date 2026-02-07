@@ -3,607 +3,657 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VOICE CRYSTALS</title>
+    <title>EMERGENCE STORM - Phillips Renderer</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
             width: 100%; height: 100%;
             overflow: hidden;
             background: #000;
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: system-ui, sans-serif;
             color: #fff;
             touch-action: none;
-            -webkit-tap-highlight-color: transparent;
         }
-        canvas {
+        #canvas {
             position: fixed;
             top: 0; left: 0;
-            width: 100%; height: 100%;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
+            width: 100%;
+            height: 100%;
         }
         .hud {
             position: fixed;
             z-index: 100;
             pointer-events: none;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px #000, 0 0 20px #000;
         }
-        .top-bar {
-            top: 0; left: 0; right: 0;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-        }
-        .pitch-display {
-            font-size: 32px;
-            font-weight: 900;
-            color: #fff;
-            text-shadow: 0 0 30px currentColor;
-        }
-        .pattern-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: #0ff;
-            text-shadow: 0 0 20px #0ff;
-        }
+        .top-left { top: 12px; left: 12px; }
+        .top-right { top: 12px; right: 12px; text-align: right; }
+        .bottom { bottom: 12px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,0.5); font-size: 10px; }
+        .pattern { font-size: 18px; font-weight: 700; color: #0ff; margin-bottom: 4px; }
+        .pitch { font-size: 28px; font-weight: 900; color: #fff; }
+        .note { font-size: 14px; color: #ff0; margin-top: 2px; }
+        .stat { color: #888; margin: 2px 0; }
+        .stat span { color: #0f0; }
         .mic-indicator {
-            width: 12px; height: 12px;
+            display: inline-block;
+            width: 10px; height: 10px;
             border-radius: 50%;
-            background: #0f0;
-            box-shadow: 0 0 10px #0f0;
-            animation: blink 1s infinite;
+            background: #f00;
+            margin-left: 8px;
+            vertical-align: middle;
         }
-        .mic-indicator.off { background: #f00; box-shadow: 0 0 10px #f00; animation: none; }
-        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .bottom-bar {
-            bottom: 0; left: 0; right: 0;
-            padding: 20px;
-            text-align: center;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-        }
-        .hint { color: rgba(255,255,255,0.5); font-size: 12px; }
-        .start-screen {
+        .mic-indicator.active { background: #0f0; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .start {
             position: fixed;
             inset: 0;
-            background: #000;
+            background: linear-gradient(135deg, #000 0%, #111 100%);
+            z-index: 1000;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
         }
-        .start-screen.hidden { display: none; }
-        .start-screen h1 {
+        .start.hidden { display: none; }
+        .start h1 {
             font-size: 36px;
-            font-weight: 900;
             color: #0ff;
+            margin-bottom: 10px;
+            letter-spacing: 8px;
+            text-shadow: 0 0 30px #0ff;
+        }
+        .start h2 {
+            font-size: 14px;
+            color: #666;
             margin-bottom: 30px;
             letter-spacing: 4px;
         }
-        .start-screen p {
-            color: #888;
-            font-size: 14px;
-            margin: 8px 0;
-        }
-        .start-screen p strong { color: #fff; }
-        .start-btn {
+        .start p { color: #888; font-size: 13px; margin: 6px 0; }
+        .start button {
             margin-top: 40px;
             padding: 18px 60px;
             font-size: 18px;
             font-weight: 700;
-            background: #0ff;
+            background: linear-gradient(135deg, #0ff, #f0f);
             border: none;
             color: #000;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 50px;
+            letter-spacing: 2px;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .start button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 60px rgba(0, 255, 255, 0.6);
         }
     </style>
 </head>
 <body>
-    <canvas id="c"></canvas>
+    <canvas id="canvas"></canvas>
 
-    <div class="hud top-bar">
-        <div>
-            <div class="pattern-name" id="pattern">READY</div>
-        </div>
-        <div style="text-align: right;">
-            <div class="pitch-display" id="pitch">--</div>
-            <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-top: 5px;">
-                <span style="font-size: 11px; color: #888;">MIC</span>
-                <div class="mic-indicator" id="mic"></div>
-            </div>
-        </div>
+    <div class="hud top-left">
+        <div class="pattern" id="pattern">READY</div>
+        <div class="stat">Attractor: <span id="attractor">--</span></div>
+        <div class="stat">Complexity: <span id="complexity">0.00</span></div>
+        <div class="stat">Cascade: <span id="cascade">0</span></div>
+        <div class="stat">Particles: <span id="particles">0</span></div>
     </div>
 
-    <div class="hud bottom-bar">
-        <div class="hint">HUM LOW → SPIRALS • WHISTLE HIGH → CRYSTALS • TAP → BURST</div>
+    <div class="hud top-right">
+        <div class="pitch" id="hz">--</div>
+        <div class="note" id="note">--<span class="mic-indicator" id="mic"></span></div>
     </div>
 
-    <div class="start-screen" id="start">
-        <h1>VOICE CRYSTALS</h1>
-        <p><strong>Hum low</strong> for spirals and waves</p>
-        <p><strong>Hum mid</strong> for flowers and stars</p>
-        <p><strong>Whistle high</strong> for crystals and fractals</p>
-        <p><strong>Hold steady</strong> for more detail</p>
-        <p><strong>Tap screen</strong> to explode</p>
-        <button class="start-btn" id="go">START</button>
+    <div class="hud bottom">
+        HUM LOW (80-200Hz) for SPIRALS | WHISTLE HIGH (500Hz+) for CRYSTALS | DRAG to ORBIT | TAP to BURST
     </div>
 
-    <script>
-    (function() {
-        const canvas = document.getElementById('c');
-        const ctx = canvas.getContext('2d', { alpha: false });
+    <div class="start" id="start">
+        <h1>EMERGENCE STORM</h1>
+        <h2>PHILLIPS RENDERER</h2>
+        <p>Uses WebGL Gaussian Splat rendering with Plastic Ratio</p>
+        <p>Hum, sing, or whistle to control emergent patterns</p>
+        <p>Hold steady tones to increase complexity</p>
+        <p>Drag to orbit the 3D view</p>
+        <button id="go">START EXPERIENCE</button>
+    </div>
 
-        let W, H, CX, CY;
-        let running = false;
-        let time = 0;
+<script type="module">
+    import { PhillipsRenderer } from '../src/systems/PhillipsRenderer.js';
+    import {
+        PLASTIC_CONSTANT,
+        PLASTIC_CONSTANT_INV,
+        PLASTIC_ALPHA_1,
+        PLASTIC_ALPHA_2,
+        getPlasticSamplingPoint3D,
+        getPlasticPower,
+        lorenzStep,
+        rosslerStep,
+        thomasStep,
+        aizawaStep,
+        halvorsenStep,
+        EmergentComplexity
+    } from '../src/math/Plastic.js';
 
-        // Audio
-        let audioCtx, analyser, audioData;
-        let pitch = 0, smoothPitch = 0, volume = 0, sustain = 0;
+    // DOM elements
+    const canvas = document.getElementById('canvas');
+    const patternEl = document.getElementById('pattern');
+    const hzEl = document.getElementById('hz');
+    const noteEl = document.getElementById('note');
+    const micEl = document.getElementById('mic');
+    const attractorEl = document.getElementById('attractor');
+    const complexityEl = document.getElementById('complexity');
+    const cascadeEl = document.getElementById('cascade');
+    const particlesEl = document.getElementById('particles');
+    const startEl = document.getElementById('start');
+    const goBtn = document.getElementById('go');
 
-        // Pattern
-        let pattern = 0, targetPattern = 0;
-        const PATTERNS = ['VOID', 'WAVE', 'SPIRAL', 'FLOWER', 'STAR', 'CRYSTAL', 'FRACTAL', 'MANDALA', 'BURST'];
+    // Systems
+    let renderer = null;
+    let emergence = null;
 
-        // Particles for tap explosions
-        let particles = [];
+    // Audio
+    let audioCtx = null;
+    let analyser = null;
+    let audioData = null;
 
-        function resize() {
-            W = window.innerWidth;
-            H = window.innerHeight;
-            CX = W / 2;
-            CY = H / 2;
+    // State
+    let running = false;
+    let time = 0;
+    let pitch = 0;
+    let smoothPitch = 0;
+    let volume = 0;
+    let sustain = 0;
+    let patternIndex = 0;
 
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = W * dpr;
-            canvas.height = H * dpr;
-            canvas.style.width = W + 'px';
-            canvas.style.height = H + 'px';
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            ctx.imageSmoothingEnabled = false;
+    // Camera
+    let cameraAngle = 0;
+    let cameraElevation = 0.3;
+    let cameraDistance = 10;
+    let isDragging = false;
+    let lastX = 0, lastY = 0;
+
+    // Extra burst particles
+    let burstParticles = [];
+
+    // Pattern names
+    const PATTERNS = [
+        'VOID SPIRAL',
+        'WAVE FORM',
+        'HELIX CASCADE',
+        'BLOOM FRACTAL',
+        'STELLAR CORE',
+        'CRYSTAL MATRIX',
+        'DIMENSIONAL RIFT',
+        'HARMONIC FIELD',
+        'QUANTUM FOAM',
+        'COSMIC WEB'
+    ];
+
+    const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+    function freqToNote(f) {
+        if (f < 20) return '--';
+        const n = 12 * Math.log2(f / 440) + 69;
+        return NOTES[Math.round(n) % 12] + Math.floor(n / 12 - 1);
+    }
+
+    function freqToPattern(f) {
+        if (f < 80) return 0;
+        if (f < 120) return 1;
+        if (f < 180) return 2;
+        if (f < 250) return 3;
+        if (f < 350) return 4;
+        if (f < 500) return 5;
+        if (f < 700) return 6;
+        if (f < 1000) return 7;
+        if (f < 1400) return 8;
+        return 9;
+    }
+
+    async function initAudio() {
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 2048;
+            analyser.smoothingTimeConstant = 0.3;
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            });
+
+            audioCtx.createMediaStreamSource(stream).connect(analyser);
+            audioData = new Float32Array(analyser.fftSize);
+            micEl.classList.add('active');
+            return true;
+        } catch (e) {
+            console.error('Mic error:', e);
+            return false;
         }
+    }
 
-        async function initAudio() {
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 2048;
-                analyser.smoothingTimeConstant = 0.5;
+    function detectPitch() {
+        if (!analyser || !audioData) return 0;
 
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-                });
-                audioCtx.createMediaStreamSource(stream).connect(analyser);
-                audioData = new Float32Array(analyser.fftSize);
+        analyser.getFloatTimeDomainData(audioData);
 
-                document.getElementById('mic').classList.remove('off');
-                return true;
-            } catch(e) {
-                document.getElementById('mic').classList.add('off');
-                return false;
+        // Calculate RMS volume
+        let sum = 0;
+        for (let i = 0; i < audioData.length; i++) {
+            sum += audioData[i] * audioData[i];
+        }
+        volume = Math.sqrt(sum / audioData.length) * 10;
+
+        if (volume < 0.03) return 0;
+
+        // Autocorrelation pitch detection
+        const len = audioData.length / 2;
+        let best = 0, bestLag = 0;
+
+        for (let lag = 30; lag < len; lag++) {
+            let c = 0;
+            for (let i = 0; i < len; i++) {
+                c += audioData[i] * audioData[i + lag];
+            }
+            if (c > best) {
+                best = c;
+                bestLag = lag;
             }
         }
 
-        function getPitch() {
-            if (!analyser) return 0;
-            analyser.getFloatTimeDomainData(audioData);
+        if (best < 0.05) return 0;
 
-            // Volume
-            let sum = 0;
-            for (let i = 0; i < audioData.length; i++) sum += audioData[i] * audioData[i];
-            volume = Math.sqrt(sum / audioData.length) * 8;
-            if (volume < 0.05) return 0;
+        const freq = audioCtx.sampleRate / bestLag;
+        return (freq > 50 && freq < 1600) ? freq : 0;
+    }
 
-            // Autocorrelation pitch detection
-            const len = audioData.length / 2;
-            let best = 0, bestLag = 0;
-            for (let lag = 30; lag < len; lag++) {
-                let c = 0;
-                for (let i = 0; i < len; i++) c += audioData[i] * audioData[i + lag];
-                if (c > best) { best = c; bestLag = lag; }
-            }
-            if (best < 0.1) return 0;
+    // Build view matrix from camera angles
+    function buildViewMatrix() {
+        const cosY = Math.cos(cameraAngle);
+        const sinY = Math.sin(cameraAngle);
+        const cosX = Math.cos(cameraElevation);
+        const sinX = Math.sin(cameraElevation);
 
-            const f = audioCtx.sampleRate / bestLag;
-            return (f > 60 && f < 1500) ? f : 0;
-        }
+        return new Float32Array([
+            cosY, sinX * sinY, -cosX * sinY, 0,
+            0, cosX, sinX, 0,
+            sinY, -sinX * cosY, cosX * cosY, 0,
+            0, 0, -cameraDistance, 1
+        ]);
+    }
 
-        function pitchToPattern(f) {
-            if (f < 90) return 0;
-            if (f < 130) return 1;
-            if (f < 180) return 2;
-            if (f < 250) return 3;
-            if (f < 350) return 4;
-            if (f < 500) return 5;
-            if (f < 800) return 6;
-            if (f < 1200) return 7;
-            return 8;
-        }
+    // Apply pattern-specific transformation to points
+    function applyPatternTransform(points, pattern, t, voiceEnergy) {
+        const idx = Math.round(pattern);
+        const transformed = [];
 
-        function hsl(h, s, l) {
-            return `hsl(${h % 360}, ${s}%, ${l}%)`;
-        }
+        for (let i = 0; i < points.length; i++) {
+            let { x, y, z, scale, color } = points[i];
 
-        // Sharp geometric drawing functions
-        function drawVoid(size, t, hue) {
-            for (let i = 0; i < 6; i++) {
-                const r = size * (0.2 + i * 0.15);
-                ctx.strokeStyle = hsl(hue + i * 15, 100, 60);
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(CX, CY, r, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-        }
+            // Base transformations per pattern
+            switch (idx) {
+                case 0: // VOID SPIRAL - slow rotation
+                    const voidAngle = Math.atan2(y, x) + t * 0.3;
+                    const voidR = Math.sqrt(x * x + y * y);
+                    x = Math.cos(voidAngle) * voidR;
+                    y = Math.sin(voidAngle) * voidR;
+                    break;
 
-        function drawWave(size, t, hue, complexity) {
-            const waves = 3;
-            for (let w = 0; w < waves; w++) {
-                ctx.strokeStyle = hsl(hue + w * 40, 100, 60);
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                const pts = Math.floor(50 * complexity);
-                for (let i = 0; i <= pts; i++) {
-                    const x = (i / pts) * W;
-                    const y = CY + Math.sin((i / pts) * Math.PI * 4 + t * 2 + w) * size * 0.5
-                            + Math.sin((i / pts) * Math.PI * 8 + t * 3) * size * 0.2;
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                ctx.stroke();
-            }
-        }
+                case 1: // WAVE FORM - sinusoidal displacement
+                    z += Math.sin(x * 3 + t * 2) * 0.3 * voiceEnergy;
+                    y += Math.cos(z * 2 + t * 1.5) * 0.2 * voiceEnergy;
+                    break;
 
-        function drawSpiral(size, t, hue, complexity) {
-            const arms = 4;
-            const pts = Math.floor(80 * complexity);
-            for (let a = 0; a < arms; a++) {
-                ctx.strokeStyle = hsl(hue + a * 30, 100, 60);
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                for (let i = 0; i < pts; i++) {
-                    const angle = (i / pts) * Math.PI * 6 + (a / arms) * Math.PI * 2 + t;
-                    const r = (i / pts) * size;
-                    const x = CX + Math.cos(angle) * r;
-                    const y = CY + Math.sin(angle) * r;
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                ctx.stroke();
-            }
-        }
+                case 2: // HELIX CASCADE - spiral motion
+                    const helixPhase = t * 2 + z * 2;
+                    x += Math.cos(helixPhase) * 0.3 * voiceEnergy;
+                    y += Math.sin(helixPhase) * 0.3 * voiceEnergy;
+                    break;
 
-        function drawFlower(size, t, hue, complexity) {
-            const petals = Math.floor(6 + complexity * 6);
-            for (let p = 0; p < petals; p++) {
-                const angle = (p / petals) * Math.PI * 2 + t * 0.3;
-                ctx.save();
-                ctx.translate(CX, CY);
-                ctx.rotate(angle);
+                case 3: // BLOOM FRACTAL - expansion
+                    const bloomPulse = 1 + Math.sin(t * 3 + i * 0.01) * 0.3 * voiceEnergy;
+                    x *= bloomPulse;
+                    y *= bloomPulse;
+                    z *= bloomPulse;
+                    scale *= bloomPulse;
+                    break;
 
-                ctx.strokeStyle = hsl(hue + p * 10, 100, 60);
-                ctx.fillStyle = hsl(hue + p * 10, 80, 40);
-                ctx.lineWidth = 2;
+                case 4: // STELLAR CORE - pulsing center
+                    const dist = Math.sqrt(x * x + y * y + z * z);
+                    const stellar = 1 + Math.sin(t * 4 - dist * 2) * voiceEnergy * 0.4;
+                    x *= stellar;
+                    y *= stellar;
+                    z *= stellar;
+                    break;
 
-                ctx.beginPath();
-                const petalLen = size * 0.8;
-                ctx.moveTo(0, 0);
-                ctx.quadraticCurveTo(petalLen * 0.3, -petalLen * 0.3, 0, -petalLen);
-                ctx.quadraticCurveTo(-petalLen * 0.3, -petalLen * 0.3, 0, 0);
-                ctx.fill();
-                ctx.stroke();
+                case 5: // CRYSTAL MATRIX - quantized positions
+                    const gridSize = 0.3 - voiceEnergy * 0.15;
+                    x = Math.round(x / gridSize) * gridSize;
+                    y = Math.round(y / gridSize) * gridSize;
+                    z = Math.round(z / gridSize) * gridSize;
+                    scale *= 1.5;
+                    break;
 
-                ctx.restore();
-            }
+                case 6: // DIMENSIONAL RIFT - split space
+                    const rift = Math.sin(t * 5) * voiceEnergy * 0.8;
+                    if (x > 0) x += rift;
+                    else x -= rift;
+                    z += Math.sin(t * 3 + y * 2) * 0.2;
+                    break;
 
-            // Center
-            ctx.fillStyle = hsl(hue + 60, 100, 70);
-            ctx.beginPath();
-            ctx.arc(CX, CY, size * 0.15, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        function drawStar(size, t, hue, complexity) {
-            const points = Math.floor(5 + complexity * 4);
-            const inner = size * 0.4;
-            const outer = size;
-
-            ctx.strokeStyle = hsl(hue, 100, 70);
-            ctx.fillStyle = hsl(hue, 80, 30);
-            ctx.lineWidth = 3;
-
-            ctx.beginPath();
-            for (let i = 0; i <= points * 2; i++) {
-                const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2 + t * 0.2;
-                const r = i % 2 === 0 ? outer : inner;
-                const x = CX + Math.cos(angle) * r;
-                const y = CY + Math.sin(angle) * r;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-
-            // Inner star
-            ctx.strokeStyle = hsl(hue + 60, 100, 80);
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (let i = 0; i <= points * 2; i++) {
-                const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2 - t * 0.3;
-                const r = i % 2 === 0 ? inner * 0.8 : inner * 0.3;
-                const x = CX + Math.cos(angle) * r;
-                const y = CY + Math.sin(angle) * r;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.stroke();
-        }
-
-        function drawCrystal(size, t, hue, complexity) {
-            const facets = Math.floor(6 + complexity * 4);
-
-            for (let layer = 0; layer < 3; layer++) {
-                const s = size * (1 - layer * 0.3);
-                const rot = t * (0.4 - layer * 0.15);
-
-                ctx.strokeStyle = hsl(hue + layer * 30, 100, 70 - layer * 10);
-                ctx.lineWidth = 4 - layer;
-
-                ctx.beginPath();
-                for (let i = 0; i <= facets; i++) {
-                    const angle = (i / facets) * Math.PI * 2 + rot;
-                    const x = CX + Math.cos(angle) * s;
-                    const y = CY + Math.sin(angle) * s;
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                ctx.closePath();
-                ctx.stroke();
-
-                // Radial lines from center
-                if (layer === 0) {
-                    ctx.strokeStyle = hsl(hue, 100, 50);
-                    ctx.lineWidth = 1;
-                    for (let i = 0; i < facets; i++) {
-                        const angle = (i / facets) * Math.PI * 2 + rot;
-                        ctx.beginPath();
-                        ctx.moveTo(CX, CY);
-                        ctx.lineTo(CX + Math.cos(angle) * s, CY + Math.sin(angle) * s);
-                        ctx.stroke();
+                case 7: // HARMONIC FIELD - multi-frequency
+                    for (let h = 1; h <= 5; h++) {
+                        const harmFreq = h * PLASTIC_CONSTANT;
+                        x += Math.sin(t * harmFreq + i * 0.1) * 0.05 * voiceEnergy / h;
+                        y += Math.cos(t * harmFreq + i * 0.1) * 0.05 * voiceEnergy / h;
+                        z += Math.sin(t * harmFreq * 0.7 + i * 0.05) * 0.03 * voiceEnergy / h;
                     }
-                }
-            }
-        }
+                    break;
 
-        function drawFractal(size, t, hue, complexity, depth, maxDepth, x, y) {
-            if (depth > maxDepth) return;
+                case 8: // QUANTUM FOAM - noise displacement
+                    const noiseScale = voiceEnergy * 0.15;
+                    x += (Math.random() - 0.5) * noiseScale;
+                    y += (Math.random() - 0.5) * noiseScale;
+                    z += (Math.random() - 0.5) * noiseScale;
+                    scale *= 0.6 + Math.random() * 0.8 * voiceEnergy;
+                    break;
 
-            const sides = 3;
-            ctx.strokeStyle = hsl(hue + depth * 40, 100, 70 - depth * 15);
-            ctx.lineWidth = Math.max(1, 3 - depth);
-
-            ctx.beginPath();
-            for (let i = 0; i <= sides; i++) {
-                const angle = (i / sides) * Math.PI * 2 - Math.PI / 2 + t * 0.2;
-                const px = x + Math.cos(angle) * size;
-                const py = y + Math.sin(angle) * size;
-                if (i === 0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
-            }
-            ctx.closePath();
-            ctx.stroke();
-
-            if (depth < maxDepth) {
-                for (let i = 0; i < sides; i++) {
-                    const angle = (i / sides) * Math.PI * 2 - Math.PI / 2 + t * 0.2;
-                    const nx = x + Math.cos(angle) * size * 0.6;
-                    const ny = y + Math.sin(angle) * size * 0.6;
-                    drawFractal(size * 0.45, t, hue, complexity, depth + 1, maxDepth, nx, ny);
-                }
-            }
-        }
-
-        function drawMandala(size, t, hue, complexity) {
-            const rings = 4;
-            const segments = Math.floor(8 + complexity * 8);
-
-            for (let ring = 0; ring < rings; ring++) {
-                const r = size * (0.25 + ring * 0.25);
-                const segs = segments + ring * 4;
-
-                for (let i = 0; i < segs; i++) {
-                    const angle = (i / segs) * Math.PI * 2 + t * (0.3 - ring * 0.08);
-
-                    ctx.save();
-                    ctx.translate(CX, CY);
-                    ctx.rotate(angle);
-                    ctx.translate(r, 0);
-
-                    // Draw element
-                    const elemSize = size * 0.08 * (1 + Math.sin(t * 2 + i) * 0.3);
-                    ctx.strokeStyle = hsl(hue + ring * 25 + i * 3, 100, 65);
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, elemSize, 0, Math.PI * 2);
-                    ctx.stroke();
-
-                    // Connecting lines
-                    if (ring > 0) {
-                        ctx.strokeStyle = hsl(hue + ring * 25, 60, 40);
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(0, 0);
-                        ctx.lineTo(-size * 0.25, 0);
-                        ctx.stroke();
-                    }
-
-                    ctx.restore();
-                }
-            }
-        }
-
-        function drawBurst(size, t, hue, complexity) {
-            const rays = Math.floor(16 + complexity * 16);
-
-            for (let i = 0; i < rays; i++) {
-                const angle = (i / rays) * Math.PI * 2 + t;
-                const len = size * (0.4 + Math.sin(t * 5 + i * 0.3) * 0.6);
-
-                ctx.strokeStyle = hsl(hue + i * 3, 100, 60 + Math.sin(t * 3 + i) * 20);
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(CX, CY);
-                ctx.lineTo(CX + Math.cos(angle) * len, CY + Math.sin(angle) * len);
-                ctx.stroke();
+                case 9: // COSMIC WEB - filaments
+                    const webPhase = t + i * PLASTIC_ALPHA_1 * 0.1;
+                    const stretch = 1 + voiceEnergy * 0.5;
+                    x *= stretch;
+                    y = y * stretch + Math.sin(webPhase) * 0.15;
+                    z = z * stretch + Math.cos(webPhase * PLASTIC_CONSTANT) * 0.15;
+                    break;
             }
 
-            // Core glow
-            const grad = ctx.createRadialGradient(CX, CY, 0, CX, CY, size * 0.3);
-            grad.addColorStop(0, hsl(hue, 100, 90));
-            grad.addColorStop(0.5, hsl(hue + 30, 100, 50));
-            grad.addColorStop(1, 'transparent');
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(CX, CY, size * 0.3, 0, Math.PI * 2);
-            ctx.fill();
-        }
+            // Color modulation based on pitch
+            const pitchNorm = Math.min(1, smoothPitch / 1000);
+            const hueShift = pitchNorm * 120;
 
-        // Particle class for explosions
-        class Particle {
-            constructor(x, y, hue) {
-                this.x = x;
-                this.y = y;
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 4 + Math.random() * 8;
-                this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed;
-                this.size = 4 + Math.random() * 8;
-                this.hue = hue + Math.random() * 40;
-                this.life = 1;
-                this.sides = 3 + Math.floor(Math.random() * 4);
-            }
+            // Shift colors
+            const { r, g, b } = color;
+            const newColor = {
+                r: Math.min(255, Math.max(0, r + hueShift * 0.5 - 30)),
+                g: Math.min(255, Math.max(0, g + (1 - pitchNorm) * 50)),
+                b: Math.min(255, Math.max(0, b + pitchNorm * 80))
+            };
 
-            update(dt) {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.vx *= 0.96;
-                this.vy *= 0.96;
-                this.life -= 0.02;
-                return this.life > 0;
-            }
+            // Intensity from voice
+            const intensity = 0.7 + voiceEnergy * 0.6;
+            newColor.r = Math.min(255, newColor.r * intensity);
+            newColor.g = Math.min(255, newColor.g * intensity);
+            newColor.b = Math.min(255, newColor.b * intensity);
 
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(time * 3);
-
-                ctx.strokeStyle = hsl(this.hue, 100, 70);
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                for (let i = 0; i <= this.sides; i++) {
-                    const angle = (i / this.sides) * Math.PI * 2;
-                    const r = this.size * this.life;
-                    if (i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
-                    else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
-                }
-                ctx.closePath();
-                ctx.stroke();
-                ctx.restore();
-            }
-        }
-
-        function explode(x, y) {
-            const hue = (time * 50 + pattern * 40) % 360;
-            for (let i = 0; i < 40; i++) {
-                particles.push(new Particle(x, y, hue));
-            }
-        }
-
-        function update(dt) {
-            time += dt;
-
-            // Audio
-            const p = getPitch();
-            if (p > 0) {
-                smoothPitch = smoothPitch * 0.7 + p * 0.3;
-                targetPattern = pitchToPattern(smoothPitch);
-                sustain = Math.min(1, sustain + dt * 3);
-            } else {
-                sustain = Math.max(0, sustain - dt * 1.5);
-            }
-
-            pattern += (targetPattern - pattern) * dt * 4;
-
-            const complexity = 0.5 + sustain * 0.5;
-
-            // Update UI
-            document.getElementById('pitch').textContent = p > 0 ? Math.round(smoothPitch) + ' Hz' : '--';
-            document.getElementById('pattern').textContent = PATTERNS[Math.round(pattern)];
-
-            // Clear - SOLID BLACK, no transparency
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, W, H);
-
-            // Draw pattern
-            const size = Math.min(W, H) * 0.35;
-            const hue = (time * 20 + pattern * 40) % 360;
-            const idx = Math.round(pattern);
-
-            switch(idx) {
-                case 0: drawVoid(size, time, hue); break;
-                case 1: drawWave(size, time, hue, complexity); break;
-                case 2: drawSpiral(size, time, hue, complexity); break;
-                case 3: drawFlower(size, time, hue, complexity); break;
-                case 4: drawStar(size, time, hue, complexity); break;
-                case 5: drawCrystal(size, time, hue, complexity); break;
-                case 6: drawFractal(size * 0.8, time, hue, complexity, 0, Math.floor(2 + complexity * 2), CX, CY); break;
-                case 7: drawMandala(size, time, hue, complexity); break;
-                case 8: drawBurst(size, time, hue, complexity); break;
-            }
-
-            // Update particles
-            particles = particles.filter(p => {
-                if (p.update(dt)) {
-                    p.draw();
-                    return true;
-                }
-                return false;
+            transformed.push({
+                x, y, z,
+                scale: scale * (0.5 + voiceEnergy * 0.7),
+                color: newColor
             });
         }
 
-        let lastTime = 0;
-        function loop(ts) {
-            if (!running) return;
-            requestAnimationFrame(loop);
-            const dt = Math.min((ts - lastTime) / 1000, 0.1);
-            lastTime = ts;
-            update(dt);
+        return transformed;
+    }
+
+    // Add burst particles at tap location
+    function addBurst(screenX, screenY) {
+        const t = performance.now() * 0.001;
+
+        // Convert screen coords to approximate 3D direction
+        const aspect = canvas.width / canvas.height;
+        const nx = (screenX / canvas.clientWidth - 0.5) * 2;
+        const ny = -(screenY / canvas.clientHeight - 0.5) * 2;
+
+        const hue = (t * 50 + patternIndex * 40) % 360;
+
+        for (let i = 0; i < 80; i++) {
+            const angle1 = Math.random() * Math.PI * 2;
+            const angle2 = (Math.random() - 0.5) * Math.PI;
+            const speed = 0.5 + Math.random() * 1.5;
+
+            burstParticles.push({
+                x: nx * 3,
+                y: ny * 3,
+                z: 0,
+                vx: Math.cos(angle1) * Math.cos(angle2) * speed,
+                vy: Math.sin(angle2) * speed,
+                vz: Math.sin(angle1) * Math.cos(angle2) * speed,
+                life: 2 + Math.random(),
+                maxLife: 2 + Math.random(),
+                hue: hue + Math.random() * 60,
+                size: 0.03 + Math.random() * 0.04
+            });
+        }
+    }
+
+    // Update burst particles
+    function updateBurstParticles(dt) {
+        for (let i = burstParticles.length - 1; i >= 0; i--) {
+            const p = burstParticles[i];
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.z += p.vz * dt;
+            p.vx *= 0.97;
+            p.vy *= 0.97;
+            p.vz *= 0.97;
+            p.life -= dt;
+
+            if (p.life <= 0) {
+                burstParticles.splice(i, 1);
+            }
+        }
+    }
+
+    // Get burst particles as renderer points
+    function getBurstPoints() {
+        return burstParticles.map(p => {
+            const alpha = p.life / p.maxLife;
+            const h = p.hue / 360;
+
+            // HSL to RGB
+            const s = 0.9, l = 0.5 + alpha * 0.3;
+            let r, g, b;
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const pp = 2 * l - q;
+            r = hue2rgb(pp, q, h + 1/3);
+            g = hue2rgb(pp, q, h);
+            b = hue2rgb(pp, q, h - 1/3);
+
+            return {
+                x: p.x,
+                y: p.y,
+                z: p.z,
+                scale: p.size * alpha,
+                color: {
+                    r: Math.round(r * 255),
+                    g: Math.round(g * 255),
+                    b: Math.round(b * 255)
+                }
+            };
+        });
+    }
+
+    function update(dt) {
+        time += dt;
+
+        // Audio analysis
+        pitch = detectPitch();
+        if (pitch > 0) {
+            smoothPitch = smoothPitch * 0.7 + pitch * 0.3;
+            sustain = Math.min(1, sustain + dt * 2);
+        } else {
+            sustain = Math.max(0, sustain - dt * 0.5);
         }
 
-        // Events
-        window.addEventListener('resize', resize);
+        // Pattern selection from pitch
+        const targetPattern = freqToPattern(smoothPitch);
+        patternIndex += (targetPattern - patternIndex) * dt * 2;
 
-        canvas.addEventListener('click', e => explode(e.clientX, e.clientY));
-        canvas.addEventListener('touchstart', e => {
-            e.preventDefault();
-            explode(e.touches[0].clientX, e.touches[0].clientY);
-        }, { passive: false });
+        // Update HUD
+        hzEl.textContent = pitch > 0 ? Math.round(smoothPitch) + ' Hz' : '--';
+        noteEl.innerHTML = freqToNote(smoothPitch) + '<span class="mic-indicator' + (pitch > 0 ? ' active' : '') + '"></span>';
+        patternEl.textContent = PATTERNS[Math.round(patternIndex)];
 
-        document.getElementById('go').addEventListener('click', async () => {
-            await initAudio();
-            document.getElementById('start').classList.add('hidden');
-            running = true;
-            requestAnimationFrame(loop);
+        // Update emergence system
+        emergence.update(dt, {
+            amplitude: volume,
+            frequency: smoothPitch > 0 ? smoothPitch : 220,
+            userInput: sustain
         });
 
-        // Init
-        resize();
-        document.getElementById('mic').classList.add('off');
-    })();
-    </script>
+        const params = emergence.getRenderingParams();
+        attractorEl.textContent = params.attractorType.toUpperCase();
+        complexityEl.textContent = params.complexityIndex.toFixed(2);
+        cascadeEl.textContent = params.cascadeLevel;
+
+        // Generate base points from emergence system
+        const basePoints = emergence.generatePoints(600);
+
+        // Apply pattern transformation
+        const transformedPoints = applyPatternTransform(basePoints, patternIndex, time, sustain);
+
+        // Update burst particles
+        updateBurstParticles(dt);
+        const burstPoints = getBurstPoints();
+
+        // Combine all points
+        const allPoints = [...transformedPoints, ...burstPoints];
+        particlesEl.textContent = allPoints.length;
+
+        // Update renderer
+        renderer.setPoints(allPoints);
+
+        // Slowly rotate camera, modulated by voice
+        cameraAngle += dt * 0.15 * (1 + sustain * 0.5);
+
+        // Update view
+        renderer.viewMatrix = buildViewMatrix();
+
+        // Adjust scale based on complexity
+        renderer.setPlasticScale(0.8 + params.complexityIndex * 0.1 + sustain * 0.2);
+
+        // Render
+        renderer.render();
+    }
+
+    let lastTime = 0;
+    function loop(ts) {
+        if (!running) return;
+        requestAnimationFrame(loop);
+
+        const dt = Math.min((ts - lastTime) / 1000, 0.1);
+        lastTime = ts;
+
+        update(dt);
+    }
+
+    // Input handlers
+    canvas.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        cameraAngle += dx * 0.005;
+        cameraElevation = Math.max(-1.2, Math.min(1.2, cameraElevation + dy * 0.005));
+        lastX = e.clientX;
+        lastY = e.clientY;
+    });
+
+    canvas.addEventListener('mouseup', () => { isDragging = false; });
+    canvas.addEventListener('mouseleave', () => { isDragging = false; });
+
+    canvas.addEventListener('click', (e) => {
+        if (!isDragging) addBurst(e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1) {
+            isDragging = true;
+            lastX = e.touches[0].clientX;
+            lastY = e.touches[0].clientY;
+        }
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1 && isDragging) {
+            const dx = e.touches[0].clientX - lastX;
+            const dy = e.touches[0].clientY - lastY;
+            cameraAngle += dx * 0.005;
+            cameraElevation = Math.max(-1.2, Math.min(1.2, cameraElevation + dy * 0.005));
+            lastX = e.touches[0].clientX;
+            lastY = e.touches[0].clientY;
+        }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        if (e.changedTouches.length === 1 && !isDragging) {
+            addBurst(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        }
+        isDragging = false;
+    });
+
+    // Scroll to zoom
+    canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        cameraDistance = Math.max(3, Math.min(25, cameraDistance + e.deltaY * 0.01));
+    }, { passive: false });
+
+    // Start
+    goBtn.addEventListener('click', async () => {
+        // Initialize Phillips Renderer
+        renderer = new PhillipsRenderer(canvas, {
+            alpha: true,
+            antialias: false,
+            plasticScale: 1.0,
+            blendMode: 'alpha'
+        });
+
+        renderer.setCamera(cameraDistance, 60);
+
+        // Initialize Emergent Complexity
+        emergence = new EmergentComplexity({
+            swarmCount: 250,
+            bounds: 4,
+            baseFrequency: 1,
+            dimension: 4
+        });
+
+        // Initialize audio
+        const ok = await initAudio();
+        if (!ok) {
+            alert('Microphone access required for voice control.\nGrant permission and reload.');
+            return;
+        }
+
+        startEl.classList.add('hidden');
+        running = true;
+        lastTime = performance.now();
+        requestAnimationFrame(loop);
+    });
+
+    // Resize
+    window.addEventListener('resize', () => {
+        if (renderer) renderer.resize();
+    });
+</script>
 </body>
 </html>

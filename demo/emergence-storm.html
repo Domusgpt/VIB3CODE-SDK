@@ -3,72 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EMERGENCE STORM - Voice Crystal Engine</title>
+    <title>VOICE CRYSTALS</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
             width: 100%; height: 100%;
             overflow: hidden;
             background: #000;
-            font-family: 'Courier New', monospace;
+            font-family: system-ui, -apple-system, sans-serif;
             color: #fff;
             touch-action: none;
+            -webkit-tap-highlight-color: transparent;
         }
         canvas {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
         .hud {
             position: fixed;
             z-index: 100;
             pointer-events: none;
-            font-size: 10px;
-            letter-spacing: 1px;
         }
-        .hud-tl { top: 15px; left: 15px; }
-        .hud-tr { top: 15px; right: 15px; text-align: right; }
-        .hud-bc { bottom: 15px; left: 50%; transform: translateX(-50%); text-align: center; }
+        .top-bar {
+            top: 0; left: 0; right: 0;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
         .pitch-display {
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 32px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 30px currentColor;
+        }
+        .pattern-name {
+            font-size: 18px;
+            font-weight: 700;
             color: #0ff;
             text-shadow: 0 0 20px #0ff;
         }
-        .pattern-name {
-            font-size: 14px;
-            color: #f0f;
-            margin-top: 5px;
-            text-shadow: 0 0 10px #f0f;
+        .mic-indicator {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: #0f0;
+            box-shadow: 0 0 10px #0f0;
+            animation: blink 1s infinite;
         }
-        .mic-status {
-            font-size: 11px;
-            color: #0f0;
-            animation: pulse 1s infinite;
+        .mic-indicator.off { background: #f00; box-shadow: 0 0 10px #f00; animation: none; }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .bottom-bar {
+            bottom: 0; left: 0; right: 0;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
         }
-        .mic-status.off { color: #f00; animation: none; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .volume-bar {
-            width: 100px;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-        .volume-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #0f0, #ff0, #f00);
-            transition: width 0.05s;
-        }
-        .hint {
-            color: rgba(255,255,255,0.4);
-            font-size: 9px;
-        }
-        .start-overlay {
+        .hint { color: rgba(255,255,255,0.5); font-size: 12px; }
+        .start-screen {
             position: fixed;
             inset: 0;
             background: #000;
@@ -77,633 +72,538 @@
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            transition: opacity 0.5s;
         }
-        .start-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .start-overlay h1 {
-            font-size: 28px;
-            letter-spacing: 8px;
+        .start-screen.hidden { display: none; }
+        .start-screen h1 {
+            font-size: 36px;
+            font-weight: 900;
             color: #0ff;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            letter-spacing: 4px;
         }
-        .start-overlay p {
+        .start-screen p {
             color: #888;
-            font-size: 12px;
-            margin: 5px 0;
-            text-align: center;
-            max-width: 280px;
+            font-size: 14px;
+            margin: 8px 0;
         }
+        .start-screen p strong { color: #fff; }
         .start-btn {
-            margin-top: 30px;
-            padding: 20px 50px;
-            font-size: 16px;
-            letter-spacing: 5px;
+            margin-top: 40px;
+            padding: 18px 60px;
+            font-size: 18px;
+            font-weight: 700;
             background: #0ff;
             border: none;
             color: #000;
             cursor: pointer;
-            font-family: inherit;
-            font-weight: bold;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <canvas id="c"></canvas>
 
-    <div class="hud hud-tl">
-        <div class="mic-status" id="micStatus">● MIC ACTIVE</div>
-        <div class="volume-bar"><div class="volume-fill" id="volumeFill" style="width: 0%"></div></div>
+    <div class="hud top-bar">
+        <div>
+            <div class="pattern-name" id="pattern">READY</div>
+        </div>
+        <div style="text-align: right;">
+            <div class="pitch-display" id="pitch">--</div>
+            <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-top: 5px;">
+                <span style="font-size: 11px; color: #888;">MIC</span>
+                <div class="mic-indicator" id="mic"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="hud hud-tr">
-        <div class="pitch-display" id="pitchDisplay">--</div>
-        <div class="pattern-name" id="patternName">WAITING</div>
+    <div class="hud bottom-bar">
+        <div class="hint">HUM LOW → SPIRALS • WHISTLE HIGH → CRYSTALS • TAP → BURST</div>
     </div>
 
-    <div class="hud hud-bc">
-        <div class="hint">HUM OR WHISTLE TO CONTROL • TAP TO BURST</div>
-    </div>
-
-    <div class="start-overlay" id="startOverlay">
+    <div class="start-screen" id="start">
         <h1>VOICE CRYSTALS</h1>
-        <p>Hum low for spirals</p>
-        <p>Whistle high for crystals</p>
-        <p>Hold steady for complexity</p>
-        <p>Tap screen to explode</p>
-        <button class="start-btn" id="startBtn">START</button>
+        <p><strong>Hum low</strong> for spirals and waves</p>
+        <p><strong>Hum mid</strong> for flowers and stars</p>
+        <p><strong>Whistle high</strong> for crystals and fractals</p>
+        <p><strong>Hold steady</strong> for more detail</p>
+        <p><strong>Tap screen</strong> to explode</p>
+        <button class="start-btn" id="go">START</button>
     </div>
 
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+    (function() {
+        const canvas = document.getElementById('c');
+        const ctx = canvas.getContext('2d', { alpha: false });
 
-        // State
-        const S = {
-            w: 0, h: 0, cx: 0, cy: 0,
-            time: 0,
-            pitch: 0,
-            volume: 0,
-            sustain: 0,
-            pattern: 0,
-            targetPattern: 0,
-            complexity: 1,
-            particles: [],
-            crystals: [],
-            running: false
-        };
+        let W, H, CX, CY;
+        let running = false;
+        let time = 0;
 
         // Audio
-        let audioCtx, analyser, micStream;
-        const fftSize = 2048;
-        let audioData, audioBuffer;
+        let audioCtx, analyser, audioData;
+        let pitch = 0, smoothPitch = 0, volume = 0, sustain = 0;
 
-        // Pattern names
-        const PATTERNS = [
-            'VOID', 'SPIRAL', 'HELIX', 'FLOWER', 'STAR',
-            'CRYSTAL', 'FRACTAL', 'MANDALA', 'INFINITY', 'NOVA'
-        ];
+        // Pattern
+        let pattern = 0, targetPattern = 0;
+        const PATTERNS = ['VOID', 'WAVE', 'SPIRAL', 'FLOWER', 'STAR', 'CRYSTAL', 'FRACTAL', 'MANDALA', 'BURST'];
 
-        // Resize
+        // Particles for tap explosions
+        let particles = [];
+
         function resize() {
-            const dpr = Math.min(window.devicePixelRatio, 2);
-            S.w = window.innerWidth;
-            S.h = window.innerHeight;
-            S.cx = S.w / 2;
-            S.cy = S.h / 2;
-            canvas.width = S.w * dpr;
-            canvas.height = S.h * dpr;
-            canvas.style.width = S.w + 'px';
-            canvas.style.height = S.h + 'px';
-            ctx.scale(dpr, dpr);
-        }
-        window.addEventListener('resize', resize);
-        resize();
+            W = window.innerWidth;
+            H = window.innerHeight;
+            CX = W / 2;
+            CY = H / 2;
 
-        // Start mic
-        async function startMic() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width = W + 'px';
+            canvas.style.height = H + 'px';
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.imageSmoothingEnabled = false;
+        }
+
+        async function initAudio() {
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = fftSize;
-                analyser.smoothingTimeConstant = 0.8;
+                analyser.fftSize = 2048;
+                analyser.smoothingTimeConstant = 0.5;
 
-                micStream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false
-                    }
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
                 });
-
-                const source = audioCtx.createMediaStreamSource(micStream);
-                source.connect(analyser);
-
+                audioCtx.createMediaStreamSource(stream).connect(analyser);
                 audioData = new Float32Array(analyser.fftSize);
-                audioBuffer = new Uint8Array(analyser.frequencyBinCount);
 
-                document.getElementById('micStatus').textContent = '● MIC ACTIVE';
-                document.getElementById('micStatus').classList.remove('off');
+                document.getElementById('mic').classList.remove('off');
                 return true;
-            } catch (e) {
-                document.getElementById('micStatus').textContent = '● MIC OFF';
-                document.getElementById('micStatus').classList.add('off');
+            } catch(e) {
+                document.getElementById('mic').classList.add('off');
                 return false;
             }
         }
 
-        // Pitch detection (autocorrelation)
-        function detectPitch() {
+        function getPitch() {
             if (!analyser) return 0;
-
             analyser.getFloatTimeDomainData(audioData);
 
-            // RMS volume
-            let rms = 0;
-            for (let i = 0; i < audioData.length; i++) {
-                rms += audioData[i] * audioData[i];
+            // Volume
+            let sum = 0;
+            for (let i = 0; i < audioData.length; i++) sum += audioData[i] * audioData[i];
+            volume = Math.sqrt(sum / audioData.length) * 8;
+            if (volume < 0.05) return 0;
+
+            // Autocorrelation pitch detection
+            const len = audioData.length / 2;
+            let best = 0, bestLag = 0;
+            for (let lag = 30; lag < len; lag++) {
+                let c = 0;
+                for (let i = 0; i < len; i++) c += audioData[i] * audioData[i + lag];
+                if (c > best) { best = c; bestLag = lag; }
             }
-            rms = Math.sqrt(rms / audioData.length);
-            S.volume = Math.min(1, rms * 10);
+            if (best < 0.1) return 0;
 
-            if (rms < 0.01) return 0;
-
-            // Autocorrelation
-            const size = Math.floor(audioData.length / 2);
-            let maxCorr = 0;
-            let maxLag = 0;
-
-            for (let lag = 20; lag < size; lag++) {
-                let corr = 0;
-                for (let i = 0; i < size; i++) {
-                    corr += audioData[i] * audioData[i + lag];
-                }
-                if (corr > maxCorr) {
-                    maxCorr = corr;
-                    maxLag = lag;
-                }
-            }
-
-            if (maxCorr < 0.01) return 0;
-
-            const freq = audioCtx.sampleRate / maxLag;
-            return freq > 50 && freq < 2000 ? freq : 0;
+            const f = audioCtx.sampleRate / bestLag;
+            return (f > 60 && f < 1500) ? f : 0;
         }
 
-        // Map pitch to pattern (0-9)
-        function pitchToPattern(freq) {
-            if (freq < 80) return 0;      // Very low - void
-            if (freq < 120) return 1;     // Low hum - spiral
-            if (freq < 180) return 2;     // Low-mid - helix
-            if (freq < 260) return 3;     // Mid - flower
-            if (freq < 350) return 4;     // Mid-high - star
-            if (freq < 500) return 5;     // High - crystal
-            if (freq < 700) return 6;     // Higher - fractal
-            if (freq < 1000) return 7;    // Whistle low - mandala
-            if (freq < 1400) return 8;    // Whistle mid - infinity
-            return 9;                      // Whistle high - nova
+        function pitchToPattern(f) {
+            if (f < 90) return 0;
+            if (f < 130) return 1;
+            if (f < 180) return 2;
+            if (f < 250) return 3;
+            if (f < 350) return 4;
+            if (f < 500) return 5;
+            if (f < 800) return 6;
+            if (f < 1200) return 7;
+            return 8;
         }
 
-        // Crystal particle
-        class Crystal {
-            constructor(x, y, angle, speed, size, hue) {
-                this.x = x;
-                this.y = y;
-                this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed;
-                this.size = size;
-                this.hue = hue;
-                this.life = 1;
-                this.decay = 0.005 + Math.random() * 0.01;
-                this.rotation = Math.random() * Math.PI * 2;
-                this.rotSpeed = (Math.random() - 0.5) * 0.1;
-                this.sides = 3 + Math.floor(Math.random() * 4);
-            }
+        function hsl(h, s, l) {
+            return `hsl(${h % 360}, ${s}%, ${l}%)`;
+        }
 
-            update(dt) {
-                this.x += this.vx * dt * 60;
-                this.y += this.vy * dt * 60;
-                this.vx *= 0.98;
-                this.vy *= 0.98;
-                this.rotation += this.rotSpeed;
-                this.life -= this.decay;
-                return this.life > 0;
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.rotation);
-
-                const alpha = this.life;
-                const s = this.size * this.life;
-
-                ctx.strokeStyle = `hsla(${this.hue}, 100%, 70%, ${alpha})`;
-                ctx.fillStyle = `hsla(${this.hue}, 80%, 50%, ${alpha * 0.3})`;
-                ctx.lineWidth = 1.5;
-
+        // Sharp geometric drawing functions
+        function drawVoid(size, t, hue) {
+            for (let i = 0; i < 6; i++) {
+                const r = size * (0.2 + i * 0.15);
+                ctx.strokeStyle = hsl(hue + i * 15, 100, 60);
+                ctx.lineWidth = 3;
                 ctx.beginPath();
-                for (let i = 0; i <= this.sides; i++) {
-                    const a = (i / this.sides) * Math.PI * 2;
-                    const r = s * (1 + Math.sin(a * 3 + S.time * 2) * 0.2);
-                    const px = Math.cos(a) * r;
-                    const py = Math.sin(a) * r;
-                    if (i === 0) ctx.moveTo(px, py);
-                    else ctx.lineTo(px, py);
-                }
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.restore();
-            }
-        }
-
-        // Draw patterns based on voice
-        function drawPattern() {
-            const p = S.pattern;
-            const c = S.complexity;
-            const t = S.time;
-            const hue = (t * 30 + p * 36) % 360;
-
-            ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.8)`;
-            ctx.fillStyle = `hsla(${hue}, 80%, 50%, 0.1)`;
-            ctx.lineWidth = 2;
-
-            const baseSize = Math.min(S.w, S.h) * 0.3 * (0.5 + c * 0.5);
-            const arms = Math.floor(3 + p * 1.5);
-
-            ctx.save();
-            ctx.translate(S.cx, S.cy);
-
-            switch (p) {
-                case 0: // Void - pulsing circle
-                    drawVoid(baseSize, c, t, hue);
-                    break;
-                case 1: // Spiral
-                    drawSpiral(baseSize, c, t, arms, hue);
-                    break;
-                case 2: // Helix
-                    drawHelix(baseSize, c, t, hue);
-                    break;
-                case 3: // Flower
-                    drawFlower(baseSize, c, t, arms, hue);
-                    break;
-                case 4: // Star
-                    drawStar(baseSize, c, t, arms + 2, hue);
-                    break;
-                case 5: // Crystal
-                    drawCrystal(baseSize, c, t, hue);
-                    break;
-                case 6: // Fractal
-                    drawFractal(baseSize, c, t, hue, 0, 4);
-                    break;
-                case 7: // Mandala
-                    drawMandala(baseSize, c, t, arms * 2, hue);
-                    break;
-                case 8: // Infinity
-                    drawInfinity(baseSize, c, t, hue);
-                    break;
-                case 9: // Nova
-                    drawNova(baseSize, c, t, hue);
-                    break;
-            }
-
-            ctx.restore();
-        }
-
-        function drawVoid(size, c, t, hue) {
-            for (let i = 0; i < 5; i++) {
-                const r = size * (0.3 + i * 0.15) * (1 + Math.sin(t * 2 + i) * 0.1 * c);
-                ctx.strokeStyle = `hsla(${hue + i * 20}, 100%, 70%, ${0.5 - i * 0.08})`;
-                ctx.beginPath();
-                ctx.arc(0, 0, r, 0, Math.PI * 2);
+                ctx.arc(CX, CY, r, 0, Math.PI * 2);
                 ctx.stroke();
             }
         }
 
-        function drawSpiral(size, c, t, arms, hue) {
-            const points = Math.floor(100 * c);
-            for (let a = 0; a < arms; a++) {
+        function drawWave(size, t, hue, complexity) {
+            const waves = 3;
+            for (let w = 0; w < waves; w++) {
+                ctx.strokeStyle = hsl(hue + w * 40, 100, 60);
+                ctx.lineWidth = 4;
                 ctx.beginPath();
-                for (let i = 0; i < points; i++) {
-                    const angle = (i / points) * Math.PI * 4 + (a / arms) * Math.PI * 2 + t;
-                    const r = (i / points) * size;
-                    const x = Math.cos(angle) * r;
-                    const y = Math.sin(angle) * r;
+                const pts = Math.floor(50 * complexity);
+                for (let i = 0; i <= pts; i++) {
+                    const x = (i / pts) * W;
+                    const y = CY + Math.sin((i / pts) * Math.PI * 4 + t * 2 + w) * size * 0.5
+                            + Math.sin((i / pts) * Math.PI * 8 + t * 3) * size * 0.2;
                     if (i === 0) ctx.moveTo(x, y);
                     else ctx.lineTo(x, y);
                 }
-                ctx.strokeStyle = `hsla(${hue + a * 30}, 100%, 70%, 0.7)`;
                 ctx.stroke();
             }
         }
 
-        function drawHelix(size, c, t, hue) {
-            const points = Math.floor(80 * c);
-            for (let h = 0; h < 2; h++) {
+        function drawSpiral(size, t, hue, complexity) {
+            const arms = 4;
+            const pts = Math.floor(80 * complexity);
+            for (let a = 0; a < arms; a++) {
+                ctx.strokeStyle = hsl(hue + a * 30, 100, 60);
+                ctx.lineWidth = 3;
                 ctx.beginPath();
-                for (let i = 0; i < points; i++) {
-                    const p = i / points;
-                    const y = (p - 0.5) * size * 2;
-                    const angle = p * Math.PI * 6 + t * 2 + h * Math.PI;
-                    const x = Math.cos(angle) * size * 0.4;
-                    const z = Math.sin(angle) * size * 0.2;
-                    if (i === 0) ctx.moveTo(x, y + z);
-                    else ctx.lineTo(x, y + z);
+                for (let i = 0; i < pts; i++) {
+                    const angle = (i / pts) * Math.PI * 6 + (a / arms) * Math.PI * 2 + t;
+                    const r = (i / pts) * size;
+                    const x = CX + Math.cos(angle) * r;
+                    const y = CY + Math.sin(angle) * r;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
                 }
-                ctx.strokeStyle = `hsla(${hue + h * 60}, 100%, 70%, 0.8)`;
                 ctx.stroke();
             }
         }
 
-        function drawFlower(size, c, t, petals, hue) {
+        function drawFlower(size, t, hue, complexity) {
+            const petals = Math.floor(6 + complexity * 6);
             for (let p = 0; p < petals; p++) {
-                const angle = (p / petals) * Math.PI * 2 + t * 0.5;
+                const angle = (p / petals) * Math.PI * 2 + t * 0.3;
                 ctx.save();
+                ctx.translate(CX, CY);
                 ctx.rotate(angle);
 
+                ctx.strokeStyle = hsl(hue + p * 10, 100, 60);
+                ctx.fillStyle = hsl(hue + p * 10, 80, 40);
+                ctx.lineWidth = 2;
+
                 ctx.beginPath();
+                const petalLen = size * 0.8;
                 ctx.moveTo(0, 0);
-
-                const petalSize = size * (0.8 + Math.sin(t * 3 + p) * 0.1 * c);
-                for (let i = 0; i <= 20; i++) {
-                    const a = (i / 20) * Math.PI;
-                    const r = Math.sin(a) * petalSize;
-                    const x = Math.cos(a) * r * 0.3;
-                    const y = Math.sin(a) * r;
-                    ctx.lineTo(x, y);
-                }
-
-                ctx.strokeStyle = `hsla(${hue + p * 15}, 100%, 70%, 0.7)`;
-                ctx.fillStyle = `hsla(${hue + p * 15}, 80%, 50%, 0.1)`;
+                ctx.quadraticCurveTo(petalLen * 0.3, -petalLen * 0.3, 0, -petalLen);
+                ctx.quadraticCurveTo(-petalLen * 0.3, -petalLen * 0.3, 0, 0);
                 ctx.fill();
                 ctx.stroke();
+
                 ctx.restore();
             }
+
+            // Center
+            ctx.fillStyle = hsl(hue + 60, 100, 70);
+            ctx.beginPath();
+            ctx.arc(CX, CY, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
         }
 
-        function drawStar(size, c, t, points, hue) {
+        function drawStar(size, t, hue, complexity) {
+            const points = Math.floor(5 + complexity * 4);
             const inner = size * 0.4;
-            const outer = size * (1 + Math.sin(t * 2) * 0.1 * c);
+            const outer = size;
+
+            ctx.strokeStyle = hsl(hue, 100, 70);
+            ctx.fillStyle = hsl(hue, 80, 30);
+            ctx.lineWidth = 3;
 
             ctx.beginPath();
             for (let i = 0; i <= points * 2; i++) {
-                const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2 + t * 0.3;
+                const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2 + t * 0.2;
                 const r = i % 2 === 0 ? outer : inner;
-                const x = Math.cos(angle) * r;
-                const y = Math.sin(angle) * r;
+                const x = CX + Math.cos(angle) * r;
+                const y = CY + Math.sin(angle) * r;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             ctx.closePath();
-            ctx.fillStyle = `hsla(${hue}, 80%, 50%, 0.2)`;
             ctx.fill();
             ctx.stroke();
 
             // Inner star
+            ctx.strokeStyle = hsl(hue + 60, 100, 80);
+            ctx.lineWidth = 2;
             ctx.beginPath();
             for (let i = 0; i <= points * 2; i++) {
-                const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2 - t * 0.5;
-                const r = i % 2 === 0 ? inner : inner * 0.4;
-                const x = Math.cos(angle) * r;
-                const y = Math.sin(angle) * r;
+                const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2 - t * 0.3;
+                const r = i % 2 === 0 ? inner * 0.8 : inner * 0.3;
+                const x = CX + Math.cos(angle) * r;
+                const y = CY + Math.sin(angle) * r;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             ctx.closePath();
-            ctx.strokeStyle = `hsla(${hue + 60}, 100%, 80%, 0.9)`;
             ctx.stroke();
         }
 
-        function drawCrystal(size, c, t, hue) {
-            const facets = Math.floor(6 + c * 4);
+        function drawCrystal(size, t, hue, complexity) {
+            const facets = Math.floor(6 + complexity * 4);
 
             for (let layer = 0; layer < 3; layer++) {
-                const layerSize = size * (1 - layer * 0.25);
-                const rotation = t * (0.5 - layer * 0.2);
+                const s = size * (1 - layer * 0.3);
+                const rot = t * (0.4 - layer * 0.15);
+
+                ctx.strokeStyle = hsl(hue + layer * 30, 100, 70 - layer * 10);
+                ctx.lineWidth = 4 - layer;
 
                 ctx.beginPath();
                 for (let i = 0; i <= facets; i++) {
-                    const angle = (i / facets) * Math.PI * 2 + rotation;
-                    const variance = 1 + Math.sin(angle * 3 + t * 2) * 0.15 * c;
-                    const r = layerSize * variance;
-                    const x = Math.cos(angle) * r;
-                    const y = Math.sin(angle) * r;
+                    const angle = (i / facets) * Math.PI * 2 + rot;
+                    const x = CX + Math.cos(angle) * s;
+                    const y = CY + Math.sin(angle) * s;
                     if (i === 0) ctx.moveTo(x, y);
                     else ctx.lineTo(x, y);
                 }
                 ctx.closePath();
-
-                ctx.strokeStyle = `hsla(${hue + layer * 40}, 100%, ${80 - layer * 10}%, ${0.9 - layer * 0.2})`;
-                ctx.fillStyle = `hsla(${hue + layer * 40}, 80%, 50%, ${0.1 - layer * 0.02})`;
-                ctx.fill();
                 ctx.stroke();
 
-                // Radial lines
-                for (let i = 0; i < facets; i++) {
-                    const angle = (i / facets) * Math.PI * 2 + rotation;
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(Math.cos(angle) * layerSize, Math.sin(angle) * layerSize);
-                    ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.3)`;
-                    ctx.stroke();
+                // Radial lines from center
+                if (layer === 0) {
+                    ctx.strokeStyle = hsl(hue, 100, 50);
+                    ctx.lineWidth = 1;
+                    for (let i = 0; i < facets; i++) {
+                        const angle = (i / facets) * Math.PI * 2 + rot;
+                        ctx.beginPath();
+                        ctx.moveTo(CX, CY);
+                        ctx.lineTo(CX + Math.cos(angle) * s, CY + Math.sin(angle) * s);
+                        ctx.stroke();
+                    }
                 }
             }
         }
 
-        function drawFractal(size, c, t, hue, depth, maxDepth) {
-            if (depth >= maxDepth || size < 5) return;
+        function drawFractal(size, t, hue, complexity, depth, maxDepth, x, y) {
+            if (depth > maxDepth) return;
 
             const sides = 3;
+            ctx.strokeStyle = hsl(hue + depth * 40, 100, 70 - depth * 15);
+            ctx.lineWidth = Math.max(1, 3 - depth);
+
             ctx.beginPath();
             for (let i = 0; i <= sides; i++) {
-                const angle = (i / sides) * Math.PI * 2 - Math.PI / 2 + t * 0.2 * (depth + 1);
-                const x = Math.cos(angle) * size;
-                const y = Math.sin(angle) * size;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
+                const angle = (i / sides) * Math.PI * 2 - Math.PI / 2 + t * 0.2;
+                const px = x + Math.cos(angle) * size;
+                const py = y + Math.sin(angle) * size;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
             }
             ctx.closePath();
-            ctx.strokeStyle = `hsla(${hue + depth * 30}, 100%, ${70 - depth * 10}%, ${0.8 - depth * 0.15})`;
             ctx.stroke();
 
-            // Recurse
-            const nextSize = size * 0.5;
-            for (let i = 0; i < sides; i++) {
-                const angle = (i / sides) * Math.PI * 2 - Math.PI / 2 + t * 0.2 * (depth + 1);
-                const x = Math.cos(angle) * size * 0.6;
-                const y = Math.sin(angle) * size * 0.6;
-                ctx.save();
-                ctx.translate(x, y);
-                drawFractal(nextSize, c, t, hue, depth + 1, maxDepth);
-                ctx.restore();
+            if (depth < maxDepth) {
+                for (let i = 0; i < sides; i++) {
+                    const angle = (i / sides) * Math.PI * 2 - Math.PI / 2 + t * 0.2;
+                    const nx = x + Math.cos(angle) * size * 0.6;
+                    const ny = y + Math.sin(angle) * size * 0.6;
+                    drawFractal(size * 0.45, t, hue, complexity, depth + 1, maxDepth, nx, ny);
+                }
             }
         }
 
-        function drawMandala(size, c, t, segments, hue) {
-            for (let ring = 0; ring < 4; ring++) {
-                const ringSize = size * (0.3 + ring * 0.25);
-                const ringSegments = segments + ring * 2;
+        function drawMandala(size, t, hue, complexity) {
+            const rings = 4;
+            const segments = Math.floor(8 + complexity * 8);
 
-                for (let i = 0; i < ringSegments; i++) {
-                    const angle = (i / ringSegments) * Math.PI * 2 + t * (0.3 - ring * 0.1);
+            for (let ring = 0; ring < rings; ring++) {
+                const r = size * (0.25 + ring * 0.25);
+                const segs = segments + ring * 4;
+
+                for (let i = 0; i < segs; i++) {
+                    const angle = (i / segs) * Math.PI * 2 + t * (0.3 - ring * 0.08);
 
                     ctx.save();
+                    ctx.translate(CX, CY);
                     ctx.rotate(angle);
-                    ctx.translate(ringSize, 0);
+                    ctx.translate(r, 0);
 
-                    // Draw petal/element
-                    const elemSize = size * 0.1 * (1 + Math.sin(t * 2 + i + ring) * 0.3 * c);
+                    // Draw element
+                    const elemSize = size * 0.08 * (1 + Math.sin(t * 2 + i) * 0.3);
+                    ctx.strokeStyle = hsl(hue + ring * 25 + i * 3, 100, 65);
+                    ctx.lineWidth = 2;
                     ctx.beginPath();
                     ctx.arc(0, 0, elemSize, 0, Math.PI * 2);
-                    ctx.strokeStyle = `hsla(${hue + ring * 25 + i * 5}, 100%, 70%, 0.7)`;
                     ctx.stroke();
+
+                    // Connecting lines
+                    if (ring > 0) {
+                        ctx.strokeStyle = hsl(hue + ring * 25, 60, 40);
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.lineTo(-size * 0.25, 0);
+                        ctx.stroke();
+                    }
 
                     ctx.restore();
                 }
             }
         }
 
-        function drawInfinity(size, c, t, hue) {
-            const points = Math.floor(100 * c);
-
-            ctx.beginPath();
-            for (let i = 0; i <= points; i++) {
-                const angle = (i / points) * Math.PI * 2;
-                const scale = Math.sin(angle) * size;
-                const x = scale * Math.cos(t * 0.5);
-                const y = Math.sin(angle * 2) * size * 0.5;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.8)`;
-            ctx.stroke();
-
-            // Second loop
-            ctx.beginPath();
-            for (let i = 0; i <= points; i++) {
-                const angle = (i / points) * Math.PI * 2;
-                const scale = Math.sin(angle) * size * 0.6;
-                const x = scale * Math.cos(t * 0.5 + Math.PI);
-                const y = Math.sin(angle * 2 + Math.PI) * size * 0.3;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.strokeStyle = `hsla(${hue + 60}, 100%, 70%, 0.6)`;
-            ctx.stroke();
-        }
-
-        function drawNova(size, c, t, hue) {
-            const rays = Math.floor(12 + c * 12);
+        function drawBurst(size, t, hue, complexity) {
+            const rays = Math.floor(16 + complexity * 16);
 
             for (let i = 0; i < rays; i++) {
                 const angle = (i / rays) * Math.PI * 2 + t;
-                const length = size * (0.5 + Math.sin(t * 5 + i * 0.5) * 0.5 * c);
+                const len = size * (0.4 + Math.sin(t * 5 + i * 0.3) * 0.6);
 
+                ctx.strokeStyle = hsl(hue + i * 3, 100, 60 + Math.sin(t * 3 + i) * 20);
+                ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(Math.cos(angle) * length, Math.sin(angle) * length);
-                ctx.strokeStyle = `hsla(${hue + i * 5}, 100%, ${60 + Math.sin(t * 3 + i) * 20}%, 0.8)`;
-                ctx.lineWidth = 2 + Math.sin(t * 4 + i) * 1;
+                ctx.moveTo(CX, CY);
+                ctx.lineTo(CX + Math.cos(angle) * len, CY + Math.sin(angle) * len);
                 ctx.stroke();
             }
 
-            // Core
-            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 0.3);
-            gradient.addColorStop(0, `hsla(${hue}, 100%, 90%, 0.8)`);
-            gradient.addColorStop(0.5, `hsla(${hue + 30}, 100%, 60%, 0.3)`);
-            gradient.addColorStop(1, 'transparent');
-            ctx.fillStyle = gradient;
+            // Core glow
+            const grad = ctx.createRadialGradient(CX, CY, 0, CX, CY, size * 0.3);
+            grad.addColorStop(0, hsl(hue, 100, 90));
+            grad.addColorStop(0.5, hsl(hue + 30, 100, 50));
+            grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad;
             ctx.beginPath();
-            ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+            ctx.arc(CX, CY, size * 0.3, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // Explosion
+        // Particle class for explosions
+        class Particle {
+            constructor(x, y, hue) {
+                this.x = x;
+                this.y = y;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 4 + Math.random() * 8;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.size = 4 + Math.random() * 8;
+                this.hue = hue + Math.random() * 40;
+                this.life = 1;
+                this.sides = 3 + Math.floor(Math.random() * 4);
+            }
+
+            update(dt) {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= 0.96;
+                this.vy *= 0.96;
+                this.life -= 0.02;
+                return this.life > 0;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(time * 3);
+
+                ctx.strokeStyle = hsl(this.hue, 100, 70);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let i = 0; i <= this.sides; i++) {
+                    const angle = (i / this.sides) * Math.PI * 2;
+                    const r = this.size * this.life;
+                    if (i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                    else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                }
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
         function explode(x, y) {
-            const count = 30 + Math.floor(S.complexity * 30);
-            const hue = (S.time * 30 + S.pattern * 36) % 360;
-
-            for (let i = 0; i < count; i++) {
-                const angle = (i / count) * Math.PI * 2 + Math.random() * 0.5;
-                const speed = 3 + Math.random() * 8;
-                const size = 5 + Math.random() * 15;
-                S.crystals.push(new Crystal(x, y, angle, speed, size, hue + Math.random() * 60));
+            const hue = (time * 50 + pattern * 40) % 360;
+            for (let i = 0; i < 40; i++) {
+                particles.push(new Particle(x, y, hue));
             }
         }
 
-        // Input
-        function handleInput(x, y) {
-            explode(x, y);
-        }
+        function update(dt) {
+            time += dt;
 
-        canvas.addEventListener('click', e => handleInput(e.clientX, e.clientY));
-        canvas.addEventListener('touchstart', e => {
-            e.preventDefault();
-            handleInput(e.touches[0].clientX, e.touches[0].clientY);
-        }, { passive: false });
-
-        // Main loop
-        let lastTime = 0;
-
-        function loop(timestamp) {
-            requestAnimationFrame(loop);
-
-            const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
-            lastTime = timestamp;
-
-            if (!S.running) return;
-
-            S.time += dt;
-
-            // Audio processing
-            const pitch = detectPitch();
-            if (pitch > 0) {
-                S.pitch = S.pitch * 0.8 + pitch * 0.2;
-                S.targetPattern = pitchToPattern(S.pitch);
-                S.sustain = Math.min(1, S.sustain + dt * 2);
+            // Audio
+            const p = getPitch();
+            if (p > 0) {
+                smoothPitch = smoothPitch * 0.7 + p * 0.3;
+                targetPattern = pitchToPattern(smoothPitch);
+                sustain = Math.min(1, sustain + dt * 3);
             } else {
-                S.sustain = Math.max(0, S.sustain - dt);
+                sustain = Math.max(0, sustain - dt * 1.5);
             }
 
-            // Smooth pattern transition
-            S.pattern += (S.targetPattern - S.pattern) * dt * 3;
+            pattern += (targetPattern - pattern) * dt * 4;
 
-            // Complexity based on sustain and volume
-            S.complexity = 0.3 + S.sustain * 0.5 + S.volume * 0.2;
+            const complexity = 0.5 + sustain * 0.5;
 
             // Update UI
-            document.getElementById('volumeFill').style.width = (S.volume * 100) + '%';
-            document.getElementById('pitchDisplay').textContent = pitch > 0 ? Math.round(S.pitch) + ' Hz' : '--';
-            document.getElementById('patternName').textContent = PATTERNS[Math.round(S.pattern)];
+            document.getElementById('pitch').textContent = p > 0 ? Math.round(smoothPitch) + ' Hz' : '--';
+            document.getElementById('pattern').textContent = PATTERNS[Math.round(pattern)];
 
-            // Clear with fade
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-            ctx.fillRect(0, 0, S.w, S.h);
+            // Clear - SOLID BLACK, no transparency
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, W, H);
 
             // Draw pattern
-            drawPattern();
+            const size = Math.min(W, H) * 0.35;
+            const hue = (time * 20 + pattern * 40) % 360;
+            const idx = Math.round(pattern);
 
-            // Update and draw crystals
-            S.crystals = S.crystals.filter(c => {
-                if (c.update(dt)) {
-                    c.draw();
+            switch(idx) {
+                case 0: drawVoid(size, time, hue); break;
+                case 1: drawWave(size, time, hue, complexity); break;
+                case 2: drawSpiral(size, time, hue, complexity); break;
+                case 3: drawFlower(size, time, hue, complexity); break;
+                case 4: drawStar(size, time, hue, complexity); break;
+                case 5: drawCrystal(size, time, hue, complexity); break;
+                case 6: drawFractal(size * 0.8, time, hue, complexity, 0, Math.floor(2 + complexity * 2), CX, CY); break;
+                case 7: drawMandala(size, time, hue, complexity); break;
+                case 8: drawBurst(size, time, hue, complexity); break;
+            }
+
+            // Update particles
+            particles = particles.filter(p => {
+                if (p.update(dt)) {
+                    p.draw();
                     return true;
                 }
                 return false;
             });
         }
 
-        // Start
-        document.getElementById('startBtn').addEventListener('click', async () => {
-            await startMic();
-            document.getElementById('startOverlay').classList.add('hidden');
-            S.running = true;
+        let lastTime = 0;
+        function loop(ts) {
+            if (!running) return;
+            requestAnimationFrame(loop);
+            const dt = Math.min((ts - lastTime) / 1000, 0.1);
+            lastTime = ts;
+            update(dt);
+        }
+
+        // Events
+        window.addEventListener('resize', resize);
+
+        canvas.addEventListener('click', e => explode(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            explode(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        document.getElementById('go').addEventListener('click', async () => {
+            await initAudio();
+            document.getElementById('start').classList.add('hidden');
+            running = true;
             requestAnimationFrame(loop);
         });
+
+        // Init
+        resize();
+        document.getElementById('mic').classList.add('off');
+    })();
     </script>
 </body>
 </html>

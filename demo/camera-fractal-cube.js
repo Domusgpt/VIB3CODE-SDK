@@ -725,92 +725,176 @@ function mat4RotateZ(a) {
 function generateCubeInstances(time, audio, rot4d) {
   let count = 0;
 
-  // LAYER 1: Big cubes at screen edges filling the frame
-  const edgePositions = [
-    [-2.0, -1.5, -2],  [2.0, -1.5, -2],   // bottom corners
-    [-2.0, 1.5, -2],   [2.0, 1.5, -2],    // top corners
-    [-2.5, 0, -2.5],   [2.5, 0, -2.5],    // left/right
-    [0, -2.0, -2],     [0, 2.0, -2],      // top/bottom center
-    [-1.3, -1.0, -1.5],[1.3, -1.0, -1.5], // inner lower
-    [-1.3, 1.0, -1.5], [1.3, 1.0, -1.5],  // inner upper
-  ];
+  // Global breathing/pulse effect
+  const breathe = Math.sin(time * 0.8) * 0.15 + 1.0;
+  const heartbeat = Math.pow(Math.sin(time * 2.5), 8) * 0.3;
 
-  for (let i = 0; i < edgePositions.length && count < MAX_CUBES; i++) {
-    const [bx, by, bz] = edgePositions[i];
-    const wCoord = Math.sin(time * 0.25 + i * 0.5) * 0.7;
-    const rotX = time * 0.1 + rotationX * 0.4 + i * 0.4;
-    const rotY = time * 0.08 + rotationY * 0.4 + i * 0.3;
+  // Tilt influence (accelerometer makes cubes shift dramatically)
+  const tiltX = rotationX * 0.8;
+  const tiltY = rotationY * 0.8;
 
-    let model = mat4Translate(bx, by, bz);
-    model = mat4Multiply(model, mat4RotateX(rotX));
-    model = mat4Multiply(model, mat4RotateY(rotY));
-    model = mat4Multiply(model, mat4Scale(0.7 + audio.bass * 0.15));
+  // ═══════════════════════════════════════════════════════════════════
+  // RING 1: MASSIVE edge cubes that go partially off-screen
+  // ═══════════════════════════════════════════════════════════════════
+  for (let i = 0; i < 8 && count < MAX_CUBES; i++) {
+    const angle = (i / 8) * Math.PI * 2 + time * 0.02;
+    const radius = 3.5;
+    const x = Math.cos(angle) * radius + tiltY * 0.5;
+    const y = Math.sin(angle) * radius + tiltX * 0.5;
+    const z = -1.5 - Math.sin(angle * 2 + time) * 0.5;
 
-    const offset = count * INSTANCE_STRIDE;
-    for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-    instanceData[offset + 16] = 1.4;
-    instanceData[offset + 17] = audio.mid * 0.08;
-    instanceData[offset + 18] = wCoord;
-    count++;
-  }
-
-  // LAYER 2: Mid-ground spiral arms filling space
-  const ARMS = 6;
-  const PER_ARM = 10;
-
-  for (let arm = 0; arm < ARMS && count < MAX_CUBES; arm++) {
-    const baseAngle = (arm / ARMS) * Math.PI * 2 + time * 0.03;
-
-    for (let i = 0; i < PER_ARM && count < MAX_CUBES; i++) {
-      const t = i / PER_ARM;
-      const angle = baseAngle + t * 1.2;
-      const radius = 1.2 + t * 2.0;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      const z = -4 - t * 6;
-
-      const wCoord = Math.sin(t * 6.28 + time * 0.35 + arm) * 0.9;
-      const scale = 0.45 - t * 0.2;
-
-      const rotX = time * 0.12 + rotationX * 0.3 + i * 0.15 + arm * 0.5;
-      const rotY = time * 0.1 + rotationY * 0.3 + arm * 1.05;
-
-      let model = mat4Translate(x, y, z);
-      model = mat4Multiply(model, mat4RotateX(rotX));
-      model = mat4Multiply(model, mat4RotateY(rotY));
-      model = mat4Multiply(model, mat4Scale(scale));
-
-      const offset = count * INSTANCE_STRIDE;
-      for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-      instanceData[offset + 16] = (0.7 + (1 - t) * 0.3) * (1 + audio.bass * 0.2);
-      instanceData[offset + 17] = audio.mid * 0.1 + wCoord * 0.02;
-      instanceData[offset + 18] = wCoord;
-      count++;
-    }
-  }
-
-  // LAYER 3: Deep tunnel center
-  for (let i = 0; i < 20 && count < MAX_CUBES; i++) {
-    const t = i / 20;
-    const angle = t * Math.PI * 5 + time * 0.06;
-    const radius = 0.2 + t * 0.8;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    const z = -8 - t * 10;
-
-    const scale = 0.3 - t * 0.18;
-    const wCoord = Math.sin(t * 9.42 + time * 0.4) * 0.5;
+    const scale = (1.2 + Math.sin(time * 0.5 + i) * 0.2) * breathe;
+    const rotX = time * 0.08 + rotationX * 0.6 + i;
+    const rotY = time * 0.06 + rotationY * 0.6;
 
     let model = mat4Translate(x, y, z);
-    model = mat4Multiply(model, mat4RotateX(time * 0.06 + rotationX * 0.15 + i * 0.25));
-    model = mat4Multiply(model, mat4RotateY(time * 0.08 + rotationY * 0.15));
+    model = mat4Multiply(model, mat4RotateX(rotX));
+    model = mat4Multiply(model, mat4RotateY(rotY));
     model = mat4Multiply(model, mat4Scale(scale));
 
     const offset = count * INSTANCE_STRIDE;
     for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-    instanceData[offset + 16] = 0.5 + (1 - t) * 0.5;
-    instanceData[offset + 17] = audio.mid * 0.06;
-    instanceData[offset + 18] = wCoord;
+    instanceData[offset + 16] = 1.5 + heartbeat;
+    instanceData[offset + 17] = audio.mid * 0.15 + i * 0.05;
+    instanceData[offset + 18] = Math.sin(time * 0.3 + i) * 1.2;
+    count++;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // RING 2: Mid-distance orbiting cubes (fast orbit)
+  // ═══════════════════════════════════════════════════════════════════
+  for (let i = 0; i < 12 && count < MAX_CUBES; i++) {
+    const angle = (i / 12) * Math.PI * 2 + time * 0.15; // Fast orbit
+    const wobble = Math.sin(time * 2 + i * 0.5) * 0.3;
+    const radius = 2.0 + wobble;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius * 0.7 + Math.cos(time + i) * 0.3; // Elliptical + wave
+    const z = -3 + Math.sin(angle * 3) * 1.5;
+
+    const scale = (0.55 + Math.sin(time + i * 0.8) * 0.15) * breathe;
+
+    let model = mat4Translate(x + tiltY * 0.3, y + tiltX * 0.3, z);
+    model = mat4Multiply(model, mat4RotateX(time * 0.2 + rotationX * 0.4));
+    model = mat4Multiply(model, mat4RotateY(time * 0.15 + i * 0.5));
+    model = mat4Multiply(model, mat4RotateZ(time * 0.1 + i));
+    model = mat4Multiply(model, mat4Scale(scale));
+
+    const offset = count * INSTANCE_STRIDE;
+    for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
+    instanceData[offset + 16] = 1.2 + audio.bass * 0.4;
+    instanceData[offset + 17] = audio.mid * 0.2;
+    instanceData[offset + 18] = Math.cos(time * 0.4 + i) * 0.8;
+    count++;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SCATTER: Random cubes filling empty spaces
+  // ═══════════════════════════════════════════════════════════════════
+  const scatterPositions = [
+    [-2.8, 2.2], [2.8, 2.2], [-2.8, -2.2], [2.8, -2.2], // far corners
+    [-1.5, 2.8], [1.5, 2.8], [-1.5, -2.8], [1.5, -2.8], // top/bottom
+    [-3.2, 0.8], [3.2, 0.8], [-3.2, -0.8], [3.2, -0.8], // sides
+    [0, 3.0], [0, -3.0], // top/bottom center
+  ];
+
+  for (let i = 0; i < scatterPositions.length && count < MAX_CUBES; i++) {
+    const [baseX, baseY] = scatterPositions[i];
+    const drift = Math.sin(time * 0.5 + i * 1.5) * 0.4;
+    const x = baseX + drift + tiltY * 0.6;
+    const y = baseY + Math.cos(time * 0.3 + i) * 0.3 + tiltX * 0.6;
+    const z = -2 - Math.sin(time * 0.4 + i * 0.7) * 1.5;
+
+    const scale = (0.5 + Math.sin(time * 0.7 + i * 2) * 0.2) * breathe;
+    const tumble = time * (0.1 + (i % 3) * 0.05);
+
+    let model = mat4Translate(x, y, z);
+    model = mat4Multiply(model, mat4RotateX(tumble + rotationX * 0.5));
+    model = mat4Multiply(model, mat4RotateY(tumble * 0.7 + rotationY * 0.5));
+    model = mat4Multiply(model, mat4Scale(scale));
+
+    const offset = count * INSTANCE_STRIDE;
+    for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
+    instanceData[offset + 16] = 1.0 + heartbeat * 0.5;
+    instanceData[offset + 17] = (i / scatterPositions.length) * 0.3;
+    instanceData[offset + 18] = Math.sin(time * 0.35 + i * 0.9) * 0.6;
+    count++;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // HELIX: Double helix spiraling into the center
+  // ═══════════════════════════════════════════════════════════════════
+  for (let strand = 0; strand < 2 && count < MAX_CUBES; strand++) {
+    for (let i = 0; i < 15 && count < MAX_CUBES; i++) {
+      const t = i / 15;
+      const angle = t * Math.PI * 4 + strand * Math.PI + time * 0.12;
+      const radius = 0.3 + (1 - t) * 1.8; // Starts wide, narrows
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+      const z = -4 - t * 14; // Goes deep
+
+      const scale = (0.35 - t * 0.2) * breathe;
+
+      let model = mat4Translate(x + tiltY * (1 - t) * 0.4, y + tiltX * (1 - t) * 0.4, z);
+      model = mat4Multiply(model, mat4RotateX(time * 0.1 + t * 3));
+      model = mat4Multiply(model, mat4RotateY(angle));
+      model = mat4Multiply(model, mat4Scale(scale));
+
+      const offset = count * INSTANCE_STRIDE;
+      for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
+      instanceData[offset + 16] = (0.4 + (1 - t) * 0.6) * (1 + audio.bass * 0.3);
+      instanceData[offset + 17] = t * 0.2 + strand * 0.15;
+      instanceData[offset + 18] = Math.sin(t * 6.28 + time * 0.5) * (1 - t);
+      count++;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // FLYBY: Cubes that zoom past the camera
+  // ═══════════════════════════════════════════════════════════════════
+  for (let i = 0; i < 6 && count < MAX_CUBES; i++) {
+    const phase = (time * 0.3 + i * 1.05) % 6.28;
+    const flyT = (Math.sin(phase) + 1) * 0.5; // 0 to 1 oscillating
+
+    const angle = i * 1.05;
+    const radius = 1.5 + Math.sin(i * 2) * 0.5;
+    const x = Math.cos(angle) * radius * (1 - flyT * 0.5);
+    const y = Math.sin(angle) * radius * (1 - flyT * 0.5);
+    const z = 2 - flyT * 25; // Comes from behind, flies deep
+
+    if (z < 3 && z > -20) { // Only render when in view
+      const scale = 0.4 + flyT * 0.3;
+
+      let model = mat4Translate(x, y, z);
+      model = mat4Multiply(model, mat4RotateX(time * 0.3 + i));
+      model = mat4Multiply(model, mat4RotateY(time * 0.4));
+      model = mat4Multiply(model, mat4Scale(scale * breathe));
+
+      const offset = count * INSTANCE_STRIDE;
+      for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
+      instanceData[offset + 16] = 1.3 - flyT * 0.5;
+      instanceData[offset + 17] = flyT * 0.4;
+      instanceData[offset + 18] = (1 - flyT * 2) * 1.5;
+      count++;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // CENTER: Pulsing heart cube
+  // ═══════════════════════════════════════════════════════════════════
+  if (count < MAX_CUBES) {
+    const pulse = 0.6 + heartbeat * 2 + audio.bass * 0.4;
+
+    let model = mat4Translate(tiltY * 0.2, tiltX * 0.2, -5);
+    model = mat4Multiply(model, mat4RotateX(time * 0.05 + rotationX * 0.3));
+    model = mat4Multiply(model, mat4RotateY(time * 0.07 + rotationY * 0.3));
+    model = mat4Multiply(model, mat4RotateZ(time * 0.03));
+    model = mat4Multiply(model, mat4Scale(pulse));
+
+    const offset = count * INSTANCE_STRIDE;
+    for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
+    instanceData[offset + 16] = 1.8;
+    instanceData[offset + 17] = audio.mid * 0.3;
+    instanceData[offset + 18] = Math.sin(time * 0.2) * 2.0;
     count++;
   }
 

@@ -725,7 +725,7 @@ function mat4RotateZ(a) {
 function generateCubeInstances(time, audio, rot4d) {
   let count = 0;
   const ARMS = 4;
-  const CUBES_PER_ARM = 20;
+  const CUBES_PER_ARM = 12; // Fewer cubes but bigger
 
   for (let arm = 0; arm < ARMS; arm++) {
     const armAngle = (arm / ARMS) * Math.PI * 2;
@@ -734,26 +734,26 @@ function generateCubeInstances(time, audio, rot4d) {
       if (count >= MAX_CUBES) break;
 
       const t = i / CUBES_PER_ARM;
-      const spiralAngle = armAngle + i * (Math.PI * 2 / (PLASTIC * 2.5)) + time * 0.08;
+      const spiralAngle = armAngle + i * (Math.PI * 2 / (PLASTIC * 2)) + time * 0.06;
 
-      // MUCH more spread out - radius grows faster, cubes further apart
-      const radius = 0.15 + t * t * 8; // Quadratic growth for better spacing
+      // Balanced spread - visible spiral
+      const radius = 0.4 + t * 3.0;
       const x = Math.cos(spiralAngle) * radius;
       const y = Math.sin(spiralAngle) * radius;
-      // Keep all cubes in FRONT of camera (negative z = further back)
-      const z = -35 + t * 30; // Range: -35 to -5
+      // Closer range so cubes are visible
+      const z = -16 + t * 14; // Range: -16 to -2
 
-      // W coordinate oscillates based on position in spiral
-      const wCoord = Math.sin(t * Math.PI * 2 + time * 0.5 + arm) * 1.5;
+      // W coordinate for 4D
+      const wCoord = Math.sin(t * Math.PI * 2 + time * 0.4 + arm) * 1.0;
 
-      // MUCH smaller cubes - tiny at back, small at front
-      const cubeScale = 0.04 + t * t * 0.25; // Max ~0.29
+      // VISIBLE cubes - can clearly see camera texture
+      const cubeScale = 0.12 + t * 0.38; // Range: 0.12 to 0.5
 
-      // 3D rotation (affected by accelerometer)
-      const rotSpeed = 0.2 + audio.bass * 0.3;
-      const rotX = time * rotSpeed * 0.3 + rotationX * 0.2 + i * 0.15;
-      const rotY = time * rotSpeed * 0.25 + rotationY * 0.2 + arm * 1.57;
-      const rotZ = time * rotSpeed * 0.1;
+      // 3D rotation
+      const rotSpeed = 0.18 + audio.bass * 0.2;
+      const rotX = time * rotSpeed * 0.2 + rotationX * 0.25 + i * 0.18;
+      const rotY = time * rotSpeed * 0.15 + rotationY * 0.25 + arm * 1.57;
+      const rotZ = time * rotSpeed * 0.08;
 
       let model = mat4Translate(x, y, z);
       model = mat4Multiply(model, mat4RotateX(rotX));
@@ -764,26 +764,26 @@ function generateCubeInstances(time, audio, rot4d) {
       const offset = count * INSTANCE_STRIDE;
       for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
 
-      instanceData[offset + 16] = (0.4 + t * 0.6) * (1 + audio.bass * 0.3);
-      instanceData[offset + 17] = audio.mid * 0.2 + wCoord * 0.04;
+      instanceData[offset + 16] = (0.5 + t * 0.5) * (1 + audio.bass * 0.25);
+      instanceData[offset + 17] = audio.mid * 0.15 + wCoord * 0.03;
       instanceData[offset + 18] = wCoord;
 
       count++;
     }
   }
 
-  // Center cube - smaller and pushed back into the tunnel
+  // Center cube - visible anchor point
   if (count < MAX_CUBES) {
     const offset = count * INSTANCE_STRIDE;
-    let model = mat4Translate(0, 0, -8); // Back in the tunnel, not in front
-    model = mat4Multiply(model, mat4RotateX(time * 0.06 + rotationX * 0.4 + audio.bass * 0.2));
-    model = mat4Multiply(model, mat4RotateY(time * 0.08 + rotationY * 0.4));
-    const s = 0.35 + audio.bass * 0.1; // Much smaller center cube
+    let model = mat4Translate(0, 0, -3); // Close enough to see clearly
+    model = mat4Multiply(model, mat4RotateX(time * 0.05 + rotationX * 0.35 + audio.bass * 0.15));
+    model = mat4Multiply(model, mat4RotateY(time * 0.06 + rotationY * 0.35));
+    const s = 0.45 + audio.bass * 0.08; // Visible but not huge
     model = mat4Multiply(model, mat4Scale(s));
     for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-    instanceData[offset + 16] = 1.4;
+    instanceData[offset + 16] = 1.2;
     instanceData[offset + 17] = audio.mid * 0.1;
-    instanceData[offset + 18] = Math.sin(time * 0.25) * 1.2;
+    instanceData[offset + 18] = Math.sin(time * 0.2) * 0.8;
     count++;
   }
 

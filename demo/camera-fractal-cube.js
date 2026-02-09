@@ -724,66 +724,93 @@ function mat4RotateZ(a) {
 
 function generateCubeInstances(time, audio, rot4d) {
   let count = 0;
-  const ARMS = 4;
-  const CUBES_PER_ARM = 12; // Fewer cubes but bigger
 
-  for (let arm = 0; arm < ARMS; arm++) {
-    const armAngle = (arm / ARMS) * Math.PI * 2;
+  // LAYER 1: Big cubes at screen edges filling the frame
+  const edgePositions = [
+    [-2.0, -1.5, -2],  [2.0, -1.5, -2],   // bottom corners
+    [-2.0, 1.5, -2],   [2.0, 1.5, -2],    // top corners
+    [-2.5, 0, -2.5],   [2.5, 0, -2.5],    // left/right
+    [0, -2.0, -2],     [0, 2.0, -2],      // top/bottom center
+    [-1.3, -1.0, -1.5],[1.3, -1.0, -1.5], // inner lower
+    [-1.3, 1.0, -1.5], [1.3, 1.0, -1.5],  // inner upper
+  ];
 
-    for (let i = 0; i < CUBES_PER_ARM; i++) {
-      if (count >= MAX_CUBES) break;
+  for (let i = 0; i < edgePositions.length && count < MAX_CUBES; i++) {
+    const [bx, by, bz] = edgePositions[i];
+    const wCoord = Math.sin(time * 0.25 + i * 0.5) * 0.7;
+    const rotX = time * 0.1 + rotationX * 0.4 + i * 0.4;
+    const rotY = time * 0.08 + rotationY * 0.4 + i * 0.3;
 
-      const t = i / CUBES_PER_ARM;
-      const spiralAngle = armAngle + i * (Math.PI * 2 / (PLASTIC * 2)) + time * 0.06;
+    let model = mat4Translate(bx, by, bz);
+    model = mat4Multiply(model, mat4RotateX(rotX));
+    model = mat4Multiply(model, mat4RotateY(rotY));
+    model = mat4Multiply(model, mat4Scale(0.7 + audio.bass * 0.15));
 
-      // Balanced spread - visible spiral
-      const radius = 0.4 + t * 3.0;
-      const x = Math.cos(spiralAngle) * radius;
-      const y = Math.sin(spiralAngle) * radius;
-      // Closer range so cubes are visible
-      const z = -16 + t * 14; // Range: -16 to -2
+    const offset = count * INSTANCE_STRIDE;
+    for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
+    instanceData[offset + 16] = 1.4;
+    instanceData[offset + 17] = audio.mid * 0.08;
+    instanceData[offset + 18] = wCoord;
+    count++;
+  }
 
-      // W coordinate for 4D
-      const wCoord = Math.sin(t * Math.PI * 2 + time * 0.4 + arm) * 1.0;
+  // LAYER 2: Mid-ground spiral arms filling space
+  const ARMS = 6;
+  const PER_ARM = 10;
 
-      // VISIBLE cubes - can clearly see camera texture
-      const cubeScale = 0.12 + t * 0.38; // Range: 0.12 to 0.5
+  for (let arm = 0; arm < ARMS && count < MAX_CUBES; arm++) {
+    const baseAngle = (arm / ARMS) * Math.PI * 2 + time * 0.03;
 
-      // 3D rotation
-      const rotSpeed = 0.18 + audio.bass * 0.2;
-      const rotX = time * rotSpeed * 0.2 + rotationX * 0.25 + i * 0.18;
-      const rotY = time * rotSpeed * 0.15 + rotationY * 0.25 + arm * 1.57;
-      const rotZ = time * rotSpeed * 0.08;
+    for (let i = 0; i < PER_ARM && count < MAX_CUBES; i++) {
+      const t = i / PER_ARM;
+      const angle = baseAngle + t * 1.2;
+      const radius = 1.2 + t * 2.0;
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+      const z = -4 - t * 6;
+
+      const wCoord = Math.sin(t * 6.28 + time * 0.35 + arm) * 0.9;
+      const scale = 0.45 - t * 0.2;
+
+      const rotX = time * 0.12 + rotationX * 0.3 + i * 0.15 + arm * 0.5;
+      const rotY = time * 0.1 + rotationY * 0.3 + arm * 1.05;
 
       let model = mat4Translate(x, y, z);
       model = mat4Multiply(model, mat4RotateX(rotX));
       model = mat4Multiply(model, mat4RotateY(rotY));
-      model = mat4Multiply(model, mat4RotateZ(rotZ));
-      model = mat4Multiply(model, mat4Scale(cubeScale));
+      model = mat4Multiply(model, mat4Scale(scale));
 
       const offset = count * INSTANCE_STRIDE;
       for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-
-      instanceData[offset + 16] = (0.5 + t * 0.5) * (1 + audio.bass * 0.25);
-      instanceData[offset + 17] = audio.mid * 0.15 + wCoord * 0.03;
+      instanceData[offset + 16] = (0.7 + (1 - t) * 0.3) * (1 + audio.bass * 0.2);
+      instanceData[offset + 17] = audio.mid * 0.1 + wCoord * 0.02;
       instanceData[offset + 18] = wCoord;
-
       count++;
     }
   }
 
-  // Center cube - visible anchor point
-  if (count < MAX_CUBES) {
+  // LAYER 3: Deep tunnel center
+  for (let i = 0; i < 20 && count < MAX_CUBES; i++) {
+    const t = i / 20;
+    const angle = t * Math.PI * 5 + time * 0.06;
+    const radius = 0.2 + t * 0.8;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    const z = -8 - t * 10;
+
+    const scale = 0.3 - t * 0.18;
+    const wCoord = Math.sin(t * 9.42 + time * 0.4) * 0.5;
+
+    let model = mat4Translate(x, y, z);
+    model = mat4Multiply(model, mat4RotateX(time * 0.06 + rotationX * 0.15 + i * 0.25));
+    model = mat4Multiply(model, mat4RotateY(time * 0.08 + rotationY * 0.15));
+    model = mat4Multiply(model, mat4Scale(scale));
+
     const offset = count * INSTANCE_STRIDE;
-    let model = mat4Translate(0, 0, -3); // Close enough to see clearly
-    model = mat4Multiply(model, mat4RotateX(time * 0.05 + rotationX * 0.35 + audio.bass * 0.15));
-    model = mat4Multiply(model, mat4RotateY(time * 0.06 + rotationY * 0.35));
-    const s = 0.45 + audio.bass * 0.08; // Visible but not huge
-    model = mat4Multiply(model, mat4Scale(s));
     for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-    instanceData[offset + 16] = 1.2;
-    instanceData[offset + 17] = audio.mid * 0.1;
-    instanceData[offset + 18] = Math.sin(time * 0.2) * 0.8;
+    instanceData[offset + 16] = 0.5 + (1 - t) * 0.5;
+    instanceData[offset + 17] = audio.mid * 0.06;
+    instanceData[offset + 18] = wCoord;
     count++;
   }
 

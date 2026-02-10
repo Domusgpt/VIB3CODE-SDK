@@ -746,8 +746,14 @@ canvas.addEventListener('dblclick', (e) => {
 /*  PHYSICS STATE - Each cube has position, velocity, home             */
 /* ================================================================== */
 
-const NUM_CUBES = 80;
+const NUM_CUBES = 160;  // Doubled for density
 const cubePhysics = [];
+
+// Mathematical constants for elegant patterns
+const PHI = 1.618033988749895;        // Golden ratio
+const PHI_INV = 0.618033988749895;    // 1/phi (already have PLASTIC at line 15)
+const TAU = Math.PI * 2;
+const SQRT5 = Math.sqrt(5);
 
 // Initialize cube physics state
 function initCubePhysics() {
@@ -756,100 +762,188 @@ function initCubePhysics() {
       // Current state
       x: 0, y: 0, z: -5,
       vx: 0, vy: 0, vz: 0,
-      rotX: Math.random() * 6.28,
-      rotY: Math.random() * 6.28,
-      rotVelX: (Math.random() - 0.5) * 0.02,
-      rotVelY: (Math.random() - 0.5) * 0.02,
+      rotX: Math.random() * TAU,
+      rotY: Math.random() * TAU,
+      rotVelX: (Math.random() - 0.5) * 0.005,  // Slower rotation
+      rotVelY: (Math.random() - 0.5) * 0.005,
       scale: 0.5,
       scaleVel: 0,
-      phase: Math.random() * 6.28,
+      phase: Math.random() * TAU,
 
       // Home position (formation target)
       homeX: 0, homeY: 0, homeZ: -5,
 
-      // Properties
+      // Properties - slower springs, more damping
       mass: 0.8 + Math.random() * 0.4,
-      springK: 2.0 + Math.random() * 1.0,
-      damping: 0.92,
+      springK: 0.8 + Math.random() * 0.4,  // Slower springs
+      damping: 0.96,  // More damping = slower settling
     });
   }
 }
 initCubePhysics();
 
 /* ================================================================== */
-/*  FORMATIONS - Different arrangements cubes morph between            */
+/*  FORMATIONS - Mathematically elegant hypnotic patterns              */
 /* ================================================================== */
 
 function setFormation(formation, time) {
-  const t = time * 0.1;
+  const t = time * 0.05;  // Slower time progression
 
   for (let i = 0; i < NUM_CUBES; i++) {
     const cube = cubePhysics[i];
     const idx = i / NUM_CUBES;
+    const n = i + 1;
 
     switch(formation) {
+      // ════════════════════════════════════════════════════════════════
+      // FIBONACCI SPIRAL - Golden angle distribution into infinity
+      // ════════════════════════════════════════════════════════════════
       case 'SPIRAL': {
-        const angle = idx * Math.PI * 8 + t;
-        const radius = 0.5 + idx * 3;
-        cube.homeX = Math.cos(angle) * radius;
-        cube.homeY = Math.sin(angle) * radius;
-        cube.homeZ = -3 - idx * 15;
+        const goldenAngle = TAU * PHI_INV;
+        const angle = i * goldenAngle + t * 0.3;
+        // Logarithmic spiral - extends to infinity
+        const radius = 0.1 + Math.pow(idx, 0.6) * 4;
+        const depth = 2 - idx * 80;  // From z=2 (close) to z=-78 (infinity)
+        cube.homeX = Math.cos(angle) * radius * (1 + Math.sin(t + idx * 5) * 0.1);
+        cube.homeY = Math.sin(angle) * radius * (1 + Math.cos(t + idx * 5) * 0.1);
+        cube.homeZ = depth;
         break;
       }
+
+      // ════════════════════════════════════════════════════════════════
+      // TORUS KNOT - 3D Lissajous on a torus, sacred geometry
+      // ════════════════════════════════════════════════════════════════
       case 'SPHERE': {
-        const phi = Math.acos(1 - 2 * idx);
-        const theta = Math.PI * (1 + Math.sqrt(5)) * i;
-        const r = 2.5 + Math.sin(t + i) * 0.5;
-        cube.homeX = r * Math.sin(phi) * Math.cos(theta);
-        cube.homeY = r * Math.sin(phi) * Math.sin(theta);
-        cube.homeZ = -5 + r * Math.cos(phi);
+        const p = 3, q = 2;  // Trefoil knot parameters
+        const theta = idx * TAU * 4 + t * 0.2;
+        const r = 2 + Math.cos(q * theta);
+        const torusR = 3;
+        cube.homeX = (torusR + r * Math.cos(p * theta)) * Math.cos(theta) * 0.5;
+        cube.homeY = (torusR + r * Math.cos(p * theta)) * Math.sin(theta) * 0.5;
+        cube.homeZ = 1 - r * Math.sin(p * theta) * 0.5 - idx * 25;
         break;
       }
+
+      // ════════════════════════════════════════════════════════════════
+      // SACRED GRID - Flower of life inspired layered circles
+      // ════════════════════════════════════════════════════════════════
       case 'GRID': {
-        const cols = 8, rows = 10;
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        cube.homeX = (col - cols/2 + 0.5) * 0.8;
-        cube.homeY = (row - rows/2 + 0.5) * 0.8;
-        cube.homeZ = -4 + Math.sin(col + row + t) * 0.5;
+        const layer = Math.floor(Math.sqrt(i));
+        const inLayer = i - layer * layer;
+        const layerSize = layer * 2 + 1;
+        const angle = (inLayer / Math.max(1, layer * 6)) * TAU + t * 0.15;
+        const layerRadius = layer * 0.7;
+
+        // Vesica piscis oscillation
+        const vesica = Math.sin(angle * 6 + t) * 0.2;
+        cube.homeX = Math.cos(angle) * (layerRadius + vesica);
+        cube.homeY = Math.sin(angle) * (layerRadius + vesica);
+        cube.homeZ = 3 - layer * 5 - Math.sin(t + layer) * 0.5;
         break;
       }
+
+      // ════════════════════════════════════════════════════════════════
+      // HYPERBOLIC TUNNEL - Cubes recede with hyperbolic spacing
+      // ════════════════════════════════════════════════════════════════
       case 'EXPLOSION': {
-        const angle1 = idx * Math.PI * 6;
-        const angle2 = idx * Math.PI * 3;
-        const r = 1 + idx * 8;
-        cube.homeX = Math.cos(angle1) * Math.sin(angle2) * r;
-        cube.homeY = Math.sin(angle1) * Math.sin(angle2) * r;
-        cube.homeZ = -5 + Math.cos(angle2) * r * 0.5;
+        const ringCount = 16;
+        const ring = Math.floor(i / ringCount);
+        const inRing = i % ringCount;
+        const ringAngle = (inRing / ringCount) * TAU + ring * PHI + t * 0.1;
+
+        // Hyperbolic depth - dense near, sparse far
+        const depth = 3 - Math.pow(ring + 1, 1.5) * 3;
+        const radius = 0.8 + ring * 0.4 + Math.sin(t * 0.5 + ring) * 0.2;
+
+        cube.homeX = Math.cos(ringAngle) * radius;
+        cube.homeY = Math.sin(ringAngle) * radius;
+        cube.homeZ = depth;
         break;
       }
+
+      // ════════════════════════════════════════════════════════════════
+      // DOUBLE HELIX - DNA with phi-based twist rate
+      // ════════════════════════════════════════════════════════════════
       case 'DNA': {
         const strand = i % 2;
         const pos = Math.floor(i / 2) / (NUM_CUBES / 2);
-        const angle = pos * Math.PI * 6 + strand * Math.PI + t;
-        const radius = 1.5 + Math.sin(pos * 10) * 0.3;
-        cube.homeX = Math.cos(angle) * radius;
-        cube.homeY = Math.sin(angle) * radius;
-        cube.homeZ = -2 - pos * 16;
+        // Golden ratio determines helix pitch
+        const helixAngle = pos * TAU * 8 * PHI + strand * Math.PI + t * 0.2;
+        const helixRadius = 1.2 + Math.sin(pos * 20) * 0.15;
+
+        // Gentle breathing
+        const breathe = Math.sin(t * 0.5 + pos * 3) * 0.1;
+
+        cube.homeX = Math.cos(helixAngle) * (helixRadius + breathe);
+        cube.homeY = Math.sin(helixAngle) * (helixRadius + breathe);
+        cube.homeZ = 4 - pos * 90;  // Extends deep into infinity
         break;
       }
+
+      // ════════════════════════════════════════════════════════════════
+      // VORTEX MANDALA - Layered rotating mandalas receding to infinity
+      // ════════════════════════════════════════════════════════════════
       case 'VORTEX': {
-        const angle = idx * Math.PI * 12 + t * 2;
-        const radius = 0.3 + Math.pow(idx, 0.7) * 4;
-        const wave = Math.sin(idx * 20 + t * 3) * 0.5;
+        const mandalaLayers = 20;
+        const layer = Math.floor(i / (NUM_CUBES / mandalaLayers));
+        const inLayer = i % (NUM_CUBES / mandalaLayers);
+        const layerCubes = NUM_CUBES / mandalaLayers;
+
+        // Each layer rotates at different phi-related speed
+        const layerAngle = (inLayer / layerCubes) * TAU + layer * PHI_INV + t * (0.1 + layer * 0.02);
+        const layerRadius = 0.3 + (layer % 4) * 0.6 + Math.sin(t + layer) * 0.15;
+
+        // Hyperbolic z-spacing
+        const zBase = 4 - Math.pow(layer + 0.5, 1.3) * 4;
+        const zWave = Math.sin(layerAngle * 3 + t * 0.3) * 0.3;
+
+        cube.homeX = Math.cos(layerAngle) * layerRadius;
+        cube.homeY = Math.sin(layerAngle) * layerRadius;
+        cube.homeZ = zBase + zWave;
+        break;
+      }
+
+      // ════════════════════════════════════════════════════════════════
+      // LOXODROME - Spiral on a sphere (rhumb line)
+      // ════════════════════════════════════════════════════════════════
+      case 'LOXODROME': {
+        const spiralTightness = 0.15;
+        const theta = idx * TAU * 6;
+        const phi = 2 * Math.atan(Math.exp(spiralTightness * theta));
+        const r = 2.5 + Math.sin(t * 0.3) * 0.3;
+
+        cube.homeX = r * Math.sin(phi) * Math.cos(theta + t * 0.1);
+        cube.homeY = r * Math.sin(phi) * Math.sin(theta + t * 0.1);
+        cube.homeZ = 2 - r * Math.cos(phi) - idx * 30;
+        break;
+      }
+
+      // ════════════════════════════════════════════════════════════════
+      // FERMAT SPIRAL - Parabolic spiral, seeds of sunflower
+      // ════════════════════════════════════════════════════════════════
+      case 'FERMAT': {
+        const goldenAngle = TAU * PHI_INV;
+        const angle = i * goldenAngle + t * 0.15;
+        const radius = Math.sqrt(i) * 0.25;
+
+        // Gentle undulation
+        const wave = Math.sin(angle * 0.5 + t) * 0.2;
+
         cube.homeX = Math.cos(angle) * radius;
         cube.homeY = Math.sin(angle) * radius + wave;
-        cube.homeZ = -2 - idx * 18;
+        cube.homeZ = 3 - idx * 70;
         break;
       }
-      default: // ORBIT
-        const ring = Math.floor(i / 12);
-        const inRing = i % 12;
-        const ringAngle = (inRing / 12) * Math.PI * 2 + t * (1 + ring * 0.3);
-        const ringRadius = 1 + ring * 1.2;
+
+      default: // ORBIT - Concentric rings at golden ratio radii
+        const ring = Math.floor(i / 10);
+        const inRing = i % 10;
+        const ringAngle = (inRing / 10) * TAU + t * (0.08 - ring * 0.005);
+        const ringRadius = Math.pow(PHI, ring * 0.5) * 0.6;
+
         cube.homeX = Math.cos(ringAngle) * ringRadius;
-        cube.homeY = Math.sin(ringAngle) * ringRadius * (0.6 + ring * 0.1);
-        cube.homeZ = -3 - ring * 3;
+        cube.homeY = Math.sin(ringAngle) * ringRadius;
+        cube.homeZ = 3 - ring * 4;
     }
   }
 }
@@ -947,16 +1041,16 @@ function mat4RotateZ(a) {
 
 let currentFormation = 'VORTEX';
 let formationTimer = 0;
-const FORMATIONS = ['VORTEX', 'SPIRAL', 'SPHERE', 'DNA', 'EXPLOSION', 'GRID'];
+const FORMATIONS = ['VORTEX', 'SPIRAL', 'FERMAT', 'LOXODROME', 'DNA', 'GRID', 'SPHERE', 'EXPLOSION'];
 let formationIndex = 0;
 
 function updatePhysics(dt, time, audio) {
   // Clamp dt to prevent explosion on tab switch
-  dt = Math.min(dt, 0.05);
+  dt = Math.min(dt, 0.03);  // Smaller dt for smoother motion
 
-  // Auto-cycle formations every 15 seconds
+  // Auto-cycle formations every 20 seconds (slower)
   formationTimer += dt;
-  if (formationTimer > 15) {
+  if (formationTimer > 20) {
     formationTimer = 0;
     formationIndex = (formationIndex + 1) % FORMATIONS.length;
     currentFormation = FORMATIONS[formationIndex];
@@ -965,64 +1059,65 @@ function updatePhysics(dt, time, audio) {
   // Update home positions for current formation
   setFormation(currentFormation, time);
 
-  // Global forces
-  const breathe = Math.sin(time * 0.8) * 0.1;
-  const bassKick = audio.bass > 0.6 ? (audio.bass - 0.6) * 5 : 0;
-  const midPulse = audio.mid * 0.3;
+  // Global forces - gentler
+  const breathe = Math.sin(time * 0.4) * 0.05;  // Slower, subtler breathe
+  const bassKick = audio.bass > 0.7 ? (audio.bass - 0.7) * 2 : 0;  // Higher threshold
+  const midPulse = audio.mid * 0.15;
 
-  // Decay gesture velocities
-  gestureState.rotVelX *= 0.96;
-  gestureState.rotVelY *= 0.96;
-  gestureState.swipeVelX *= 0.94;
-  gestureState.swipeVelY *= 0.94;
-  gestureState.impulseX *= 0.9;
-  gestureState.impulseY *= 0.9;
-  gestureState.impulseZ *= 0.9;
-  gestureState.shockwave *= 0.92;
+  // Decay gesture velocities - slower decay for momentum
+  gestureState.rotVelX *= 0.98;
+  gestureState.rotVelY *= 0.98;
+  gestureState.swipeVelX *= 0.97;
+  gestureState.swipeVelY *= 0.97;
+  gestureState.impulseX *= 0.95;
+  gestureState.impulseY *= 0.95;
+  gestureState.impulseZ *= 0.95;
+  gestureState.shockwave *= 0.96;
 
-  // Smooth pinch scale
-  gestureState.pinchScale += (gestureState.pinchTarget - gestureState.pinchScale) * 0.1;
+  // Smooth pinch scale - slower
+  gestureState.pinchScale += (gestureState.pinchTarget - gestureState.pinchScale) * 0.05;
 
   for (let i = 0; i < NUM_CUBES; i++) {
     const cube = cubePhysics[i];
     const idx = i / NUM_CUBES;
 
     // ══════════════════════════════════════════════════════════════════
-    // SPRING FORCE - Pull toward home position
+    // SPRING FORCE - Pull toward home position (gentler)
     // ══════════════════════════════════════════════════════════════════
     const dx = cube.homeX - cube.x;
     const dy = cube.homeY - cube.y;
     const dz = cube.homeZ - cube.z;
 
-    const springForce = cube.springK * (1 + bassKick * 0.5);
+    // Softer springs for languid motion
+    const springForce = cube.springK * 0.4 * (1 + bassKick * 0.2);
     cube.vx += dx * springForce * dt;
     cube.vy += dy * springForce * dt;
     cube.vz += dz * springForce * dt;
 
     // ══════════════════════════════════════════════════════════════════
-    // ACCELEROMETER INFLUENCE
+    // ACCELEROMETER INFLUENCE - Gentler
     // ══════════════════════════════════════════════════════════════════
-    const tiltInfluence = 1.5 * (1 - idx * 0.5); // Closer cubes more affected
-    cube.vx += rotationY * tiltInfluence * dt * 2;
-    cube.vy += rotationX * tiltInfluence * dt * 2;
+    const tiltInfluence = 0.5 * (1 - idx * 0.5);
+    cube.vx += rotationY * tiltInfluence * dt;
+    cube.vy += rotationX * tiltInfluence * dt;
 
     // ══════════════════════════════════════════════════════════════════
-    // GESTURE FORCES
+    // GESTURE FORCES - Reduced intensity
     // ══════════════════════════════════════════════════════════════════
-    // Swipe creates wave through cubes
-    const swipeDelay = idx * 0.3;
-    const swipePhase = Math.sin(time * 4 - swipeDelay);
-    cube.vx += gestureState.swipeVelX * swipePhase * 0.5;
-    cube.vy += gestureState.swipeVelY * swipePhase * 0.5;
+    // Swipe creates gentle wave through cubes
+    const swipeDelay = idx * 0.5;
+    const swipePhase = Math.sin(time * 2 - swipeDelay);
+    cube.vx += gestureState.swipeVelX * swipePhase * 0.2;
+    cube.vy += gestureState.swipeVelY * swipePhase * 0.2;
 
-    // Pinch affects scale velocity
+    // Pinch affects scale velocity - gentler
     const pinchDelta = gestureState.pinchTarget - 1.0;
-    cube.scaleVel += pinchDelta * dt * 2;
+    cube.scaleVel += pinchDelta * dt * 0.5;
 
-    // Impulse (from pinch squeeze/spread)
-    cube.vx += gestureState.impulseX * (1 - idx) * dt * 3;
-    cube.vy += gestureState.impulseY * (1 - idx) * dt * 3;
-    cube.vz += gestureState.impulseZ * (1 - idx) * dt * 3;
+    // Impulse (from pinch squeeze/spread) - gentler
+    cube.vx += gestureState.impulseX * (1 - idx) * dt;
+    cube.vy += gestureState.impulseY * (1 - idx) * dt;
+    cube.vz += gestureState.impulseZ * (1 - idx) * dt;
 
     // Shockwave from double-tap
     if (gestureState.shockwave > 0.01) {
@@ -1041,62 +1136,66 @@ function updatePhysics(dt, time, audio) {
     }
 
     // ══════════════════════════════════════════════════════════════════
-    // AUDIO-REACTIVE FORCES
+    // AUDIO-REACTIVE FORCES - Subtle, hypnotic
     // ══════════════════════════════════════════════════════════════════
-    // Bass makes cubes punch outward from center
+    // Bass creates gentle radial pulse
     if (bassKick > 0) {
       const distFromCenter = Math.sqrt(cube.x * cube.x + cube.y * cube.y);
       const angle = Math.atan2(cube.y, cube.x);
-      cube.vx += Math.cos(angle) * bassKick * 0.8 / (1 + distFromCenter * 0.2);
-      cube.vy += Math.sin(angle) * bassKick * 0.8 / (1 + distFromCenter * 0.2);
-      cube.vz += bassKick * 0.3;
+      const force = bassKick * 0.2 / (1 + distFromCenter * 0.3);
+      cube.vx += Math.cos(angle) * force;
+      cube.vy += Math.sin(angle) * force;
     }
 
-    // Mids create rotation speed boost
-    cube.rotVelX += audio.mid * 0.02;
-    cube.rotVelY += audio.mid * 0.015;
+    // Mids create very slow rotation (hypnotic)
+    cube.rotVelX += audio.mid * 0.003;
+    cube.rotVelY += audio.mid * 0.002;
 
-    // Highs create jitter
-    const jitter = audio.high * 0.15;
+    // Highs create minimal jitter - almost imperceptible
+    const jitter = audio.high * 0.02;
     cube.vx += (Math.random() - 0.5) * jitter;
     cube.vy += (Math.random() - 0.5) * jitter;
 
     // ══════════════════════════════════════════════════════════════════
-    // INTER-CUBE FORCES (dancing together)
+    // INTER-CUBE FORCES (synchronized hypnotic wave)
     // ══════════════════════════════════════════════════════════════════
-    // Subtle alignment - cubes near each other rotate similarly
-    const waveInfluence = Math.sin(time * 3 + idx * 10) * 0.02;
+    // Golden ratio phase offset for elegant coordination
+    const phiPhase = idx * PHI * 10;
+    const waveInfluence = Math.sin(time * 0.5 + phiPhase) * 0.005;
     cube.rotVelX += waveInfluence;
-    cube.rotVelY += waveInfluence * 0.7;
+    cube.rotVelY += waveInfluence * PHI_INV;
 
     // ══════════════════════════════════════════════════════════════════
     // INTEGRATION
     // ══════════════════════════════════════════════════════════════════
-    // Position
+    // Position - smooth interpolation
     cube.x += cube.vx * dt;
     cube.y += cube.vy * dt;
     cube.z += cube.vz * dt;
 
-    // Rotation
-    cube.rotX += cube.rotVelX + gestureState.rotVelX * 0.3;
-    cube.rotY += cube.rotVelY + gestureState.rotVelY * 0.3;
+    // Rotation - very slow, hypnotic
+    cube.rotX += (cube.rotVelX + gestureState.rotVelX * 0.1) * 0.3;
+    cube.rotY += (cube.rotVelY + gestureState.rotVelY * 0.1) * 0.3;
 
-    // Scale with breathing
-    const targetScale = (0.3 + (1 - idx) * 0.5) * gestureState.pinchScale * (1 + breathe);
-    cube.scaleVel += (targetScale - cube.scale) * 5 * dt;
-    cube.scaleVel *= 0.9; // Scale damping
+    // Scale based on depth - bigger when close, smaller when far
+    // Cubes close to camera (z > 0) are larger, distant ones smaller
+    const depthFactor = Math.max(0.2, Math.min(1.5, (cube.z + 10) / 15));
+    const baseScale = 0.3 + depthFactor * 0.5;
+    const targetScale = baseScale * gestureState.pinchScale * (1 + breathe);
+    cube.scaleVel += (targetScale - cube.scale) * 2 * dt;
+    cube.scaleVel *= 0.95; // Slower scale changes
     cube.scale += cube.scaleVel * dt;
-    cube.scale = Math.max(0.1, Math.min(2.0, cube.scale));
+    cube.scale = Math.max(0.15, Math.min(1.5, cube.scale));
 
     // ══════════════════════════════════════════════════════════════════
-    // DAMPING
+    // DAMPING - High damping for slow, dreamy motion
     // ══════════════════════════════════════════════════════════════════
-    const damping = cube.damping - audio.energy * 0.05; // More energy = less damping
+    const damping = 0.97 - audio.energy * 0.02;
     cube.vx *= damping;
     cube.vy *= damping;
     cube.vz *= damping;
-    cube.rotVelX *= 0.98;
-    cube.rotVelY *= 0.98;
+    cube.rotVelX *= 0.995;  // Very slow rotation decay
+    cube.rotVelY *= 0.995;
   }
 }
 
@@ -1107,8 +1206,8 @@ function updatePhysics(dt, time, audio) {
 function generateCubeInstances(time, audio, rot4d) {
   let count = 0;
 
-  // Global effects
-  const heartbeat = Math.pow(Math.sin(time * 2.5), 8) * 0.3;
+  // Global effects - subtle
+  const heartbeat = Math.pow(Math.sin(time * 1.5), 8) * 0.15;
 
   for (let i = 0; i < NUM_CUBES && count < MAX_CUBES; i++) {
     const cube = cubePhysics[i];
@@ -1118,7 +1217,7 @@ function generateCubeInstances(time, audio, rot4d) {
     let model = mat4Translate(cube.x, cube.y, cube.z);
     model = mat4Multiply(model, mat4RotateX(cube.rotX));
     model = mat4Multiply(model, mat4RotateY(cube.rotY));
-    model = mat4Multiply(model, mat4RotateZ(cube.phase + time * 0.05));
+    model = mat4Multiply(model, mat4RotateZ(cube.phase + time * 0.02));  // Slower Z rotation
     model = mat4Multiply(model, mat4Scale(cube.scale));
 
     const offset = count * INSTANCE_STRIDE;
@@ -1309,8 +1408,8 @@ function render() {
   if (hud) {
     const cam = videoReady ? 'CAM' : 'NO-CAM';
     const acc = accelEnabled ? 'GYRO' : 'MOUSE';
-    const formTime = Math.ceil(15 - formationTimer);
-    hud.textContent = `${cubeCount} cubes | ${currentFormation} (${formTime}s) | ${cam} | ${acc} | 4D: ${rot4d.xw.toFixed(1)},${rot4d.yw.toFixed(1)},${rot4d.zw.toFixed(1)}`;
+    const formTime = Math.ceil(20 - formationTimer);
+    hud.textContent = `${cubeCount} cubes | ${currentFormation} (${formTime}s) | ${cam} | ${acc}`;
   }
 }
 
@@ -1338,40 +1437,40 @@ window.addEventListener('resize', () => {
 // Keyboard controls
 window.addEventListener('keydown', (e) => {
   switch(e.key) {
-    case '1': case '2': case '3': case '4': case '5': case '6':
-      // Number keys switch formations
+    case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8':
+      // Number keys switch formations (8 total)
       formationIndex = parseInt(e.key) - 1;
-      currentFormation = FORMATIONS[formationIndex];
-      formationTimer = 0;
+      if (formationIndex < FORMATIONS.length) {
+        currentFormation = FORMATIONS[formationIndex];
+        formationTimer = 0;
+      }
       break;
     case ' ':
-      // Space creates shockwave at center
-      gestureState.shockwave = 1.0;
+      // Space creates gentle shockwave at center
+      gestureState.shockwave = 0.5;
       gestureState.shockwaveOrigin = [0, 0];
       break;
     case 'ArrowLeft':
-      gestureState.swipeVelX = -2;
+      gestureState.swipeVelX = -1;
       break;
     case 'ArrowRight':
-      gestureState.swipeVelX = 2;
+      gestureState.swipeVelX = 1;
       break;
     case 'ArrowUp':
-      gestureState.swipeVelY = 2;
+      gestureState.swipeVelY = 1;
       break;
     case 'ArrowDown':
-      gestureState.swipeVelY = -2;
+      gestureState.swipeVelY = -1;
       break;
     case 'z':
     case 'Z':
       // Zoom in
-      gestureState.pinchTarget = Math.min(3.0, gestureState.pinchTarget * 1.2);
-      gestureState.impulseZ += 0.5;
+      gestureState.pinchTarget = Math.min(2.0, gestureState.pinchTarget * 1.1);
       break;
     case 'x':
     case 'X':
       // Zoom out
-      gestureState.pinchTarget = Math.max(0.3, gestureState.pinchTarget * 0.8);
-      gestureState.impulseZ -= 0.5;
+      gestureState.pinchTarget = Math.max(0.5, gestureState.pinchTarget * 0.9);
       break;
   }
 });

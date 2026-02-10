@@ -609,17 +609,261 @@ async function startCamera() {
 }
 
 /* ================================================================== */
-/*  ACCELEROMETER / GYRO / MOUSE                                       */
+/*  GESTURE SYSTEM - Momentum, Pinch, Tap                              */
+/* ================================================================== */
+
+let gestureState = {
+  // Rotation with momentum
+  rotVelX: 0, rotVelY: 0,
+  isDragging: false,
+  lastX: 0, lastY: 0,
+
+  // Pinch gesture
+  pinchScale: 1.0,
+  pinchTarget: 1.0,
+  lastPinchDist: 0,
+
+  // Tap/impulse
+  impulseX: 0, impulseY: 0, impulseZ: 0,
+  shockwave: 0, shockwaveOrigin: [0, 0],
+
+  // Swipe momentum
+  swipeVelX: 0, swipeVelY: 0,
+};
+
+// Touch tracking
+let touches = {};
+
+canvas.addEventListener('touchstart', (e) => {
+  for (let t of e.changedTouches) {
+    touches[t.identifier] = { x: t.clientX, y: t.clientY, startX: t.clientX, startY: t.clientY };
+  }
+  if (e.touches.length === 1) {
+    gestureState.isDragging = true;
+    gestureState.lastX = e.touches[0].clientX;
+    gestureState.lastY = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    gestureState.lastPinchDist = Math.sqrt(dx*dx + dy*dy);
+  }
+  e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 1 && gestureState.isDragging) {
+    const dx = e.touches[0].clientX - gestureState.lastX;
+    const dy = e.touches[0].clientY - gestureState.lastY;
+
+    // Add to rotation with velocity
+    gestureState.rotVelY += dx * 0.008;
+    gestureState.rotVelX += dy * 0.008;
+
+    // Swipe momentum
+    gestureState.swipeVelX = dx * 0.02;
+    gestureState.swipeVelY = dy * 0.02;
+
+    gestureState.lastX = e.touches[0].clientX;
+    gestureState.lastY = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    // Pinch gesture
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (gestureState.lastPinchDist > 0) {
+      const scale = dist / gestureState.lastPinchDist;
+      gestureState.pinchTarget *= scale;
+      gestureState.pinchTarget = Math.max(0.3, Math.min(3.0, gestureState.pinchTarget));
+
+      // Pinch creates impulse
+      if (scale > 1.05) gestureState.impulseZ += 0.3; // Spread = push out
+      if (scale < 0.95) gestureState.impulseZ -= 0.3; // Squeeze = pull in
+    }
+    gestureState.lastPinchDist = dist;
+  }
+  e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  for (let t of e.changedTouches) {
+    delete touches[t.identifier];
+  }
+  if (e.touches.length === 0) {
+    gestureState.isDragging = false;
+  }
+  gestureState.lastPinchDist = 0;
+
+  // Double tap detection
+  const now = Date.now();
+  if (!gestureState.lastTap) gestureState.lastTap = 0;
+  if (now - gestureState.lastTap < 300) {
+    // Double tap! Create shockwave
+    gestureState.shockwave = 1.0;
+    if (e.changedTouches.length > 0) {
+      gestureState.shockwaveOrigin = [
+        (e.changedTouches[0].clientX / window.innerWidth - 0.5) * 4,
+        -(e.changedTouches[0].clientY / window.innerHeight - 0.5) * 4
+      ];
+    }
+  }
+  gestureState.lastTap = now;
+  e.preventDefault();
+}, { passive: false });
+
+// Mouse fallback with momentum
+canvas.addEventListener('mousedown', (e) => {
+  gestureState.isDragging = true;
+  gestureState.lastX = e.clientX;
+  gestureState.lastY = e.clientY;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!gestureState.isDragging) return;
+  const dx = e.clientX - gestureState.lastX;
+  const dy = e.clientY - gestureState.lastY;
+  gestureState.rotVelY += dx * 0.005;
+  gestureState.rotVelX += dy * 0.005;
+  gestureState.swipeVelX = dx * 0.015;
+  gestureState.swipeVelY = dy * 0.015;
+  gestureState.lastX = e.clientX;
+  gestureState.lastY = e.clientY;
+});
+
+canvas.addEventListener('mouseup', () => { gestureState.isDragging = false; });
+canvas.addEventListener('mouseleave', () => { gestureState.isDragging = false; });
+
+// Double click = shockwave
+canvas.addEventListener('dblclick', (e) => {
+  gestureState.shockwave = 1.0;
+  gestureState.shockwaveOrigin = [
+    (e.clientX / window.innerWidth - 0.5) * 4,
+    -(e.clientY / window.innerHeight - 0.5) * 4
+  ];
+});
+
+/* ================================================================== */
+/*  PHYSICS STATE - Each cube has position, velocity, home             */
+/* ================================================================== */
+
+const NUM_CUBES = 80;
+const cubePhysics = [];
+
+// Initialize cube physics state
+function initCubePhysics() {
+  for (let i = 0; i < NUM_CUBES; i++) {
+    cubePhysics.push({
+      // Current state
+      x: 0, y: 0, z: -5,
+      vx: 0, vy: 0, vz: 0,
+      rotX: Math.random() * 6.28,
+      rotY: Math.random() * 6.28,
+      rotVelX: (Math.random() - 0.5) * 0.02,
+      rotVelY: (Math.random() - 0.5) * 0.02,
+      scale: 0.5,
+      scaleVel: 0,
+      phase: Math.random() * 6.28,
+
+      // Home position (formation target)
+      homeX: 0, homeY: 0, homeZ: -5,
+
+      // Properties
+      mass: 0.8 + Math.random() * 0.4,
+      springK: 2.0 + Math.random() * 1.0,
+      damping: 0.92,
+    });
+  }
+}
+initCubePhysics();
+
+/* ================================================================== */
+/*  FORMATIONS - Different arrangements cubes morph between            */
+/* ================================================================== */
+
+function setFormation(formation, time) {
+  const t = time * 0.1;
+
+  for (let i = 0; i < NUM_CUBES; i++) {
+    const cube = cubePhysics[i];
+    const idx = i / NUM_CUBES;
+
+    switch(formation) {
+      case 'SPIRAL': {
+        const angle = idx * Math.PI * 8 + t;
+        const radius = 0.5 + idx * 3;
+        cube.homeX = Math.cos(angle) * radius;
+        cube.homeY = Math.sin(angle) * radius;
+        cube.homeZ = -3 - idx * 15;
+        break;
+      }
+      case 'SPHERE': {
+        const phi = Math.acos(1 - 2 * idx);
+        const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+        const r = 2.5 + Math.sin(t + i) * 0.5;
+        cube.homeX = r * Math.sin(phi) * Math.cos(theta);
+        cube.homeY = r * Math.sin(phi) * Math.sin(theta);
+        cube.homeZ = -5 + r * Math.cos(phi);
+        break;
+      }
+      case 'GRID': {
+        const cols = 8, rows = 10;
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        cube.homeX = (col - cols/2 + 0.5) * 0.8;
+        cube.homeY = (row - rows/2 + 0.5) * 0.8;
+        cube.homeZ = -4 + Math.sin(col + row + t) * 0.5;
+        break;
+      }
+      case 'EXPLOSION': {
+        const angle1 = idx * Math.PI * 6;
+        const angle2 = idx * Math.PI * 3;
+        const r = 1 + idx * 8;
+        cube.homeX = Math.cos(angle1) * Math.sin(angle2) * r;
+        cube.homeY = Math.sin(angle1) * Math.sin(angle2) * r;
+        cube.homeZ = -5 + Math.cos(angle2) * r * 0.5;
+        break;
+      }
+      case 'DNA': {
+        const strand = i % 2;
+        const pos = Math.floor(i / 2) / (NUM_CUBES / 2);
+        const angle = pos * Math.PI * 6 + strand * Math.PI + t;
+        const radius = 1.5 + Math.sin(pos * 10) * 0.3;
+        cube.homeX = Math.cos(angle) * radius;
+        cube.homeY = Math.sin(angle) * radius;
+        cube.homeZ = -2 - pos * 16;
+        break;
+      }
+      case 'VORTEX': {
+        const angle = idx * Math.PI * 12 + t * 2;
+        const radius = 0.3 + Math.pow(idx, 0.7) * 4;
+        const wave = Math.sin(idx * 20 + t * 3) * 0.5;
+        cube.homeX = Math.cos(angle) * radius;
+        cube.homeY = Math.sin(angle) * radius + wave;
+        cube.homeZ = -2 - idx * 18;
+        break;
+      }
+      default: // ORBIT
+        const ring = Math.floor(i / 12);
+        const inRing = i % 12;
+        const ringAngle = (inRing / 12) * Math.PI * 2 + t * (1 + ring * 0.3);
+        const ringRadius = 1 + ring * 1.2;
+        cube.homeX = Math.cos(ringAngle) * ringRadius;
+        cube.homeY = Math.sin(ringAngle) * ringRadius * (0.6 + ring * 0.1);
+        cube.homeZ = -3 - ring * 3;
+    }
+  }
+}
+
+/* ================================================================== */
+/*  ACCELEROMETER / GYRO                                               */
 /* ================================================================== */
 
 let rotationX = 0, rotationY = 0;
 let targetRotX = 0, targetRotY = 0;
 let accelEnabled = false;
 
-// Device orientation (accelerometer/gyro)
 function initAccelerometer() {
   if (typeof DeviceOrientationEvent !== 'undefined') {
-    // Check for iOS 13+ permission requirement
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
       DeviceOrientationEvent.requestPermission()
         .then(response => {
@@ -638,31 +882,10 @@ function initAccelerometer() {
 
 function handleOrientation(e) {
   if (e.beta !== null && e.gamma !== null) {
-    // beta: front-back tilt (-180 to 180)
-    // gamma: left-right tilt (-90 to 90)
-    targetRotX = (e.beta / 90) * Math.PI;  // Map to -PI to PI
-    targetRotY = (e.gamma / 45) * Math.PI; // Map to -PI to PI
+    targetRotX = (e.beta / 90) * Math.PI;
+    targetRotY = (e.gamma / 45) * Math.PI;
   }
 }
-
-// Mouse/touch fallback
-canvas.addEventListener('mousemove', (e) => {
-  if (accelEnabled) return; // Prefer accelerometer
-  const x = e.clientX / window.innerWidth;
-  const y = e.clientY / window.innerHeight;
-  targetRotX = (y - 0.5) * Math.PI * 2;
-  targetRotY = (x - 0.5) * Math.PI * 2;
-});
-
-canvas.addEventListener('touchmove', (e) => {
-  if (accelEnabled) return;
-  const touch = e.touches[0];
-  const x = touch.clientX / window.innerWidth;
-  const y = touch.clientY / window.innerHeight;
-  targetRotX = (y - 0.5) * Math.PI * 2;
-  targetRotY = (x - 0.5) * Math.PI * 2;
-  e.preventDefault();
-}, { passive: false });
 
 /* ================================================================== */
 /*  MATRIX HELPERS                                                     */
@@ -719,182 +942,200 @@ function mat4RotateZ(a) {
 }
 
 /* ================================================================== */
-/*  CUBE GENERATION - HYPERCUBE VORTEX                                 */
+/*  PHYSICS SIMULATION - Spring forces, audio impulses, gestures       */
+/* ================================================================== */
+
+let currentFormation = 'VORTEX';
+let formationTimer = 0;
+const FORMATIONS = ['VORTEX', 'SPIRAL', 'SPHERE', 'DNA', 'EXPLOSION', 'GRID'];
+let formationIndex = 0;
+
+function updatePhysics(dt, time, audio) {
+  // Clamp dt to prevent explosion on tab switch
+  dt = Math.min(dt, 0.05);
+
+  // Auto-cycle formations every 15 seconds
+  formationTimer += dt;
+  if (formationTimer > 15) {
+    formationTimer = 0;
+    formationIndex = (formationIndex + 1) % FORMATIONS.length;
+    currentFormation = FORMATIONS[formationIndex];
+  }
+
+  // Update home positions for current formation
+  setFormation(currentFormation, time);
+
+  // Global forces
+  const breathe = Math.sin(time * 0.8) * 0.1;
+  const bassKick = audio.bass > 0.6 ? (audio.bass - 0.6) * 5 : 0;
+  const midPulse = audio.mid * 0.3;
+
+  // Decay gesture velocities
+  gestureState.rotVelX *= 0.96;
+  gestureState.rotVelY *= 0.96;
+  gestureState.swipeVelX *= 0.94;
+  gestureState.swipeVelY *= 0.94;
+  gestureState.impulseX *= 0.9;
+  gestureState.impulseY *= 0.9;
+  gestureState.impulseZ *= 0.9;
+  gestureState.shockwave *= 0.92;
+
+  // Smooth pinch scale
+  gestureState.pinchScale += (gestureState.pinchTarget - gestureState.pinchScale) * 0.1;
+
+  for (let i = 0; i < NUM_CUBES; i++) {
+    const cube = cubePhysics[i];
+    const idx = i / NUM_CUBES;
+
+    // ══════════════════════════════════════════════════════════════════
+    // SPRING FORCE - Pull toward home position
+    // ══════════════════════════════════════════════════════════════════
+    const dx = cube.homeX - cube.x;
+    const dy = cube.homeY - cube.y;
+    const dz = cube.homeZ - cube.z;
+
+    const springForce = cube.springK * (1 + bassKick * 0.5);
+    cube.vx += dx * springForce * dt;
+    cube.vy += dy * springForce * dt;
+    cube.vz += dz * springForce * dt;
+
+    // ══════════════════════════════════════════════════════════════════
+    // ACCELEROMETER INFLUENCE
+    // ══════════════════════════════════════════════════════════════════
+    const tiltInfluence = 1.5 * (1 - idx * 0.5); // Closer cubes more affected
+    cube.vx += rotationY * tiltInfluence * dt * 2;
+    cube.vy += rotationX * tiltInfluence * dt * 2;
+
+    // ══════════════════════════════════════════════════════════════════
+    // GESTURE FORCES
+    // ══════════════════════════════════════════════════════════════════
+    // Swipe creates wave through cubes
+    const swipeDelay = idx * 0.3;
+    const swipePhase = Math.sin(time * 4 - swipeDelay);
+    cube.vx += gestureState.swipeVelX * swipePhase * 0.5;
+    cube.vy += gestureState.swipeVelY * swipePhase * 0.5;
+
+    // Pinch affects scale velocity
+    const pinchDelta = gestureState.pinchTarget - 1.0;
+    cube.scaleVel += pinchDelta * dt * 2;
+
+    // Impulse (from pinch squeeze/spread)
+    cube.vx += gestureState.impulseX * (1 - idx) * dt * 3;
+    cube.vy += gestureState.impulseY * (1 - idx) * dt * 3;
+    cube.vz += gestureState.impulseZ * (1 - idx) * dt * 3;
+
+    // Shockwave from double-tap
+    if (gestureState.shockwave > 0.01) {
+      const shockDist = Math.sqrt(
+        Math.pow(cube.x - gestureState.shockwaveOrigin[0], 2) +
+        Math.pow(cube.y - gestureState.shockwaveOrigin[1], 2)
+      );
+      const shockForce = gestureState.shockwave * 3 / (1 + shockDist * 0.5);
+      const shockAngle = Math.atan2(
+        cube.y - gestureState.shockwaveOrigin[1],
+        cube.x - gestureState.shockwaveOrigin[0]
+      );
+      cube.vx += Math.cos(shockAngle) * shockForce * dt;
+      cube.vy += Math.sin(shockAngle) * shockForce * dt;
+      cube.vz -= shockForce * 0.3 * dt;
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // AUDIO-REACTIVE FORCES
+    // ══════════════════════════════════════════════════════════════════
+    // Bass makes cubes punch outward from center
+    if (bassKick > 0) {
+      const distFromCenter = Math.sqrt(cube.x * cube.x + cube.y * cube.y);
+      const angle = Math.atan2(cube.y, cube.x);
+      cube.vx += Math.cos(angle) * bassKick * 0.8 / (1 + distFromCenter * 0.2);
+      cube.vy += Math.sin(angle) * bassKick * 0.8 / (1 + distFromCenter * 0.2);
+      cube.vz += bassKick * 0.3;
+    }
+
+    // Mids create rotation speed boost
+    cube.rotVelX += audio.mid * 0.02;
+    cube.rotVelY += audio.mid * 0.015;
+
+    // Highs create jitter
+    const jitter = audio.high * 0.15;
+    cube.vx += (Math.random() - 0.5) * jitter;
+    cube.vy += (Math.random() - 0.5) * jitter;
+
+    // ══════════════════════════════════════════════════════════════════
+    // INTER-CUBE FORCES (dancing together)
+    // ══════════════════════════════════════════════════════════════════
+    // Subtle alignment - cubes near each other rotate similarly
+    const waveInfluence = Math.sin(time * 3 + idx * 10) * 0.02;
+    cube.rotVelX += waveInfluence;
+    cube.rotVelY += waveInfluence * 0.7;
+
+    // ══════════════════════════════════════════════════════════════════
+    // INTEGRATION
+    // ══════════════════════════════════════════════════════════════════
+    // Position
+    cube.x += cube.vx * dt;
+    cube.y += cube.vy * dt;
+    cube.z += cube.vz * dt;
+
+    // Rotation
+    cube.rotX += cube.rotVelX + gestureState.rotVelX * 0.3;
+    cube.rotY += cube.rotVelY + gestureState.rotVelY * 0.3;
+
+    // Scale with breathing
+    const targetScale = (0.3 + (1 - idx) * 0.5) * gestureState.pinchScale * (1 + breathe);
+    cube.scaleVel += (targetScale - cube.scale) * 5 * dt;
+    cube.scaleVel *= 0.9; // Scale damping
+    cube.scale += cube.scaleVel * dt;
+    cube.scale = Math.max(0.1, Math.min(2.0, cube.scale));
+
+    // ══════════════════════════════════════════════════════════════════
+    // DAMPING
+    // ══════════════════════════════════════════════════════════════════
+    const damping = cube.damping - audio.energy * 0.05; // More energy = less damping
+    cube.vx *= damping;
+    cube.vy *= damping;
+    cube.vz *= damping;
+    cube.rotVelX *= 0.98;
+    cube.rotVelY *= 0.98;
+  }
+}
+
+/* ================================================================== */
+/*  CUBE GENERATION - From Physics State                               */
 /* ================================================================== */
 
 function generateCubeInstances(time, audio, rot4d) {
   let count = 0;
 
-  // Global breathing/pulse effect
-  const breathe = Math.sin(time * 0.8) * 0.15 + 1.0;
+  // Global effects
   const heartbeat = Math.pow(Math.sin(time * 2.5), 8) * 0.3;
 
-  // Tilt influence (accelerometer makes cubes shift dramatically)
-  const tiltX = rotationX * 0.8;
-  const tiltY = rotationY * 0.8;
+  for (let i = 0; i < NUM_CUBES && count < MAX_CUBES; i++) {
+    const cube = cubePhysics[i];
+    const idx = i / NUM_CUBES;
 
-  // ═══════════════════════════════════════════════════════════════════
-  // RING 1: MASSIVE edge cubes that go partially off-screen
-  // ═══════════════════════════════════════════════════════════════════
-  for (let i = 0; i < 8 && count < MAX_CUBES; i++) {
-    const angle = (i / 8) * Math.PI * 2 + time * 0.02;
-    const radius = 3.5;
-    const x = Math.cos(angle) * radius + tiltY * 0.5;
-    const y = Math.sin(angle) * radius + tiltX * 0.5;
-    const z = -1.5 - Math.sin(angle * 2 + time) * 0.5;
-
-    const scale = (1.2 + Math.sin(time * 0.5 + i) * 0.2) * breathe;
-    const rotX = time * 0.08 + rotationX * 0.6 + i;
-    const rotY = time * 0.06 + rotationY * 0.6;
-
-    let model = mat4Translate(x, y, z);
-    model = mat4Multiply(model, mat4RotateX(rotX));
-    model = mat4Multiply(model, mat4RotateY(rotY));
-    model = mat4Multiply(model, mat4Scale(scale));
+    // Build model matrix from physics state
+    let model = mat4Translate(cube.x, cube.y, cube.z);
+    model = mat4Multiply(model, mat4RotateX(cube.rotX));
+    model = mat4Multiply(model, mat4RotateY(cube.rotY));
+    model = mat4Multiply(model, mat4RotateZ(cube.phase + time * 0.05));
+    model = mat4Multiply(model, mat4Scale(cube.scale));
 
     const offset = count * INSTANCE_STRIDE;
     for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-    instanceData[offset + 16] = 1.5 + heartbeat;
-    instanceData[offset + 17] = audio.mid * 0.15 + i * 0.05;
-    instanceData[offset + 18] = Math.sin(time * 0.3 + i) * 1.2;
-    count++;
-  }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // RING 2: Mid-distance orbiting cubes (fast orbit)
-  // ═══════════════════════════════════════════════════════════════════
-  for (let i = 0; i < 12 && count < MAX_CUBES; i++) {
-    const angle = (i / 12) * Math.PI * 2 + time * 0.15; // Fast orbit
-    const wobble = Math.sin(time * 2 + i * 0.5) * 0.3;
-    const radius = 2.0 + wobble;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius * 0.7 + Math.cos(time + i) * 0.3; // Elliptical + wave
-    const z = -3 + Math.sin(angle * 3) * 1.5;
+    // Brightness based on depth and audio
+    const depthBrightness = 0.5 + (1 - idx) * 1.0;
+    instanceData[offset + 16] = depthBrightness * (1 + audio.bass * 0.4 + heartbeat);
 
-    const scale = (0.55 + Math.sin(time + i * 0.8) * 0.15) * breathe;
+    // Hue shift - varies by position and audio
+    instanceData[offset + 17] = audio.mid * 0.3 + idx * 0.2 + Math.sin(time * 0.2 + i) * 0.1;
 
-    let model = mat4Translate(x + tiltY * 0.3, y + tiltX * 0.3, z);
-    model = mat4Multiply(model, mat4RotateX(time * 0.2 + rotationX * 0.4));
-    model = mat4Multiply(model, mat4RotateY(time * 0.15 + i * 0.5));
-    model = mat4Multiply(model, mat4RotateZ(time * 0.1 + i));
-    model = mat4Multiply(model, mat4Scale(scale));
+    // W coordinate for 4D rotation - oscillates based on physics
+    const wBase = Math.sin(cube.phase + time * 0.3) * 1.5;
+    const wAudio = audio.bass * 0.8;
+    instanceData[offset + 18] = wBase + wAudio + (cube.scale - 0.5) * 0.5;
 
-    const offset = count * INSTANCE_STRIDE;
-    for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-    instanceData[offset + 16] = 1.2 + audio.bass * 0.4;
-    instanceData[offset + 17] = audio.mid * 0.2;
-    instanceData[offset + 18] = Math.cos(time * 0.4 + i) * 0.8;
-    count++;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════
-  // SCATTER: Random cubes filling empty spaces
-  // ═══════════════════════════════════════════════════════════════════
-  const scatterPositions = [
-    [-2.8, 2.2], [2.8, 2.2], [-2.8, -2.2], [2.8, -2.2], // far corners
-    [-1.5, 2.8], [1.5, 2.8], [-1.5, -2.8], [1.5, -2.8], // top/bottom
-    [-3.2, 0.8], [3.2, 0.8], [-3.2, -0.8], [3.2, -0.8], // sides
-    [0, 3.0], [0, -3.0], // top/bottom center
-  ];
-
-  for (let i = 0; i < scatterPositions.length && count < MAX_CUBES; i++) {
-    const [baseX, baseY] = scatterPositions[i];
-    const drift = Math.sin(time * 0.5 + i * 1.5) * 0.4;
-    const x = baseX + drift + tiltY * 0.6;
-    const y = baseY + Math.cos(time * 0.3 + i) * 0.3 + tiltX * 0.6;
-    const z = -2 - Math.sin(time * 0.4 + i * 0.7) * 1.5;
-
-    const scale = (0.5 + Math.sin(time * 0.7 + i * 2) * 0.2) * breathe;
-    const tumble = time * (0.1 + (i % 3) * 0.05);
-
-    let model = mat4Translate(x, y, z);
-    model = mat4Multiply(model, mat4RotateX(tumble + rotationX * 0.5));
-    model = mat4Multiply(model, mat4RotateY(tumble * 0.7 + rotationY * 0.5));
-    model = mat4Multiply(model, mat4Scale(scale));
-
-    const offset = count * INSTANCE_STRIDE;
-    for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-    instanceData[offset + 16] = 1.0 + heartbeat * 0.5;
-    instanceData[offset + 17] = (i / scatterPositions.length) * 0.3;
-    instanceData[offset + 18] = Math.sin(time * 0.35 + i * 0.9) * 0.6;
-    count++;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════
-  // HELIX: Double helix spiraling into the center
-  // ═══════════════════════════════════════════════════════════════════
-  for (let strand = 0; strand < 2 && count < MAX_CUBES; strand++) {
-    for (let i = 0; i < 15 && count < MAX_CUBES; i++) {
-      const t = i / 15;
-      const angle = t * Math.PI * 4 + strand * Math.PI + time * 0.12;
-      const radius = 0.3 + (1 - t) * 1.8; // Starts wide, narrows
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      const z = -4 - t * 14; // Goes deep
-
-      const scale = (0.35 - t * 0.2) * breathe;
-
-      let model = mat4Translate(x + tiltY * (1 - t) * 0.4, y + tiltX * (1 - t) * 0.4, z);
-      model = mat4Multiply(model, mat4RotateX(time * 0.1 + t * 3));
-      model = mat4Multiply(model, mat4RotateY(angle));
-      model = mat4Multiply(model, mat4Scale(scale));
-
-      const offset = count * INSTANCE_STRIDE;
-      for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-      instanceData[offset + 16] = (0.4 + (1 - t) * 0.6) * (1 + audio.bass * 0.3);
-      instanceData[offset + 17] = t * 0.2 + strand * 0.15;
-      instanceData[offset + 18] = Math.sin(t * 6.28 + time * 0.5) * (1 - t);
-      count++;
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════
-  // FLYBY: Cubes that zoom past the camera
-  // ═══════════════════════════════════════════════════════════════════
-  for (let i = 0; i < 6 && count < MAX_CUBES; i++) {
-    const phase = (time * 0.3 + i * 1.05) % 6.28;
-    const flyT = (Math.sin(phase) + 1) * 0.5; // 0 to 1 oscillating
-
-    const angle = i * 1.05;
-    const radius = 1.5 + Math.sin(i * 2) * 0.5;
-    const x = Math.cos(angle) * radius * (1 - flyT * 0.5);
-    const y = Math.sin(angle) * radius * (1 - flyT * 0.5);
-    const z = 2 - flyT * 25; // Comes from behind, flies deep
-
-    if (z < 3 && z > -20) { // Only render when in view
-      const scale = 0.4 + flyT * 0.3;
-
-      let model = mat4Translate(x, y, z);
-      model = mat4Multiply(model, mat4RotateX(time * 0.3 + i));
-      model = mat4Multiply(model, mat4RotateY(time * 0.4));
-      model = mat4Multiply(model, mat4Scale(scale * breathe));
-
-      const offset = count * INSTANCE_STRIDE;
-      for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-      instanceData[offset + 16] = 1.3 - flyT * 0.5;
-      instanceData[offset + 17] = flyT * 0.4;
-      instanceData[offset + 18] = (1 - flyT * 2) * 1.5;
-      count++;
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════════════
-  // CENTER: Pulsing heart cube
-  // ═══════════════════════════════════════════════════════════════════
-  if (count < MAX_CUBES) {
-    const pulse = 0.6 + heartbeat * 2 + audio.bass * 0.4;
-
-    let model = mat4Translate(tiltY * 0.2, tiltX * 0.2, -5);
-    model = mat4Multiply(model, mat4RotateX(time * 0.05 + rotationX * 0.3));
-    model = mat4Multiply(model, mat4RotateY(time * 0.07 + rotationY * 0.3));
-    model = mat4Multiply(model, mat4RotateZ(time * 0.03));
-    model = mat4Multiply(model, mat4Scale(pulse));
-
-    const offset = count * INSTANCE_STRIDE;
-    for (let j = 0; j < 16; j++) instanceData[offset + j] = model[j];
-    instanceData[offset + 16] = 1.8;
-    instanceData[offset + 17] = audio.mid * 0.3;
-    instanceData[offset + 18] = Math.sin(time * 0.2) * 2.0;
     count++;
   }
 
@@ -944,6 +1185,7 @@ function generateSplats(time, audio) {
 /* ================================================================== */
 
 const startTime = performance.now();
+let lastFrameTime = startTime;
 const hud = document.getElementById('hud');
 
 // 4D rotation state
@@ -957,16 +1199,23 @@ function render() {
 
   const now = performance.now();
   const time = (now - startTime) * 0.001;
+  const dt = (now - lastFrameTime) * 0.001;
+  lastFrameTime = now;
   const audio = getAudioLevels();
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PHYSICS SIMULATION
+  // ═══════════════════════════════════════════════════════════════════
+  updatePhysics(dt, time, audio);
 
   // Smooth rotation interpolation
   rotationX += (targetRotX - rotationX) * 0.08;
   rotationY += (targetRotY - rotationY) * 0.08;
 
-  // 4D rotations driven by accelerometer + time
-  rot4d.xw = rotationX * 0.5 + Math.sin(time * 0.15) * 0.3 + audio.bass * 0.4;
-  rot4d.yw = rotationY * 0.5 + Math.cos(time * 0.12) * 0.25 + audio.mid * 0.3;
-  rot4d.zw = Math.sin(time * 0.1) * 0.2 + audio.high * 0.2;
+  // 4D rotations driven by accelerometer + time + gesture momentum
+  rot4d.xw = rotationX * 0.5 + Math.sin(time * 0.15) * 0.3 + audio.bass * 0.4 + gestureState.rotVelX * 2;
+  rot4d.yw = rotationY * 0.5 + Math.cos(time * 0.12) * 0.25 + audio.mid * 0.3 + gestureState.rotVelY * 2;
+  rot4d.zw = Math.sin(time * 0.1) * 0.2 + audio.high * 0.2 + gestureState.shockwave * 0.5;
 
   // Animated moiré
   moirePhase = 1.01 + Math.sin(time * 1.5) * 0.005 + Math.sin(time * 0.7) * 0.003;
@@ -1060,7 +1309,8 @@ function render() {
   if (hud) {
     const cam = videoReady ? 'CAM' : 'NO-CAM';
     const acc = accelEnabled ? 'GYRO' : 'MOUSE';
-    hud.textContent = `${cubeCount} cubes | ${(splatCount/1000).toFixed(0)}K splats | ${cam} | ${acc} | 4D: ${rot4d.xw.toFixed(1)},${rot4d.yw.toFixed(1)},${rot4d.zw.toFixed(1)}`;
+    const formTime = Math.ceil(15 - formationTimer);
+    hud.textContent = `${cubeCount} cubes | ${currentFormation} (${formTime}s) | ${cam} | ${acc} | 4D: ${rot4d.xw.toFixed(1)},${rot4d.yw.toFixed(1)},${rot4d.zw.toFixed(1)}`;
   }
 }
 
@@ -1083,4 +1333,45 @@ document.getElementById('startBtn').addEventListener('click', async () => {
 window.addEventListener('resize', () => {
   canvas.width = window.innerWidth * devicePixelRatio;
   canvas.height = window.innerHeight * devicePixelRatio;
+});
+
+// Keyboard controls
+window.addEventListener('keydown', (e) => {
+  switch(e.key) {
+    case '1': case '2': case '3': case '4': case '5': case '6':
+      // Number keys switch formations
+      formationIndex = parseInt(e.key) - 1;
+      currentFormation = FORMATIONS[formationIndex];
+      formationTimer = 0;
+      break;
+    case ' ':
+      // Space creates shockwave at center
+      gestureState.shockwave = 1.0;
+      gestureState.shockwaveOrigin = [0, 0];
+      break;
+    case 'ArrowLeft':
+      gestureState.swipeVelX = -2;
+      break;
+    case 'ArrowRight':
+      gestureState.swipeVelX = 2;
+      break;
+    case 'ArrowUp':
+      gestureState.swipeVelY = 2;
+      break;
+    case 'ArrowDown':
+      gestureState.swipeVelY = -2;
+      break;
+    case 'z':
+    case 'Z':
+      // Zoom in
+      gestureState.pinchTarget = Math.min(3.0, gestureState.pinchTarget * 1.2);
+      gestureState.impulseZ += 0.5;
+      break;
+    case 'x':
+    case 'X':
+      // Zoom out
+      gestureState.pinchTarget = Math.max(0.3, gestureState.pinchTarget * 0.8);
+      gestureState.impulseZ -= 0.5;
+      break;
+  }
 });

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>VIB3+ Camera Hypercube Mandala — Sacred Geometry</title>
+  <title>VIB3+ Camera Hypercube Mandala</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
@@ -23,7 +23,7 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text; margin-bottom: 12px;
     }
-    #startOverlay p { color: #aaa; font-size: 14px; margin-bottom: 28px; max-width: 420px; text-align: center; line-height: 1.5; }
+    #startOverlay p { color: #aaa; font-size: 14px; margin-bottom: 28px; max-width: 420px; text-align: center; line-height: 1.5; padding: 0 20px; }
     #startBtn {
       padding: 14px 40px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer;
       background: linear-gradient(135deg, #00ffff, #ff00ff); color: #000; font-weight: 700;
@@ -31,21 +31,55 @@
     }
     #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(0,255,255,0.4); }
     .info-hud {
-      position: fixed; bottom: 16px; left: 16px; z-index: 5;
-      color: rgba(255,255,255,0.5); font: 12px/1.4 monospace;
-      pointer-events: none;
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 5;
+      color: rgba(255,255,255,0.6); font: 14px/1.4 monospace;
+      pointer-events: none; text-align: center;
+    }
+    /* Touch Controls */
+    .touch-controls {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 5;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 8px; background: linear-gradient(transparent, rgba(0,0,0,0.6));
+    }
+    .touch-controls.hidden { display: none; }
+    .touch-btn {
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(0,0,0,0.4);
+      color: #fff; font-size: 24px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.1s, background 0.1s;
+    }
+    .touch-btn:active {
+      transform: scale(0.9);
+      background: rgba(0,255,255,0.3);
+    }
+    .formation-name {
+      color: rgba(255,255,255,0.8);
+      font: bold 16px/1 monospace;
+      text-align: center;
+      flex: 1;
+      text-transform: uppercase;
+      letter-spacing: 2px;
     }
   </style>
 </head>
 <body>
   <div id="startOverlay">
-    <h1>Camera Hypercube Mandala</h1>
-    <p>160 camera-textured cubes in hypnotic mathematical formations — golden spirals, torus knots, sacred geometry. Cubes extend from your face to infinity. 8 formations auto-morph every 20s. Slow, dreamy motion. Keys: 1-8 formations, Space pulse, Z/X zoom.</p>
-    <button id="startBtn">Enter the Mandala</button>
+    <h1>Camera Hypercube</h1>
+    <p>160 cubes with your camera. Swipe to spin, pinch to zoom, double-tap for pulse. Tap arrows to change formation.</p>
+    <button id="startBtn">START</button>
   </div>
   <canvas id="gl"></canvas>
   <div class="info-hud">
     <div id="hud"></div>
+  </div>
+  <div class="touch-controls hidden" id="touchControls">
+    <button class="touch-btn" id="prevBtn">◀</button>
+    <div class="formation-name" id="formationName">VORTEX</div>
+    <button class="touch-btn" id="nextBtn">▶</button>
   </div>
   <script type="module" src="./camera-fractal-cube.js"></script>
 </body>

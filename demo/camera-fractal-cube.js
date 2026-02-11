@@ -1404,12 +1404,13 @@ function render() {
   gl.disable(gl.BLEND);
   gl.bindVertexArray(null);
 
-  // HUD
+  // HUD + touch controls update
   if (hud) {
-    const cam = videoReady ? 'CAM' : 'NO-CAM';
-    const acc = accelEnabled ? 'GYRO' : 'MOUSE';
-    const formTime = Math.ceil(20 - formationTimer);
-    hud.textContent = `${cubeCount} cubes | ${currentFormation} (${formTime}s) | ${cam} | ${acc}`;
+    hud.textContent = `${cubeCount} cubes | ${currentFormation}`;
+  }
+  const formNameEl = document.getElementById('formationName');
+  if (formNameEl) {
+    formNameEl.textContent = currentFormation;
   }
 }
 
@@ -1419,6 +1420,7 @@ function render() {
 
 document.getElementById('startBtn').addEventListener('click', async () => {
   document.getElementById('startOverlay').classList.add('hidden');
+  document.getElementById('touchControls').classList.remove('hidden');
 
   // Request accelerometer permission on iOS
   initAccelerometer();
@@ -1426,6 +1428,28 @@ document.getElementById('startBtn').addEventListener('click', async () => {
   await Promise.all([startCamera(), initAudio()]);
 
   requestAnimationFrame(render);
+});
+
+// Touch control buttons
+document.getElementById('prevBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  formationIndex = (formationIndex - 1 + FORMATIONS.length) % FORMATIONS.length;
+  currentFormation = FORMATIONS[formationIndex];
+  formationTimer = 0;
+});
+
+document.getElementById('nextBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  formationIndex = (formationIndex + 1) % FORMATIONS.length;
+  currentFormation = FORMATIONS[formationIndex];
+  formationTimer = 0;
+});
+
+// Tap center formation name for shockwave
+document.getElementById('formationName').addEventListener('click', (e) => {
+  e.stopPropagation();
+  gestureState.shockwave = 0.8;
+  gestureState.shockwaveOrigin = [0, 0];
 });
 
 // Handle resize

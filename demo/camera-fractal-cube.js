@@ -507,6 +507,97 @@ gl.vertexAttribDivisor(cubeLocs.a_wCoord, 1);
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeEBO);
 gl.bindVertexArray(null);
 
+/* ================================================================== */
+/*  TETRAHEDRON GEOMETRY - 4 faces, each camera-textured               */
+/* ================================================================== */
+
+// Regular tetrahedron vertices (radius ~1)
+const S = 1.0;
+const tv0 = [0, S * 1.2, 0];          // Top
+const tv1 = [0, -S * 0.4, S * 1.1];   // Front
+const tv2 = [-S * 0.95, -S * 0.4, -S * 0.55]; // Back-left
+const tv3 = [S * 0.95, -S * 0.4, -S * 0.55];  // Back-right
+
+// Face normals (pointing outward)
+function triNormal(a, b, c) {
+  const e1 = [b[0]-a[0], b[1]-a[1], b[2]-a[2]];
+  const e2 = [c[0]-a[0], c[1]-a[1], c[2]-a[2]];
+  const n = [e1[1]*e2[2]-e1[2]*e2[1], e1[2]*e2[0]-e1[0]*e2[2], e1[0]*e2[1]-e1[1]*e2[0]];
+  const len = Math.sqrt(n[0]*n[0]+n[1]*n[1]+n[2]*n[2]);
+  return [n[0]/len, n[1]/len, n[2]/len];
+}
+
+const fn0 = triNormal(tv0, tv1, tv3); // Front face
+const fn1 = triNormal(tv0, tv2, tv1); // Left face
+const fn2 = triNormal(tv0, tv3, tv2); // Right/back face
+const fn3 = triNormal(tv1, tv2, tv3); // Bottom face
+
+// 4 faces × 3 verts × 8 floats (pos3 + uv2 + normal3) = 96 floats
+// Each face gets full camera UVs
+function tetraFace(a, b, c, n) {
+  return [
+    ...a, 0.0, 1.0, ...n,  // top of triangle
+    ...b, 0.0, 0.0, ...n,  // bottom-left
+    ...c, 1.0, 0.0, ...n,  // bottom-right
+  ];
+}
+
+const tetraVertices = new Float32Array([
+  ...tetraFace(tv0, tv1, tv3, fn0), // Front
+  ...tetraFace(tv0, tv2, tv1, fn1), // Left
+  ...tetraFace(tv0, tv3, tv2, fn2), // Right/back
+  ...tetraFace(tv1, tv2, tv3, fn3), // Bottom
+]);
+
+const tetraIndices = new Uint16Array([
+  0,1,2, 3,4,5, 6,7,8, 9,10,11
+]);
+
+const tetraVBO = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, tetraVBO);
+gl.bufferData(gl.ARRAY_BUFFER, tetraVertices, gl.STATIC_DRAW);
+
+const tetraEBO = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tetraEBO);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, tetraIndices, gl.STATIC_DRAW);
+
+// 1-instance buffer for tetrahedron
+const tetraInstanceData = new Float32Array(INSTANCE_STRIDE);
+const tetraInstanceVBO = gl.createBuffer();
+
+const tetraVAO = gl.createVertexArray();
+gl.bindVertexArray(tetraVAO);
+
+// Vertex attribs (same layout as cube)
+gl.bindBuffer(gl.ARRAY_BUFFER, tetraVBO);
+gl.enableVertexAttribArray(cubeLocs.a_position);
+gl.vertexAttribPointer(cubeLocs.a_position, 3, gl.FLOAT, false, 32, 0);
+gl.enableVertexAttribArray(cubeLocs.a_uv);
+gl.vertexAttribPointer(cubeLocs.a_uv, 2, gl.FLOAT, false, 32, 12);
+gl.enableVertexAttribArray(cubeLocs.a_normal);
+gl.vertexAttribPointer(cubeLocs.a_normal, 3, gl.FLOAT, false, 32, 20);
+
+// Instance attribs
+gl.bindBuffer(gl.ARRAY_BUFFER, tetraInstanceVBO);
+const tbpi = INSTANCE_STRIDE * 4;
+for (let i = 0; i < 4; i++) {
+  gl.enableVertexAttribArray(cubeLocs.a_model + i);
+  gl.vertexAttribPointer(cubeLocs.a_model + i, 4, gl.FLOAT, false, tbpi, i * 16);
+  gl.vertexAttribDivisor(cubeLocs.a_model + i, 1);
+}
+gl.enableVertexAttribArray(cubeLocs.a_brightness);
+gl.vertexAttribPointer(cubeLocs.a_brightness, 1, gl.FLOAT, false, tbpi, 64);
+gl.vertexAttribDivisor(cubeLocs.a_brightness, 1);
+gl.enableVertexAttribArray(cubeLocs.a_hueShift);
+gl.vertexAttribPointer(cubeLocs.a_hueShift, 1, gl.FLOAT, false, tbpi, 68);
+gl.vertexAttribDivisor(cubeLocs.a_hueShift, 1);
+gl.enableVertexAttribArray(cubeLocs.a_wCoord);
+gl.vertexAttribPointer(cubeLocs.a_wCoord, 1, gl.FLOAT, false, tbpi, 72);
+gl.vertexAttribDivisor(cubeLocs.a_wCoord, 1);
+
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tetraEBO);
+gl.bindVertexArray(null);
+
 // BG quad
 const bgVerts = new Float32Array([-1,-1, 1,-1, -1,1, 1,-1, 1,1, -1,1]);
 const bgVBO = gl.createBuffer();
@@ -764,8 +855,8 @@ function initCubePhysics() {
       vx: 0, vy: 0, vz: 0,
       rotX: Math.random() * TAU,
       rotY: Math.random() * TAU,
-      rotVelX: (Math.random() - 0.5) * 0.005,  // Slower rotation
-      rotVelY: (Math.random() - 0.5) * 0.005,
+      rotVelX: (Math.random() - 0.5) * 0.001,  // Very slow rotation
+      rotVelY: (Math.random() - 0.5) * 0.001,
       scale: 0.5,
       scaleVel: 0,
       phase: Math.random() * TAU,
@@ -1147,9 +1238,9 @@ function updatePhysics(dt, time, audio) {
       cube.vy += Math.sin(angle) * force;
     }
 
-    // Mids create very slow rotation (hypnotic)
-    cube.rotVelX += audio.mid * 0.003;
-    cube.rotVelY += audio.mid * 0.002;
+    // Mids create glacial rotation
+    cube.rotVelX += audio.mid * 0.0005;
+    cube.rotVelY += audio.mid * 0.0003;
 
     // Highs create minimal jitter - almost imperceptible
     const jitter = audio.high * 0.02;
@@ -1161,7 +1252,7 @@ function updatePhysics(dt, time, audio) {
     // ══════════════════════════════════════════════════════════════════
     // Golden ratio phase offset for elegant coordination
     const phiPhase = idx * PHI * 10;
-    const waveInfluence = Math.sin(time * 0.5 + phiPhase) * 0.005;
+    const waveInfluence = Math.sin(time * 0.3 + phiPhase) * 0.001;
     cube.rotVelX += waveInfluence;
     cube.rotVelY += waveInfluence * PHI_INV;
 
@@ -1173,9 +1264,9 @@ function updatePhysics(dt, time, audio) {
     cube.y += cube.vy * dt;
     cube.z += cube.vz * dt;
 
-    // Rotation - very slow, hypnotic
-    cube.rotX += (cube.rotVelX + gestureState.rotVelX * 0.1) * 0.3;
-    cube.rotY += (cube.rotVelY + gestureState.rotVelY * 0.1) * 0.3;
+    // Rotation - glacial, you can always see the camera feed
+    cube.rotX += (cube.rotVelX + gestureState.rotVelX * 0.03) * 0.1;
+    cube.rotY += (cube.rotVelY + gestureState.rotVelY * 0.03) * 0.1;
 
     // Scale based on depth - bigger when close, smaller when far
     // Cubes close to camera (z > 0) are larger, distant ones smaller
@@ -1217,7 +1308,7 @@ function generateCubeInstances(time, audio, rot4d) {
     let model = mat4Translate(cube.x, cube.y, cube.z);
     model = mat4Multiply(model, mat4RotateX(cube.rotX));
     model = mat4Multiply(model, mat4RotateY(cube.rotY));
-    model = mat4Multiply(model, mat4RotateZ(cube.phase + time * 0.02));  // Slower Z rotation
+    model = mat4Multiply(model, mat4RotateZ(cube.phase + time * 0.005)); // Glacial Z rotation
     model = mat4Multiply(model, mat4Scale(cube.scale));
 
     const offset = count * INSTANCE_STRIDE;
@@ -1382,6 +1473,38 @@ function render() {
 
   gl.bindVertexArray(cubeVAO);
   gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0, cubeCount);
+
+  // --- Tetrahedron - big, orientation-locked, eye-to-eye ---
+  {
+    // Position: close to camera, centered
+    const tetraZ = 1.5; // Close to viewer
+    const tetraScale = 2.0; // Big
+
+    // Rotation follows device orientation - face always toward viewer
+    // Smooth tilt creates "facet hold" - each face locks into view
+    // Quantize rotation to nearest face for "locked" feel
+    const tiltX = rotationX * 0.4;
+    const tiltY = rotationY * 0.4;
+
+    // Very slow autonomous spin so it's not static
+    const autoSpin = time * 0.02;
+
+    let tModel = mat4Translate(0, 0, tetraZ);
+    tModel = mat4Multiply(tModel, mat4RotateX(tiltX + autoSpin));
+    tModel = mat4Multiply(tModel, mat4RotateY(tiltY + autoSpin * PHI_INV));
+    tModel = mat4Multiply(tModel, mat4Scale(tetraScale));
+
+    for (let j = 0; j < 16; j++) tetraInstanceData[j] = tModel[j];
+    tetraInstanceData[16] = 1.5; // brightness
+    tetraInstanceData[17] = 0;   // no hue shift - pure camera
+    tetraInstanceData[18] = Math.sin(time * 0.1) * 0.5; // subtle 4D
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, tetraInstanceVBO);
+    gl.bufferData(gl.ARRAY_BUFFER, tetraInstanceData, gl.DYNAMIC_DRAW);
+
+    gl.bindVertexArray(tetraVAO);
+    gl.drawElementsInstanced(gl.TRIANGLES, 12, gl.UNSIGNED_SHORT, 0, 1);
+  }
 
   // --- Splats ---
   const splatCount = generateSplats(time, audio);

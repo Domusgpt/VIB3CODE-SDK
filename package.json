@@ -287,6 +287,7 @@
     "build:web": "vite build",
     "build:demo": "vite build --config vite.config.demo.js",
     "build:invest": "vite build --config vite.config.invest.js",
+    "build:camera": "vite build --config vite.config.camera.js",
     "lint": "eslint \"src/**/*.{js,ts}\"",
     "test": "vitest run",
     "test:e2e": "playwright test",

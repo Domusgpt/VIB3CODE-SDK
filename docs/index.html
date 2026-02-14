@@ -445,7 +445,8 @@
             Four rendering paradigms. One frame.
         </p>
         <a href="investment-demo.html" class="launch-btn" style="background:linear-gradient(135deg,#5b9cf5,#a78bfa);margin-right:12px;">Investment Demo</a>
-        <a href="hybrid-demo.html" class="launch-btn">Launch Interactive Demo</a>
+        <a href="hybrid-demo.html" class="launch-btn" style="margin-right:12px;">Launch Interactive Demo</a>
+        <a href="camera-fractal-cube.html" class="launch-btn" style="background:linear-gradient(135deg,#00ffff,#ff00ff);margin-top:12px;">Camera Fractal Cube</a>
         <div class="meta">
             <div class="meta-item">
                 <span class="meta-value">4</span>
@@ -659,6 +660,23 @@ pipeline.<span class="function">setSceneRenderer</span>(scene); <span class="com
                     </div>
                 </div>
                 <a href="hybrid-demo.html" style="flex-shrink: 0; display: inline-block; padding: 16px 36px; background: var(--accent2); color: #000; text-decoration: none; font-weight: bold; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; border-radius: 8px; transition: all 0.2s;">Launch Demo</a>
+            </div>
+            <div style="background: var(--card-bg); border: 1px solid var(--accent); border-radius: 12px; padding: 28px; display: flex; align-items: center; gap: 30px; flex-wrap: wrap; margin-top: 16px;">
+                <div style="flex: 1; min-width: 260px;">
+                    <h3 style="margin-top: 0; font-size: 15px;">Camera Fractal Cube &mdash; Vortex Funnel</h3>
+                    <p style="font-size: 11px; color: var(--dim); margin: 12px 0; line-height: 1.6;">
+                        Fixed camera looking into a fractal tornado. Center cube at back, 4 spiral arms
+                        emerge toward viewer. Each cube scaled by the plastic ratio (&rho; &asymp; 1.3247),
+                        live webcam texture on every face.
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 10px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(0,0,0,0.3); border-radius: 4px;"><span style="color: var(--dim);">Camera</span><span style="color: var(--green); font-family: monospace;">Live</span></div>
+                        <div style="display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(0,0,0,0.3); border-radius: 4px;"><span style="color: var(--dim);">Arms</span><span style="color: var(--green); font-family: monospace;">4</span></div>
+                        <div style="display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(0,0,0,0.3); border-radius: 4px;"><span style="color: var(--dim);">Ratio</span><span style="color: var(--green); font-family: monospace;">&rho;</span></div>
+                        <div style="display: flex; justify-content: space-between; padding: 4px 8px; background: rgba(0,0,0,0.3); border-radius: 4px;"><span style="color: var(--dim);">WebGL2</span><span style="color: var(--green); font-family: monospace;">Yes</span></div>
+                    </div>
+                </div>
+                <a href="camera-fractal-cube.html" style="flex-shrink: 0; display: inline-block; padding: 16px 36px; background: linear-gradient(135deg, #00ffff, #ff00ff); color: #000; text-decoration: none; font-weight: bold; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; border-radius: 8px; transition: all 0.2s;">Launch Demo</a>
             </div>
         </section>
 

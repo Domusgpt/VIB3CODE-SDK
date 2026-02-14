@@ -1420,7 +1420,8 @@ function render() {
 
 document.getElementById('startBtn').addEventListener('click', async () => {
   document.getElementById('startOverlay').classList.add('hidden');
-  document.getElementById('touchControls').classList.remove('hidden');
+  const tc = document.getElementById('touchControls');
+  if (tc) tc.classList.remove('hidden');
 
   // Request accelerometer permission on iOS
   initAccelerometer();
@@ -1431,14 +1432,19 @@ document.getElementById('startBtn').addEventListener('click', async () => {
 });
 
 // Touch control buttons
-document.getElementById('prevBtn').addEventListener('click', (e) => {
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const formNameBtn = document.getElementById('formationName');
+const touchControlsEl = document.getElementById('touchControls');
+
+if (prevBtn) prevBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   formationIndex = (formationIndex - 1 + FORMATIONS.length) % FORMATIONS.length;
   currentFormation = FORMATIONS[formationIndex];
   formationTimer = 0;
 });
 
-document.getElementById('nextBtn').addEventListener('click', (e) => {
+if (nextBtn) nextBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   formationIndex = (formationIndex + 1) % FORMATIONS.length;
   currentFormation = FORMATIONS[formationIndex];
@@ -1446,7 +1452,7 @@ document.getElementById('nextBtn').addEventListener('click', (e) => {
 });
 
 // Tap center formation name for shockwave
-document.getElementById('formationName').addEventListener('click', (e) => {
+if (formNameBtn) formNameBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   gestureState.shockwave = 0.8;
   gestureState.shockwaveOrigin = [0, 0];

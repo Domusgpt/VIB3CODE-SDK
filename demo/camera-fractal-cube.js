@@ -70,6 +70,7 @@ in float v_depth;
 uniform sampler2D u_camTex;
 uniform float u_time;
 uniform float u_alpha;
+uniform float u_audio;
 uniform float u_spiralIndex;  // which cube in the spiral (0 = center)
 uniform float u_armIndex;     // which arm (0-3)
 
@@ -83,8 +84,12 @@ void main() {
   uv.x = 1.0 - uv.x;
   uv.y = 1.0 - uv.y;
 
-  // Sample camera texture
-  vec4 cam = texture(u_camTex, uv);
+  // Sample camera texture with subtle chromatic offsets
+  vec2 aberr = vec2(0.002 + u_audio * 0.004, -0.0015);
+  float camR = texture(u_camTex, uv + aberr).r;
+  float camG = texture(u_camTex, uv).g;
+  float camB = texture(u_camTex, uv - aberr).b;
+  vec4 cam = vec4(camR, camG, camB, 1.0);
 
   // Soft lighting
   vec3 lightDir = normalize(vec3(0.3, 0.8, 0.5));
@@ -107,7 +112,8 @@ void main() {
                 * smoothstep(vec2(0.0), vec2(0.03), 1.0 - v_uv);
   float edgeMask = edgeDist.x * edgeDist.y;
   float edge = 1.0 - edgeMask;
-  vec3 edgeCol = vec3(0.0, 1.0, 1.0) * edge * 0.25;
+  float moire = sin((v_uv.x + v_uv.y + u_time * 0.2) * 120.0) * 0.5 + 0.5;
+  vec3 edgeCol = vec3(0.0, 1.0, 1.0) * edge * (0.15 + 0.2 * moire);
 
   col = col * edgeMask + edgeCol;
 
@@ -207,7 +213,7 @@ const cubeFS = compileShader(FRAG, gl.FRAGMENT_SHADER);
 const cubeProg = linkProgram(cubeVS, cubeFS);
 const cubeU = getUniforms(cubeProg, [
   'u_proj', 'u_view', 'u_model', 'u_camTex', 'u_time',
-  'u_alpha', 'u_spiralIndex', 'u_armIndex'
+  'u_alpha', 'u_spiralIndex', 'u_armIndex', 'u_audio'
 ]);
 
 // Background program
@@ -521,15 +527,22 @@ const interaction = {
   panY: 0,
   zoom: 0,
   swirl: 0,
+  morph: 0,
   targetPanX: 0,
   targetPanY: 0,
   targetZoom: 0,
   targetSwirl: 0,
+  targetMorph: 0,
 };
 
 const pointers = new Map();
 let lastPinchDistance = null;
 let lastPinchAngle = null;
+const motionState = { x: 0, y: 0, z: 0, rotZ: 0 };
+let audioLevel = 0;
+let audioContext = null;
+let analyser = null;
+let audioData = null;
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -537,6 +550,7 @@ const updateTargets = (dx, dy) => {
   interaction.targetPanX += dx * 0.002;
   interaction.targetPanY -= dy * 0.002;
   interaction.targetSwirl += dx * 0.0025;
+  interaction.targetMorph = clamp(interaction.targetMorph + dy * 0.0015, -1.5, 1.5);
 };
 
 const onPointerDown = (event) => {
@@ -594,6 +608,44 @@ canvas.addEventListener('wheel', (event) => {
   interaction.targetSwirl += event.deltaX * 0.0008;
 }, { passive: true });
 
+const handleDeviceMotion = (event) => {
+  const accel = event.accelerationIncludingGravity || event.acceleration;
+  if (!accel) return;
+  motionState.x = accel.x || 0;
+  motionState.y = accel.y || 0;
+  motionState.z = accel.z || 0;
+  if (event.rotationRate && event.rotationRate.alpha != null) {
+    motionState.rotZ = event.rotationRate.alpha * 0.01;
+  }
+};
+
+const requestMotionAccess = async () => {
+  if (!('DeviceMotionEvent' in window)) return;
+  if (typeof DeviceMotionEvent.requestPermission === 'function') {
+    try {
+      const result = await DeviceMotionEvent.requestPermission();
+      if (result !== 'granted') return;
+    } catch (err) {
+      console.warn('Device motion permission denied', err);
+      return;
+    }
+  }
+  window.addEventListener('devicemotion', handleDeviceMotion);
+};
+
+const initAudio = async () => {
+  if (!navigator.mediaDevices?.getUserMedia) return;
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    audioData = new Uint8Array(analyser.frequencyBinCount);
+  }
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const source = audioContext.createMediaStreamSource(stream);
+  source.connect(analyser);
+};
+
 // ─── Fixed Camera ────────────────────────────────────────────────────────────
 
 function getFixedCamera() {
@@ -616,7 +668,7 @@ function getFixedCamera() {
 
 let startTime = 0;
 const hud = document.getElementById('hud');
-const hudHelp = 'drag: pan • pinch: zoom • twist: swirl';
+  const hudHelp = 'drag: pan • pinch: zoom • twist: swirl • sound + tilt';
 
 function render(now) {
   requestAnimationFrame(render);
@@ -628,6 +680,17 @@ function render(now) {
   interaction.panY += (interaction.targetPanY - interaction.panY) * 0.14;
   interaction.zoom += (interaction.targetZoom - interaction.zoom) * 0.14;
   interaction.swirl += (interaction.targetSwirl - interaction.swirl) * 0.14;
+  interaction.morph += (interaction.targetMorph - interaction.morph) * 0.14;
+
+  if (analyser && audioData) {
+    analyser.getByteFrequencyData(audioData);
+    let sum = 0;
+    for (let i = 0; i < audioData.length; i++) sum += audioData[i];
+    const avg = sum / (audioData.length * 255);
+    audioLevel = audioLevel * 0.8 + avg * 0.2;
+  } else {
+    audioLevel *= 0.98;
+  }
 
   updateCamTexture();
 
@@ -653,6 +716,7 @@ function render(now) {
   gl.uniformMatrix4fv(cubeU.u_proj, false, proj);
   gl.uniformMatrix4fv(cubeU.u_view, false, view);
   gl.uniform1f(cubeU.u_time, t);
+  gl.uniform1f(cubeU.u_audio, audioLevel);
   gl.uniform1i(cubeU.u_camTex, 0);
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, camTex);
@@ -664,30 +728,33 @@ function render(now) {
   for (const c of sorted) {
     // Build model matrix: translate, rotate, scale
     // Add gentle animation to rotation
-    const flow = t * (0.6 + c.flowSpeed) + c.seed + interaction.swirl * 1.5;
+    const motionBoost = (Math.abs(motionState.x) + Math.abs(motionState.y)) * 0.04;
+    const flow = t * (0.6 + c.flowSpeed + motionBoost) + c.seed + interaction.swirl * 1.5;
     const orbit = c.orbitRadius + Math.sin(flow + c.spiralIndex) * (0.4 + c.sizeBias * 0.15);
-    const wave = Math.sin(flow * 0.7 + c.seed) * 0.6;
-    const pulse = 0.08 + 0.14 * Math.sin(flow * 1.3 + c.spiralIndex * 0.2);
+    const wave = Math.sin(flow * 0.7 + c.seed) * (0.6 + audioLevel * 1.2);
+    const pulse = 0.08 + 0.14 * Math.sin(flow * 1.3 + c.spiralIndex * 0.2 + audioLevel * 3.0);
 
-    const fieldX = Math.cos(flow + c.armIndex) * orbit;
-    const fieldY = Math.sin(flow * 1.35 + c.armIndex) * orbit * (0.6 + 0.25 * Math.sin(flow));
-    const fieldZ = wave + c.depthBias;
+    const morphWarp = interaction.morph * 0.8;
+    const fieldX = Math.cos(flow + c.armIndex + morphWarp) * orbit;
+    const fieldY = Math.sin(flow * 1.35 + c.armIndex - morphWarp) * orbit * (0.6 + 0.25 * Math.sin(flow));
+    const fieldZ = wave + c.depthBias + motionState.z * 0.08;
 
     const typeSpin = c.type === 2 ? 1.4 : c.type === 1 ? 0.9 : 0.6;
-    const animRotY = c.rotation[1] + t * 0.35 * typeSpin + interaction.swirl * 0.9;
-    const animRotX = c.rotation[0] + Math.sin(flow + c.spiralIndex) * 0.22 + interaction.panY * 0.5;
-    const animRotZ = c.rotation[2] + Math.sin(flow * 1.1 + c.armIndex) * 0.18 + interaction.panX * 0.35;
+    const audioSpin = audioLevel * 1.2 + motionState.rotZ * 0.4;
+    const animRotY = c.rotation[1] + t * 0.35 * typeSpin + interaction.swirl * 0.9 + audioSpin;
+    const animRotX = c.rotation[0] + Math.sin(flow + c.spiralIndex) * 0.22 + interaction.panY * 0.5 + motionState.y * 0.02;
+    const animRotZ = c.rotation[2] + Math.sin(flow * 1.1 + c.armIndex) * 0.18 + interaction.panX * 0.35 + motionState.x * 0.02;
 
     let model = mat4Translate(
       c.pos[0] + fieldX + interaction.panX * 1.1,
       c.pos[1] + fieldY + interaction.panY * 1.1,
-      c.pos[2] + fieldZ - interaction.zoom * 1.1,
+      c.pos[2] + fieldZ - interaction.zoom * 1.1 + audioLevel * 1.4,
     );
     model = mat4Multiply(model, mat4RotY(animRotY));
     model = mat4Multiply(model, mat4RotX(animRotX));
     model = mat4Multiply(model, mat4RotZ(animRotZ));
     const typeScale = c.type === 2 ? 1.35 : c.type === 1 ? 0.9 : 0.7;
-    model = mat4Multiply(model, mat4Scale(c.scale * typeScale * (1 + interaction.zoom * 0.18 + pulse)));
+    model = mat4Multiply(model, mat4Scale(c.scale * typeScale * (1 + interaction.zoom * 0.18 + pulse + audioLevel * 0.25)));
 
     gl.uniformMatrix4fv(cubeU.u_model, false, model);
     const alphaBoost = c.type === 2 ? 1.0 : c.type === 1 ? 0.88 : 0.78;
@@ -725,6 +792,8 @@ const requestCamera = () => {
   if (cameraRequested) return;
   cameraRequested = true;
   overlay.classList.add('hidden');
+  requestMotionAccess();
+  initAudio().catch((err) => console.warn('Audio init failed', err));
   startCamera();
 };
 
